@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "433719632695",
+    "project_id": "kaig-28620",
+    "storage_bucket": "kaig-28620.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:433719632695:android:4af1b894269eec13a6b0b2",
+        "android_client_info": {
+          "package_name": "com.CPD.kaig"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBSSb3XFAVPEWhiPOk1XHAzK04M6lELt5A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:433719632695:android:20881b590c7e51b3a6b0b2",
+        "android_client_info": {
+          "package_name": "com.CPD.kaig.kaig"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBSSb3XFAVPEWhiPOk1XHAzK04M6lELt5A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
