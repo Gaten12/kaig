@@ -68,12 +68,15 @@ class AuthService {
       User? newUser = userCredential.user;
 
       if (newUser != null) {
+        // UserModel TIDAK menyimpan namaLengkap secara langsung berdasarkan definisi UserModel Anda.
+        // namaLengkap dari userDataDaftar akan disimpan di primaryPassengerData.
         UserModel userForFirestore = UserModel(
           id: newUser.uid,
           email: newUser.email ?? userDataDaftar.email,
           noTelepon: userDataDaftar.noTelepon,
           role: 'costumer',
           createdAt: Timestamp.now(),
+          // namaLengkap: userDataDaftar.namaLengkap, // Dihapus karena UserModel Anda tidak punya field ini
         );
         await _firestore.collection('users').doc(newUser.uid).set(userForFirestore.toFirestore());
 
@@ -159,5 +162,57 @@ class AuthService {
       print("Error saat sendPasswordResetEmail (catch umum): $e");
       throw Exception("Terjadi kesalahan saat mengirim email reset kata sandi.");
     }
+  }
+
+  // --- Passenger CRUD ---
+  CollectionReference<PassengerModel> _passengersCollection(String uid) {
+    return _firestore
+        .collection('users')
+        .doc(uid)
+        .collection('passengers')
+        .withConverter<PassengerModel>(
+      fromFirestore: (snapshots, _) => PassengerModel.fromFirestore(snapshots),
+      toFirestore: (passenger, _) => passenger.toFirestore(),
+    );
+  }
+
+  Stream<List<PassengerModel>> getSavedPassengers(String uid) {
+    print("[AuthService] Mengambil daftar penumpang untuk UID: $uid");
+    return _passengersCollection(uid)
+        .orderBy('isPrimary', descending: true) // Penumpang utama (jika ada) di atas
+        .orderBy('namaLengkap') // Kemudian urutkan berdasarkan nama
+        .snapshots()
+        .map((snapshot) {
+      print("[AuthService] Daftar penumpang snapshot diterima, jumlah: ${snapshot.docs.length}");
+      return snapshot.docs.map((doc) => doc.data()).toList();
+    })
+        .handleError((error) {
+      print("[AuthService] Error mengambil daftar penumpang: $error");
+      return []; // Kembalikan list kosong jika ada error
+    });
+  }
+
+  Future<void> addPassenger(String uid, PassengerModel passenger) {
+    print("[AuthService] Menambahkan penumpang baru untuk UID: $uid, Nama: ${passenger.namaLengkap}");
+    // isPrimary seharusnya false untuk penumpang yang ditambahkan dari menu "Daftar Penumpang"
+    // kecuali ada logika khusus. Untuk sekarang, kita asumsikan isPrimary di-set dengan benar
+    // sebelum memanggil metode ini (misalnya, selalu false).
+    return _passengersCollection(uid).add(passenger);
+  }
+
+  Future<void> updatePassenger(String uid, PassengerModel passenger) {
+    if (passenger.id == null) {
+      print("[AuthService] Error: Passenger ID tidak boleh null untuk update.");
+      throw Exception("Passenger ID tidak boleh null untuk update");
+    }
+    print("[AuthService] Mengupdate penumpang ID: ${passenger.id} untuk UID: $uid");
+    return _passengersCollection(uid).doc(passenger.id).update(passenger.toFirestore());
+  }
+
+  Future<void> deletePassenger(String uid, String passengerId) {
+    // Tambahkan pengecekan agar tidak bisa menghapus penumpang utama (isPrimary: true)
+    // dari fungsi generik ini. Pengecekan sebaiknya ada di UI atau sebelum memanggil ini.
+    print("[AuthService] Menghapus penumpang ID: $passengerId untuk UID: $uid");
+    return _passengersCollection(uid).doc(passengerId).delete();
   }
 }

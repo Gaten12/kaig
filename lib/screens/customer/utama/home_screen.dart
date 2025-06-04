@@ -1,11 +1,110 @@
-// lib/src/home/screens/home_screen.dart
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import '../../../models/passenger_model.dart';
+import '../../../services/auth_service.dart';
+import 'PesanTiketScreen.dart';
+import 'account_screen.dart';
 
-import 'PesanTiketScreen.dart'; // Untuk mendapatkan info user
-// Jika Anda sudah memiliki UserModel dan service untuk mengambilnya:
-// import '../../data/models/user_model.dart';
-// import '../../data/services/firestore_service.dart'; // atau service yang relevan
+
+class BerandaContent extends StatelessWidget {
+  const BerandaContent({super.key});
+
+  Widget _buildMenuItem(BuildContext context,
+      {required IconData iconData,
+        required String label,
+        required VoidCallback onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          CircleAvatar(
+            radius: 35,
+            backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
+            child: Icon(iconData, size: 30, color: Theme.of(context).primaryColor),
+          ),
+          const SizedBox(height: 8.0),
+          Text(label, style: const TextStyle(fontSize: 14)),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.all(16.0),
+      children: <Widget>[
+        const Text(
+          'Menu',
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 16.0),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: <Widget>[
+            _buildMenuItem(
+              context,
+              iconData: Icons.tram_outlined,
+              label: 'Pesan Tiket',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const PesanTiketScreen()),
+                );
+              },
+            ),
+            _buildMenuItem(
+              context,
+              iconData: Icons.directions_transit_outlined,
+              label: 'Commuter Line',
+              onTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                      content: Text('Fitur Commuter Line belum tersedia.')),
+                );
+              },
+            ),
+          ],
+        ),
+        const SizedBox(height: 24.0),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Promo Terbaru',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            TextButton(
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Fitur Lihat Semua Promo belum tersedia.')),
+                );
+              },
+              child: const Text('Lihat Semua'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16.0),
+        Container(
+          height: 150,
+          decoration: BoxDecoration(
+            color: Colors.grey[300],
+            borderRadius: BorderRadius.circular(12.0),
+          ),
+          child: const Center(
+            child: Text(
+              'Gambar Promo',
+              style: TextStyle(fontSize: 18, color: Colors.black54),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,43 +114,46 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _selectedIndex = 0; // Untuk BottomNavigationBar, 0 = Beranda
+  int _selectedIndex = 0;
+  final AuthService _authService = AuthService();
+  String _userName = "Pengguna";
 
-  // Data Pengguna - idealnya didapatkan dari state management atau argumen constructor
-  User? _currentUser;
-  String _userName = "Pengguna"; // Default name
+  static const List<Widget> _widgetOptions = <Widget>[
+    BerandaContent(),
+    PesanTiketScreen(),
+    Center(child: Text('Halaman Tiket Saya (Segera Hadir)')),
+    Center(child: Text('Halaman Promo (Segera Hadir)')),
+    AccountScreen(),
+  ];
 
   @override
   void initState() {
     super.initState();
-    _loadCurrentUser();
+    _loadCurrentUserName();
   }
 
-  Future<void> _loadCurrentUser() async {
-    _currentUser = FirebaseAuth.instance.currentUser;
-    if (_currentUser != null) {
-      // Jika Anda menyimpan nama lengkap di Firestore, Anda perlu mengambilnya.
-      // Contoh jika nama diambil dari displayName Firebase Auth (jarang diisi saat email/pass reg):
-        _userName = _currentUser!.displayName ?? "Pengguna";
+  Future<void> _loadCurrentUserName() async {
+    final firebaseUser = _authService.currentUser;
+    if (firebaseUser != null) {
+      // Ambil nama dari data penumpang utama (primary passenger)
+      PassengerModel? primaryPassenger = await _authService.getPrimaryPassenger(firebaseUser.uid);
+      String displayName = "Pengguna"; // Default
 
-      // Contoh jika nama diambil dari Firestore (membutuhkan FirestoreService):
-      // FirestoreService firestoreService = FirestoreService();
-      // UserModel? userModel = await firestoreService.getUser(_currentUser!.uid);
-      // if (userModel != null && mounted) {
-      //   setState(() {
-      //     _userName = userModel.namaLengkap; // Asumsi ada field namaLengkap di UserModel
-      //   });
-      // } else if (mounted) {
-      //   // Jika tidak ada namaLengkap, bisa ambil dari email atau default
-      //   _userName = _currentUser!.email!.split('@')[0]; // Ambil bagian sebelum @ dari email
-      // }
+      if (primaryPassenger != null && primaryPassenger.namaLengkap.isNotEmpty) {
+        displayName = primaryPassenger.namaLengkap;
+      } else if (firebaseUser.displayName != null && firebaseUser.displayName!.isNotEmpty) {
+        displayName = firebaseUser.displayName!;
+      } else if (firebaseUser.email != null && firebaseUser.email!.isNotEmpty) {
+        displayName = firebaseUser.email!.split('@')[0];
+      }
+
       if (mounted) {
-        // Untuk sementara, kita ambil bagian sebelum @ dari email sebagai nama
-        _userName = _currentUser!.email?.split('@')[0] ?? "Pengguna";
-        if (_userName.length > 10) { // Potong jika terlalu panjang
-          _userName = _userName.substring(0, 10) + "...";
-        }
-        setState(() {});
+        setState(() {
+          _userName = displayName;
+          if (_userName.length > 15) {
+            _userName = "${_userName.substring(0, 12)}...";
+          }
+        });
       }
     }
   }
@@ -60,53 +162,35 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _selectedIndex = index;
     });
-    // Di sini Anda akan menangani navigasi atau perubahan tampilan body
-    // berdasarkan index yang dipilih.
-    // Untuk saat ini, kita hanya fokus pada tampilan Beranda (_selectedIndex = 0)
-    switch (index) {
-      case 0:
-      // Halaman Beranda (sudah di sini)
-        break;
-      case 1:
-      // Navigasi ke Halaman Kereta (buat layar baru nanti)
-        print("Navigate to Kereta Screen");
-        break;
-      case 2:
-      // Navigasi ke Halaman Tiket Saya
-        print("Navigate to Tiket Saya Screen");
-        break;
-      case 3:
-      // Navigasi ke Halaman Promo
-        print("Navigate to Promo Screen");
-        break;
-      case 4:
-      // Navigasi ke Halaman Akun
-        print("Navigate to Akun Screen");
-        break;
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Selamat Datang, $_userName'),
+        title: Text(_selectedIndex == 0 ? 'Selamat Datang, $_userName' : _getAppBarTitle(_selectedIndex)),
+        automaticallyImplyLeading: false,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.shopping_cart_outlined),
-            onPressed: () {
-              // Aksi untuk ikon keranjang belanja
-              print("Shopping cart tapped");
-            },
-          ),
+          if (_selectedIndex == 0)
+            IconButton(
+              icon: const Icon(Icons.shopping_cart_outlined),
+              onPressed: () {
+                print("Shopping cart tapped");
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Fitur Keranjang belum tersedia.')),
+                );
+              },
+            ),
         ],
       ),
-      body: _buildHomeScreenBody(), // Body akan kita bangun terpisah
+      body: Center(
+        child: _widgetOptions.elementAt(_selectedIndex),
+      ),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home), // Icon saat aktif
+            activeIcon: Icon(Icons.home),
             label: 'Beranda',
           ),
           BottomNavigationBarItem(
@@ -131,129 +215,29 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
         currentIndex: _selectedIndex,
-        selectedItemColor: Theme.of(context).primaryColor, // Warna item yang dipilih
-        unselectedItemColor: Colors.grey, // Warna item yang tidak dipilih
-        showUnselectedLabels: true, // Menampilkan label untuk item yang tidak dipilih
-        type: BottomNavigationBarType.fixed, // Agar semua item terlihat jika lebih dari 3
+        selectedItemColor: Theme.of(context).primaryColor,
+        unselectedItemColor: Colors.grey,
+        showUnselectedLabels: true,
+        type: BottomNavigationBarType.fixed,
         onTap: _onItemTapped,
       ),
     );
   }
 
-  Widget _buildHomeScreenBody() {
-    // Hanya tampilkan body jika _selectedIndex adalah 0 (Beranda)
-    if (_selectedIndex != 0) {
-      // Untuk tab lain, bisa tampilkan placeholder atau widget yang sesuai
-      return Center(child: Text('Tampilan untuk: ${_getLabelForIndex(_selectedIndex)}'));
-    }
-
-    return ListView( // Menggunakan ListView agar bisa di-scroll jika konten panjang
-      padding: const EdgeInsets.all(16.0),
-      children: <Widget>[
-        // Bagian Menu
-        const Text(
-          'Menu',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 16.0),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: <Widget>[
-            _buildMenuItem(
-              context,
-              iconData: Icons.tram_outlined,
-              label: 'Pesan Tiket',
-              onTap: () {
-                print('Pesan Tiket tapped');
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const PesanTiketScreen()), // Navigasi ke PesanTiketScreen
-                );
-              },
-            ),
-            _buildMenuItem(
-              context,
-              iconData: Icons.directions_transit_outlined, // Atau Icons.train
-              label: 'Commuter Line',
-              onTap: () {
-                print('Commuter Line tapped');
-                // Navigasi ke layar Commuter Line
-              },
-            ),
-          ],
-        ),
-        const SizedBox(height: 24.0),
-
-        // Bagian Promo Terbaru
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              'Promo Terbaru',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            TextButton(
-              onPressed: () {
-                print('Lihat Semua Promo tapped');
-                // Navigasi ke layar semua promo
-              },
-              child: const Text('Lihat Semua'),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16.0),
-        Container(
-          height: 150, // Tinggi placeholder gambar promo
-          decoration: BoxDecoration(
-            color: Colors.grey[300],
-            borderRadius: BorderRadius.circular(12.0),
-            // Anda bisa menambahkan gambar di sini nanti
-            // image: DecorationImage(
-            //   image: NetworkImage('URL_GAMBAR_PROMO'), // atau AssetImage
-            //   fit: BoxFit.cover,
-            // ),
-          ),
-          child: const Center(
-            child: Text(
-              'Gambar Promo',
-              style: TextStyle(fontSize: 18, color: Colors.black54),
-            ),
-          ),
-        ),
-        // Anda bisa menambahkan lebih banyak item promo di sini jika diperlukan
-      ],
-    );
-  }
-
-  // Helper widget untuk membuat item menu
-  Widget _buildMenuItem(BuildContext context, {required IconData iconData, required String label, required VoidCallback onTap}) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12.0),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          CircleAvatar(
-            radius: 35, // Ukuran lingkaran ikon
-            backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
-            child: Icon(iconData, size: 30, color: Theme.of(context).primaryColor),
-          ),
-          const SizedBox(height: 8.0),
-          Text(label, style: const TextStyle(fontSize: 14)),
-        ],
-      ),
-    );
-  }
-
-  // Helper untuk mendapatkan label tab (jika diperlukan untuk body non-Beranda)
-  String _getLabelForIndex(int index) {
+  String _getAppBarTitle(int index) {
     switch (index) {
-      case 0: return 'Beranda';
-      case 1: return 'Kereta';
-      case 2: return 'Tiket Saya';
-      case 3: return 'Promo';
-      case 4: return 'Akun';
-      default: return '';
+      case 0:
+        return 'Selamat Datang, $_userName';
+      case 1:
+        return 'Pesan Tiket Kereta';
+      case 2:
+        return 'Tiket Saya';
+      case 3:
+        return 'Promo';
+      case 4:
+        return 'Akun Saya';
+      default:
+        return 'TrainOrder';
     }
   }
 }
