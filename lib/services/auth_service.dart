@@ -21,9 +21,34 @@ class AuthService {
       if (docSnapshot.exists) {
         return UserModel.fromFirestore(docSnapshot);
       }
+      print("[AuthService] UserModel tidak ditemukan untuk UID: $uid");
       return null;
     } catch (e) {
       print("Error mendapatkan UserModel: $e");
+      return null;
+    }
+  }
+
+  // Fungsi untuk mengambil data penumpang utama (yang isPrimary = true)
+  Future<PassengerModel?> getPrimaryPassenger(String uid) async {
+    print("[AuthService] Mencoba mengambil Primary Passenger untuk UID: $uid");
+    try {
+      final querySnapshot = await _firestore
+          .collection('users')
+          .doc(uid)
+          .collection('passengers')
+          .where('isPrimary', isEqualTo: true)
+          .limit(1)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        print("[AuthService] Primary Passenger ditemukan: ${querySnapshot.docs.first.data()}");
+        return PassengerModel.fromFirestore(querySnapshot.docs.first);
+      }
+      print("[AuthService] Primary Passenger tidak ditemukan untuk UID: $uid");
+      return null;
+    } catch (e) {
+      print("Error mendapatkan Primary Passenger: $e");
       return null;
     }
   }
@@ -43,44 +68,34 @@ class AuthService {
       User? newUser = userCredential.user;
 
       if (newUser != null) {
-        // Membuat UserModel dari UserDataDaftar
         UserModel userForFirestore = UserModel(
           id: newUser.uid,
-          email: newUser.email ?? userDataDaftar.email, // Ambil email dari newUser jika ada
+          email: newUser.email ?? userDataDaftar.email,
           noTelepon: userDataDaftar.noTelepon,
-          role: 'costumer', // Default role untuk pendaftar baru
-          createdAt: Timestamp.now(), // Atau FieldValue.serverTimestamp() jika diinginkan
+          role: 'costumer',
+          createdAt: Timestamp.now(),
         );
-
         await _firestore.collection('users').doc(newUser.uid).set(userForFirestore.toFirestore());
 
-        // Membuat PassengerModel untuk penumpang pertama
-        PassengerModel passengerData = PassengerModel(
-          // id tidak perlu diisi di sini karena akan di-generate oleh .add()
+        PassengerModel primaryPassengerData = PassengerModel(
           namaLengkap: userDataDaftar.namaLengkap,
           tipeId: userDataDaftar.tipeId,
           nomorId: userDataDaftar.nomorId,
-          tanggalLahir: Timestamp.fromDate(userDataDaftar.tanggalLahir), // Konversi DateTime ke Timestamp
+          tanggalLahir: Timestamp.fromDate(userDataDaftar.tanggalLahir),
           jenisKelamin: userDataDaftar.jenisKelamin,
-          tipePenumpang: 'Dewasa', // Default
+          tipePenumpang: 'Dewasa',
           isPrimary: true,
         );
-
         await _firestore
             .collection('users')
             .doc(newUser.uid)
             .collection('passengers')
-            .add(passengerData.toFirestore());
-
-        // (Opsional) Kirim email verifikasi
-        // await newUser.sendEmailVerification();
+            .add(primaryPassengerData.toFirestore());
 
         return userCredential;
       }
       return null;
     } on FirebaseAuthException catch (e) {
-      // Tangani error spesifik dari Firebase Auth
-      // Misalnya, email sudah digunakan, password lemah, dll.
       String friendlyMessage = "Pendaftaran gagal.";
       if (e.code == 'weak-password') {
         friendlyMessage = 'Kata sandi terlalu lemah.';
@@ -91,7 +106,7 @@ class AuthService {
       }
       throw Exception(friendlyMessage);
     } catch (e) {
-      print("Error saat registrasi: $e");
+      print("Error saat registrasi (catch umum): $e");
       throw Exception("Terjadi kesalahan tidak terduga saat pendaftaran.");
     }
   }
@@ -114,10 +129,9 @@ class AuthService {
       } else if (e.code == 'invalid-credential') {
         friendlyMessage = 'Kredensial tidak valid. Pastikan email dan password benar.';
       }
-      // Anda bisa menambahkan penanganan untuk error lain seperti 'user-disabled', dll.
       throw Exception(friendlyMessage);
     } catch (e) {
-      print("Error saat signIn: $e");
+      print("Error saat signIn (catch umum): $e");
       throw Exception("Terjadi kesalahan tidak terduga saat login.");
     }
   }
@@ -127,8 +141,6 @@ class AuthService {
       await _firebaseAuth.signOut();
     } catch (e) {
       print("Error saat signOut: $e");
-      // Pertimbangkan untuk melempar error jika diperlukan penanganan khusus di UI
-      // throw Exception("Gagal melakukan logout.");
     }
   }
 
@@ -144,7 +156,7 @@ class AuthService {
       }
       throw Exception(friendlyMessage);
     } catch (e) {
-      print("Error saat sendPasswordResetEmail: $e");
+      print("Error saat sendPasswordResetEmail (catch umum): $e");
       throw Exception("Terjadi kesalahan saat mengirim email reset kata sandi.");
     }
   }

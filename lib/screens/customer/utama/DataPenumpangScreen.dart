@@ -1,27 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../models/JadwalModel.dart';
 import '../../../models/jadwal_kelas_info_model.dart';
 import '../../../models/user_model.dart';
-import '../../../models/passenger_model.dart'; // Impor PassengerModel
-import '../../../services/auth_service.dart'; // Impor AuthService
+import '../../../models/passenger_model.dart';
+import '../../../services/auth_service.dart';
 
 class PenumpangInputData {
   String namaLengkap;
   String? tipeId;
   String? nomorId;
-  // Tambahkan field lain jika perlu disalin dari PassengerModel
-  // String? jenisKelamin;
-  // DateTime? tanggalLahir;
 
   PenumpangInputData({
     this.namaLengkap = "",
     this.tipeId,
     this.nomorId,
-    // this.jenisKelamin,
-    // this.tanggalLahir
   });
 }
 
@@ -58,102 +51,87 @@ class _DataPenumpangScreenState extends State<DataPenumpangScreen> {
 
   final List<String> _tipeIdOptions = ['KTP', 'Paspor', 'SIM', 'Lainnya'];
 
-  // Tidak lagi menyimpan _currentUserModel secara langsung jika data utama dari passenger
-  // Cukup simpan data yang akan disalin ke penumpang pertama
-  String? _dataPemesanNamaLengkap;
-  String? _dataPemesanTipeId;
-  String? _dataPemesanNomorId;
-  // Tambahkan state lain jika perlu dari PassengerModel (misal tanggal lahir, jenis kelamin)
+  // Variabel untuk menyimpan data dari PassengerModel utama (isPrimary: true)
+  String? _primaryPassengerNamaLengkap;
+  String? _primaryPassengerTipeId;
+  String? _primaryPassengerNomorId;
 
-  final AuthService _authService = AuthService(); // Instance AuthService
+  final AuthService _authService = AuthService();
 
   @override
   void initState() {
     super.initState();
     _initializeDataPenumpang();
-    _loadDataPemesanDanPenumpangUtama();
+    _loadInitialData();
   }
 
-  Future<void> _loadDataPemesanDanPenumpangUtama() async {
+  Future<void> _loadInitialData() async {
     final firebaseUser = FirebaseAuth.instance.currentUser;
-    bool dataPemesananBerubah = false;
+    bool needsViewUpdate = false;
 
     if (firebaseUser != null) {
-      // 1. Isi email dari FirebaseAuth
+      // 1. Isi email pemesan dari FirebaseAuth
       if (_emailPemesanController.text != (firebaseUser.email ?? "")) {
         _emailPemesanController.text = firebaseUser.email ?? "";
-        dataPemesananBerubah = true;
+        needsViewUpdate = true;
       }
 
-      // 2. Ambil UserModel untuk nama dan telepon pemesan
+      // 2. Ambil UserModel untuk no telepon pemesan (Nama Pemesan akan dari primary passenger)
       try {
         UserModel? userModel = await _authService.getUserModel(firebaseUser.uid);
         if (userModel != null) {
-          if (_namaPemesanController.text != userModel.namaLengkap) {
-            _namaPemesanController.text = userModel.namaLengkap;
-            dataPemesananBerubah = true;
-          }
           if (_teleponPemesanController.text != userModel.noTelepon) {
             _teleponPemesanController.text = userModel.noTelepon;
-            dataPemesananBerubah = true;
+            needsViewUpdate = true;
           }
-          // Simpan nama pemesan untuk disalin jika switch aktif
-          _dataPemesanNamaLengkap = userModel.namaLengkap;
+          // Nama pemesan di controller akan diisi dari primary passenger nanti
         } else {
           print("Dokumen UserModel tidak ditemukan untuk UID: ${firebaseUser.uid}");
-          if (_namaPemesanController.text != (firebaseUser.displayName ?? "")) {
-            _namaPemesanController.text = firebaseUser.displayName ?? "";
-            _dataPemesanNamaLengkap = firebaseUser.displayName ?? "";
-            dataPemesananBerubah = true;
-          }
         }
       } catch (e) {
         print("Error memuat UserModel dari Firestore: $e");
-        if (_namaPemesanController.text != (firebaseUser.displayName ?? "")) {
-          _namaPemesanController.text = firebaseUser.displayName ?? "";
-          _dataPemesanNamaLengkap = firebaseUser.displayName ?? "";
-          dataPemesananBerubah = true;
-        }
       }
 
       // 3. Ambil data penumpang utama (isPrimary: true) dari subkoleksi 'passengers'
       try {
         PassengerModel? primaryPassenger = await _authService.getPrimaryPassenger(firebaseUser.uid);
         if (primaryPassenger != null) {
-          // Simpan data penumpang utama untuk disalin jika switch aktif
-          // Jika nama pemesan di UserModel berbeda dengan nama di primaryPassenger,
-          // Anda bisa pilih salah satu sebagai sumber utama untuk _namaPemesanController,
-          // atau biarkan _namaPemesanController dari UserModel.
-          // Untuk sinkronisasi ke form penumpang, kita gunakan data dari primaryPassenger.
-          _dataPemesanNamaLengkap = primaryPassenger.namaLengkap; // Timpa jika ada dari passenger
-          _dataPemesanTipeId = primaryPassenger.tipeId;
-          _dataPemesanNomorId = primaryPassenger.nomorId;
-          // Anda juga bisa mengambil primaryPassenger.tanggalLahir, primaryPassenger.jenisKelamin jika perlu
+          _primaryPassengerNamaLengkap = primaryPassenger.namaLengkap;
+          _primaryPassengerTipeId = primaryPassenger.tipeId;
+          _primaryPassengerNomorId = primaryPassenger.nomorId;
 
-          // Jika nama pemesan belum terisi dari UserModel, isi dari primaryPassenger
-          if (_namaPemesanController.text.isEmpty && primaryPassenger.namaLengkap.isNotEmpty) {
+          // Isi Nama Pemesan Controller dengan nama dari primary passenger
+          if (_namaPemesanController.text != primaryPassenger.namaLengkap) {
             _namaPemesanController.text = primaryPassenger.namaLengkap;
-            dataPemesananBerubah = true;
+            needsViewUpdate = true;
           }
-          // Tandai bahwa data pemesan (terutama ID) mungkin berubah
-          dataPemesananBerubah = true;
+          print("Data Penumpang Utama ditemukan: Nama: ${_primaryPassengerNamaLengkap}, TipeID: ${_primaryPassengerTipeId}, NoID: ${_primaryPassengerNomorId}");
         } else {
           print("Data Penumpang Utama (isPrimary:true) tidak ditemukan.");
-          // Jika tidak ada primary passenger, _dataPemesanTipeId dan _dataPemesanNomorId akan tetap null
+          // Jika tidak ada primary passenger, isi Nama Pemesan dari displayName sebagai fallback
+          if (_namaPemesanController.text != (firebaseUser.displayName ?? "")) {
+            _namaPemesanController.text = firebaseUser.displayName ?? "";
+            _primaryPassengerNamaLengkap = firebaseUser.displayName ?? ""; // Gunakan ini untuk penumpang pertama
+            needsViewUpdate = true;
+          }
         }
       } catch (e) {
         print("Error memuat Primary Passenger dari Firestore: $e");
+        if (_namaPemesanController.text != (firebaseUser.displayName ?? "")) {
+          _namaPemesanController.text = firebaseUser.displayName ?? "";
+          _primaryPassengerNamaLengkap = firebaseUser.displayName ?? "";
+          needsViewUpdate = true;
+        }
       }
     }
 
-    // Panggil update setelah semua data pemesan (nama, email, telepon, TipeID, NoID) terkumpul
-    if (dataPemesananBerubah) {
-      if (_pemesanSebagaiPenumpang && widget.jumlahDewasa > 0) {
-        _updatePenumpangPertamaDariDataPemesan(panggilSetState: false);
-      }
+    // Panggil update untuk penumpang pertama setelah semua data potensial dimuat
+    if (_pemesanSebagaiPenumpang && widget.jumlahDewasa > 0) {
+      // panggilSetState: false karena setState akan dipanggil di akhir _loadInitialData
+      _updatePenumpangPertamaDenganDataPrimaryPassenger(panggilSetState: false);
     }
 
-    if (mounted) {
+    if (mounted && needsViewUpdate) {
       setState(() {});
     }
   }
@@ -167,28 +145,28 @@ class _DataPenumpangScreenState extends State<DataPenumpangScreen> {
         List.generate(widget.jumlahDewasa, (index) => GlobalKey<FormState>());
   }
 
-  // Diubah namanya agar lebih jelas
-  void _updatePenumpangPertamaDariDataPemesan({bool panggilSetState = true}) {
+  void _updatePenumpangPertamaDenganDataPrimaryPassenger({bool panggilSetState = true}) {
     if (widget.jumlahDewasa > 0 && _dataPenumpangList.isNotEmpty) {
       bool changed = false;
-      // Salin dari _dataPemesanNamaLengkap, _dataPemesanTipeId, _dataPemesanNomorId
-      if (_dataPenumpangList[0].namaLengkap != (_dataPemesanNamaLengkap ?? "")) {
-        _dataPenumpangList[0].namaLengkap = _dataPemesanNamaLengkap ?? "";
+
+      // Selalu gunakan data dari _primaryPassenger... untuk penumpang pertama jika switch aktif
+      if (_dataPenumpangList[0].namaLengkap != (_primaryPassengerNamaLengkap ?? "")) {
+        _dataPenumpangList[0].namaLengkap = _primaryPassengerNamaLengkap ?? "";
         changed = true;
       }
 
-      String? validPemesanTipeId = _dataPemesanTipeId;
-      if (_dataPemesanTipeId != null && !_tipeIdOptions.contains(_dataPemesanTipeId)) {
-        print("Peringatan: Tipe ID pemesan '$_dataPemesanTipeId' tidak ada di opsi dropdown.");
-        validPemesanTipeId = null;
+      String? validTipeId = _primaryPassengerTipeId;
+      if (_primaryPassengerTipeId != null && !_tipeIdOptions.contains(_primaryPassengerTipeId)) {
+        print("Peringatan: Tipe ID penumpang utama '$_primaryPassengerTipeId' tidak ada di opsi dropdown. Menggunakan null.");
+        validTipeId = null;
       }
-      if (_dataPenumpangList[0].tipeId != validPemesanTipeId) {
-        _dataPenumpangList[0].tipeId = validPemesanTipeId;
+      if (_dataPenumpangList[0].tipeId != validTipeId) {
+        _dataPenumpangList[0].tipeId = validTipeId;
         changed = true;
       }
 
-      if (_dataPenumpangList[0].nomorId != (_dataPemesanNomorId ?? "")) {
-        _dataPenumpangList[0].nomorId = _dataPemesanNomorId; // Bisa null
+      if (_dataPenumpangList[0].nomorId != (_primaryPassengerNomorId ?? "")) {
+        _dataPenumpangList[0].nomorId = _primaryPassengerNomorId;
         changed = true;
       }
 
@@ -206,10 +184,50 @@ class _DataPenumpangScreenState extends State<DataPenumpangScreen> {
     super.dispose();
   }
 
-  void _lanjutkan() { /* ... (logika _lanjutkan tetap sama) ... */ }
+  void _lanjutkan() {
+    bool isFormPemesananValid = _formKeyPemesanan.currentState?.validate() ?? false;
+    bool semuaFormPenumpangValid = true;
+    for (var key in _formKeysPenumpang) {
+      if (!(key.currentState?.validate() ?? false)) {
+        semuaFormPenumpangValid = false;
+      }
+    }
+
+    if (isFormPemesananValid && semuaFormPenumpangValid) {
+      _formKeyPemesanan.currentState!.save();
+      for (var key in _formKeysPenumpang) {
+        key.currentState!.save();
+      }
+
+      // Logika print tetap sama
+      print("--- Detail Pemesanan ---");
+      print("Nama Pemesan: ${_namaPemesanController.text}");
+      print("Email Pemesan: ${_emailPemesanController.text}");
+      print("Telepon Pemesan: ${_teleponPemesanController.text}");
+      print("Pemesan sebagai penumpang: $_pemesanSebagaiPenumpang");
+      print("\n--- Detail Penumpang (Dewasa) ---");
+      for (int i = 0; i < _dataPenumpangList.length; i++) {
+        final data = _dataPenumpangList[i];
+        print("Penumpang ${i + 1}: Nama: ${data.namaLengkap}, Tipe ID: ${data.tipeId ?? 'N/A'}, No ID: ${data.nomorId ?? 'N/A'}");
+      }
+      print("\n--- Detail Perjalanan ---"); // dst.
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Data berhasil divalidasi! Lanjut ke pembayaran (belum diimplementasikan).')),
+        );
+      }
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Harap lengkapi semua data yang diperlukan dengan benar.')),
+        );
+      }
+    }
+  }
 
   @override
-  Widget build(BuildContext context) { /* ... (Widget build bagian atas tetap sama) ... */
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Data Penumpang"),
@@ -270,13 +288,8 @@ class _DataPenumpangScreenState extends State<DataPenumpangScreen> {
                   labelText: "Nama Lengkap", border: OutlineInputBorder()),
               validator: (value) =>
               (value == null || value.isEmpty) ? "Nama tidak boleh kosong" : null,
-              onChanged: (value) {
-                // Update _dataPemesanNamaLengkap jika pengguna mengedit field pemesan
-                _dataPemesanNamaLengkap = value;
-                if (_pemesanSebagaiPenumpang) {
-                  _updatePenumpangPertamaDariDataPemesan();
-                }
-              },
+              // onChanged pada nama pemesan tidak lagi langsung update penumpang pertama
+              // karena sumber data penumpang pertama adalah _primaryPassenger...
             ),
             const SizedBox(height: 12.0),
             TextFormField(
@@ -284,7 +297,6 @@ class _DataPenumpangScreenState extends State<DataPenumpangScreen> {
               decoration: const InputDecoration(
                   labelText: "Email", border: OutlineInputBorder()),
               keyboardType: TextInputType.emailAddress,
-              // Email biasanya tidak diubah oleh pengguna di sini, jadi onChanged tidak perlu
               validator: (value) {
                 if (value == null || value.isEmpty) return "Email tidak boleh kosong";
                 if (!value.contains('@') || !value.contains('.')) {
@@ -310,10 +322,14 @@ class _DataPenumpangScreenState extends State<DataPenumpangScreen> {
                 setState(() {
                   _pemesanSebagaiPenumpang = value;
                   if (_pemesanSebagaiPenumpang) {
-                    // Panggil update dengan panggilSetState: false karena setState luar sudah ada
-                    _updatePenumpangPertamaDariDataPemesan(panggilSetState: false);
+                    // Salin data dari _primaryPassenger... ke form penumpang pertama
+                    _updatePenumpangPertamaDenganDataPrimaryPassenger(panggilSetState: false);
+                  } else {
+                    // Jika switch dimatikan, reset data penumpang pertama agar diisi manual
+                    if (widget.jumlahDewasa > 0 && _dataPenumpangList.isNotEmpty) {
+                      _dataPenumpangList[0] = PenumpangInputData();
+                    }
                   }
-                  // Jika switch dimatikan, penumpang pertama tidak lagi disinkronkan.
                 });
               },
               contentPadding: EdgeInsets.zero,
@@ -325,7 +341,7 @@ class _DataPenumpangScreenState extends State<DataPenumpangScreen> {
     );
   }
 
-  Widget _buildDetailPenumpangSection() { /* ... (Tetap sama) ... */
+  Widget _buildDetailPenumpangSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -390,16 +406,14 @@ class _DataPenumpangScreenState extends State<DataPenumpangScreen> {
                 (value == null || value.isEmpty) ? "Nama tidak boleh kosong" : null,
                 onSaved: (value) => _dataPenumpangList[index].namaLengkap = value ?? "",
                 onChanged: (value){
-                  // Update model langsung
                   _dataPenumpangList[index].namaLengkap = value;
-                  // Jika ini penumpang pertama dan switch aktif, tapi pengguna mengubahnya,
-                  // kita bisa nonaktifkan switch untuk mencegah penimpaan otomatis lebih lanjut
-                  // atau biarkan saja, tergantung UX yang diinginkan.
-                  if (index == 0 && _pemesanSebagaiPenumpang && value != _dataPemesanNamaLengkap) {
+                  // Jika pengguna mengedit manual penumpang pertama saat switch aktif,
+                  // dan nilainya berbeda dari data primary passenger, nonaktifkan switch.
+                  if (index == 0 && _pemesanSebagaiPenumpang && value != _primaryPassengerNamaLengkap) {
                     if (mounted) {
-                      // setState(() {
-                      //   _pemesanSebagaiPenumpang = false;
-                      // });
+                      setState(() {
+                        _pemesanSebagaiPenumpang = false;
+                      });
                     }
                   }
                 },
@@ -418,6 +432,9 @@ class _DataPenumpangScreenState extends State<DataPenumpangScreen> {
                   if (mounted) {
                     setState(() {
                       _dataPenumpangList[index].tipeId = value;
+                      if (index == 0 && _pemesanSebagaiPenumpang && value != _primaryPassengerTipeId) {
+                        setState(() { _pemesanSebagaiPenumpang = false; });
+                      }
                     });
                   }
                 },
@@ -436,6 +453,11 @@ class _DataPenumpangScreenState extends State<DataPenumpangScreen> {
                 onSaved: (value) => _dataPenumpangList[index].nomorId = value ?? "",
                 onChanged: (value){
                   _dataPenumpangList[index].nomorId = value;
+                  if (index == 0 && _pemesanSebagaiPenumpang && value != _primaryPassengerNomorId) {
+                    if (mounted) {
+                      setState(() { _pemesanSebagaiPenumpang = false; });
+                    }
+                  }
                 },
               ),
             ],
