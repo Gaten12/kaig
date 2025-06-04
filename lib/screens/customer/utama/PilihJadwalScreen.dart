@@ -1,17 +1,21 @@
-import 'package:cloud_firestore/cloud_firestore.dart'; // Diperlukan untuk Timestamp
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // Untuk format harga dan tanggal
-import '../../../models/JadwalModel.dart'; // Menggunakan JadwalModel
-import '../../../models/jadwal_kelas_info_model.dart'; // Menggunakan JadwalKelasInfoModel
-import 'PilihKelasScreen.dart'; // Impor PilihKelasScreen yang benar
-import 'datapenumpangscreen.dart';
+import 'package:intl/intl.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // Diperlukan untuk Timestamp
+import '../../../models/JadwalModel.dart'; // Menggunakan JadwalModel (Pastikan casing nama file konsisten)
+import '../../../models/jadwal_kelas_info_model.dart'; // Untuk daftarKelasHarga
+import '../../../models/jadwal_perhentian_model.dart'; // Untuk detailPerhentian
+// import '../services/customer_firestore_service.dart'; // Jika ada service customer
+import '../../admin/services/admin_firestore_service.dart';
+import 'PilihKelasScreen.dart';
 
 class PilihJadwalScreen extends StatefulWidget {
-  final String stasiunAsal; // Ini adalah display name, misal "BANDUNG (BD)"
-  final String stasiunTujuan; // Ini adalah display name
-  final DateTime tanggalBerangkat;
+  final String stasiunAsal; // Display name, misal "BANDUNG (BD)"
+  final String stasiunTujuan; // Display name
+  final DateTime tanggalBerangkat; // Tanggal awal pencarian
   final int jumlahDewasa;
   final int jumlahBayi;
+  // isAdminMode tidak lagi diperlukan jika layar ini khusus customer
+  // final bool isAdminMode;
 
   const PilihJadwalScreen({
     super.key,
@@ -20,6 +24,7 @@ class PilihJadwalScreen extends StatefulWidget {
     required this.tanggalBerangkat,
     required this.jumlahDewasa,
     required this.jumlahBayi,
+    // this.isAdminMode = false, // Default ke mode customer
   });
 
   @override
@@ -27,25 +32,31 @@ class PilihJadwalScreen extends StatefulWidget {
 }
 
 class _PilihJadwalScreenState extends State<PilihJadwalScreen> {
-  late List<JadwalModel> _jadwalTersedia;
+  final AdminFirestoreService _firestoreService = AdminFirestoreService();
   final currencyFormatter =
   NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
 
   late DateTime _currentSelectedDate;
   final List<DateTime> _dateTabs = [];
+  Stream<List<JadwalModel>>? _jadwalStream;
 
   @override
   void initState() {
     super.initState();
     _currentSelectedDate = widget.tanggalBerangkat;
     _generateDateTabs();
-    _loadJadwalData();
+    _updateJadwalStream();
+    print("[PilihJadwalScreen] initState: Customer Mode");
   }
 
   void _generateDateTabs() {
     _dateTabs.clear();
+    DateTime baseDate = _currentSelectedDate;
     for (int i = 0; i < 3; i++) {
-      _dateTabs.add(_currentSelectedDate.add(Duration(days: i)));
+      _dateTabs.add(baseDate.add(Duration(days: i)));
+    }
+    if (!_dateTabs.any((d) => d.year == _currentSelectedDate.year && d.month == _currentSelectedDate.month && d.day == _currentSelectedDate.day)) {
+      _currentSelectedDate = _dateTabs.isNotEmpty ? _dateTabs.first : baseDate;
     }
   }
 
@@ -53,82 +64,29 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen> {
     if (!mounted) return;
     setState(() {
       _currentSelectedDate = selectedDate;
-      _loadJadwalData();
+      _updateJadwalStream();
     });
   }
 
-  void _loadJadwalData() {
+  void _updateJadwalStream() {
+    String kodeAsal = widget.stasiunAsal.contains("(") && widget.stasiunAsal.contains(")")
+        ? widget.stasiunAsal.substring(widget.stasiunAsal.indexOf("(") + 1, widget.stasiunAsal.indexOf(")"))
+        : widget.stasiunAsal;
+    String kodeTujuan = widget.stasiunTujuan.contains("(") && widget.stasiunTujuan.contains(")")
+        ? widget.stasiunTujuan.substring(widget.stasiunTujuan.indexOf("(") + 1, widget.stasiunTujuan.indexOf(")"))
+        : widget.stasiunTujuan;
+
     print(
-        "Memuat jadwal untuk tanggal: ${DateFormat('yyyy-MM-dd').format(_currentSelectedDate)}");
+        "[PilihJadwalScreen] Memperbarui stream untuk tanggal: ${DateFormat('yyyy-MM-dd').format(_currentSelectedDate)}");
     print(
-        "Asal: ${widget.stasiunAsal}, Tujuan: ${widget.stasiunTujuan}, Dewasa: ${widget.jumlahDewasa}, Bayi: ${widget.jumlahBayi}");
+        "Asal: $kodeAsal (dari ${widget.stasiunAsal}), Tujuan: $kodeTujuan (dari ${widget.stasiunTujuan})");
 
-    // Data dummy - pastikan stasiunAsal/Tujuan di JadwalModel menggunakan kode jika widget.stasiunAsal adalah display name
-    String kodeAsal = widget.stasiunAsal.split(" ")[0]; // Ambil kode, misal "BD" dari "BANDUNG (BD)"
-    String kodeTujuan = widget.stasiunTujuan.split(" ")[0]; // Ambil kode
-
-    _jadwalTersedia = [
-      JadwalModel(
-        id: "JDW001",
-        idKereta: "KAI001",
-        idStasiunAsal: "BD",
-        idStasiunTujuan: "SLO",
-        namaKereta: "LODAYA",
-        tanggalBerangkat: Timestamp.fromDate(DateTime(
-            _currentSelectedDate.year, _currentSelectedDate.month, _currentSelectedDate.day, 6, 30)),
-        jamTiba: Timestamp.fromDate(DateTime(
-            _currentSelectedDate.year, _currentSelectedDate.month, _currentSelectedDate.day, 14, 18)),
-        daftarKelasHarga: [
-          JadwalKelasInfoModel(
-              namaKelas: "EKONOMI", subKelas: "CA", harga: 290000, ketersediaan: "Tersedia"),
-          JadwalKelasInfoModel(
-              namaKelas: "EKSEKUTIF", subKelas: "AA", harga: 430000, ketersediaan: "Tersedia"),
-        ],
-      ),
-      JadwalModel(
-        id: "JDW002",
-        idKereta: "KAI002",
-        idStasiunAsal: "BD",
-        idStasiunTujuan: "SGU",
-        namaKereta: "ARGO WILIS",
-        tanggalBerangkat: Timestamp.fromDate(DateTime(
-            _currentSelectedDate.year, _currentSelectedDate.month, _currentSelectedDate.day, 7, 35)),
-        jamTiba: Timestamp.fromDate(DateTime(
-            _currentSelectedDate.year, _currentSelectedDate.month, _currentSelectedDate.day, 17, 20)),
-        daftarKelasHarga: [
-          JadwalKelasInfoModel(
-              namaKelas: "EKSEKUTIF", subKelas: "A", harga: 680000, ketersediaan: "Tersedia"),
-          JadwalKelasInfoModel(
-              namaKelas: "PANORAMIC", subKelas: "PA", harga: 1200000, ketersediaan: "2 Kursi"),
-        ],
-      ),
-      if (_currentSelectedDate != widget.tanggalBerangkat) // Contoh jadwal tambahan jika tanggal beda
-        JadwalModel(
-          id: "JDW003",
-          idKereta: "KAI003",
-          idStasiunAsal: "BD",
-          idStasiunTujuan: "SLO",
-          namaKereta: "MALABAR",
-          tanggalBerangkat: Timestamp.fromDate(DateTime(_currentSelectedDate.year, _currentSelectedDate.month, _currentSelectedDate.day, 17, 50)),
-          jamTiba: Timestamp.fromDate(DateTime(_currentSelectedDate.year, _currentSelectedDate.month, _currentSelectedDate.day +1, 3, 12)), // Hari berikutnya
-          daftarKelasHarga: [
-            JadwalKelasInfoModel(namaKelas: "EKONOMI", subKelas: "S", harga: 350000, ketersediaan: "Tersedia"),
-            JadwalKelasInfoModel(namaKelas: "BISNIS", subKelas: "B", harga: 480000, ketersediaan: "5 Kursi"),
-          ],
-        ),
-    ];
-
-    _jadwalTersedia.removeWhere((jadwal) =>
-    jadwal.idStasiunAsal != kodeAsal ||
-        jadwal.idStasiunTujuan != kodeTujuan);
-
-    if (mounted) setState(() {});
-  }
-
-  void _toggleExpand(int index) {
-    if (!mounted) return;
     setState(() {
-      _jadwalTersedia[index].isExpanded = !_jadwalTersedia[index].isExpanded;
+      _jadwalStream = _firestoreService.getJadwalList(
+          tanggal: _currentSelectedDate,
+          kodeAsal: kodeAsal.toUpperCase(),
+          kodeTujuan: kodeTujuan.toUpperCase()
+      );
     });
   }
 
@@ -143,6 +101,7 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen> {
 
   @override
   Widget build(BuildContext context) {
+    print("[PilihJadwalScreen] Build method dipanggil.");
     return Scaffold(
       appBar: AppBar(
         title: Column(
@@ -177,16 +136,46 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen> {
             ),
           ),
           Expanded(
-            child: _jadwalTersedia.isEmpty
-                ? const Center(
-                child: Text(
-                    "Tidak ada jadwal tersedia untuk tanggal dan rute ini."))
-                : ListView.builder(
-              padding: const EdgeInsets.only(bottom: 16.0),
-              itemCount: _jadwalTersedia.length,
-              itemBuilder: (context, index) {
-                final jadwal = _jadwalTersedia[index];
-                return _buildJadwalCard(jadwal, index);
+            child: StreamBuilder<List<JadwalModel>>(
+              stream: _jadwalStream,
+              builder: (context, snapshot) {
+                print("[PilihJadwalScreen] StreamBuilder: ConnectionState = ${snapshot.connectionState}");
+
+                if (snapshot.hasError) {
+                  print("------------------------------------------------------------");
+                  print("[PilihJadwalScreen] STREAMBUILDER ERROR DETECTED!");
+                  print("Error: ${snapshot.error}");
+                  print("StackTrace: ${snapshot.stackTrace}");
+                  print("------------------------------------------------------------");
+                  return Center(child: Text("Terjadi Error: ${snapshot.error.toString()}\nSilakan cek konsol debug dan pastikan Firestore Index sudah dibuat jika diperlukan oleh query."));
+                }
+
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  print("[PilihJadwalScreen] StreamBuilder: Menunggu data...");
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (!snapshot.hasData || snapshot.data == null) {
+                  print("[PilihJadwalScreen] StreamBuilder: Tidak ada data (snapshot.hasData: ${snapshot.hasData}, snapshot.data: ${snapshot.data}).");
+                  return const Center(child: Text("Tidak ada data jadwal tersedia saat ini."));
+                }
+
+                final jadwalList = snapshot.data!;
+                print("[PilihJadwalScreen] StreamBuilder: Data diterima, jumlah item = ${jadwalList.length}");
+
+                if (jadwalList.isEmpty) {
+                  print("[PilihJadwalScreen] StreamBuilder: Daftar jadwal kosong.");
+                  return const Center(child: Text("Tidak ada jadwal untuk rute dan tanggal ini."));
+                }
+
+                return ListView.builder(
+                  padding: const EdgeInsets.only(bottom: 16.0),
+                  itemCount: jadwalList.length,
+                  itemBuilder: (context, index) {
+                    final jadwal = jadwalList[index];
+                    return _buildJadwalCard(jadwal);
+                  },
+                );
               },
             ),
           ),
@@ -208,7 +197,7 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen> {
           return InkWell(
             onTap: () => _onDateTabSelected(date),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
                 color: isSelected ? Theme.of(context).primaryColor : Colors.transparent,
                 borderRadius: BorderRadius.circular(20),
@@ -219,7 +208,7 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen> {
                   Text(
                     DateFormat('EEE', 'id_ID').format(date).toUpperCase(),
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 11,
                       fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                       color: isSelected ? Colors.white : Colors.grey[700],
                     ),
@@ -227,7 +216,7 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen> {
                   Text(
                     DateFormat('dd', 'id_ID').format(date),
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: 14,
                       fontWeight: FontWeight.bold,
                       color: isSelected ? Colors.white : Theme.of(context).primaryColorDark,
                     ),
@@ -241,154 +230,112 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen> {
     );
   }
 
-  Widget _buildJadwalCard(JadwalModel jadwal, int index) {
-    // Untuk stasiunAsalDisplay dan stasiunTujuanDisplay di dalam card,
-    // kita bisa menggunakan widget.stasiunAsal dan widget.stasiunTujuan
-    // karena jadwal.idStasiunAsal/Tujuan adalah kode.
-    // Atau, Anda perlu service untuk mengambil nama stasiun berdasarkan kode jika diperlukan.
-    // Untuk sekarang, kita gunakan widget.stasiunAsal/Tujuan untuk konsistensi tampilan.
+  Widget _buildJadwalCard(JadwalModel jadwal) {
+    // Untuk customer, kita tampilkan stasiun asal dan tujuan sesuai yang mereka cari (dari widget parameter)
+    // Detail perhentian lengkap akan ada di PilihKelasScreen.
+    // Waktu berangkat dan tiba yang ditampilkan di card ini adalah waktu keseluruhan perjalanan kereta.
     String stasiunAsalCardDisplay = widget.stasiunAsal;
     String stasiunTujuanCardDisplay = widget.stasiunTujuan;
-    // Jika ingin menampilkan kode stasiun dari jadwal:
-    // String stasiunAsalCardDisplay = jadwal.idStasiunAsal;
-    // String stasiunTujuanCardDisplay = jadwal.idStasiunTujuan;
+
+    // Namun, jika ingin menampilkan stasiun awal dan akhir dari rute kereta itu sendiri:
+    // String stasiunAsalKereta = jadwal.detailPerhentian.isNotEmpty ? jadwal.stasiunAwal.namaStasiun : jadwal.idStasiunAsal;
+    // String stasiunTujuanKereta = jadwal.detailPerhentian.isNotEmpty ? jadwal.stasiunAkhir.namaStasiun : jadwal.idStasiunTujuan;
 
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       elevation: 2.5,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Text(
-                    "${jadwal.namaKereta.toUpperCase()} (${jadwal.idKereta})",
-                    style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).primaryColorDark),
-                  ),
-                ),
-                Text(
-                  "mulai ${currencyFormatter.format(jadwal.hargaMulaiDari)}",
-                  style: const TextStyle(
-                      fontSize: 13,
-                      color: Colors.orange,
-                      fontWeight: FontWeight.w500),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12.0),
-            Row(
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(jadwal.jamBerangkatFormatted,
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold)),
-                    Text(stasiunAsalCardDisplay, // Menggunakan variabel yang disiapkan
-                        style: const TextStyle(
-                            fontSize: 13, color: Colors.black54)),
-                  ],
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Icon(Icons.linear_scale,
-                          color: Colors.grey.shade400, size: 20),
-                      Text(jadwal.durasiPerjalanan,
-                          style: TextStyle(
-                              fontSize: 11, color: Colors.grey.shade600)),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(jadwal.jamTibaFormatted,
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold)),
-                    Text(stasiunTujuanCardDisplay, // Menggunakan variabel yang disiapkan
-                        style: const TextStyle(
-                            fontSize: 13, color: Colors.black54)),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 10.0),
-            const Divider(),
-            InkWell(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => PilihKelasScreen(
-                      jadwalDipesan: jadwal,
-                      stasiunAsalDisplay: widget.stasiunAsal, // Meneruskan display name
-                      stasiunTujuanDisplay: widget.stasiunTujuan, // Meneruskan display name
-                      tanggalBerangkat: _currentSelectedDate, // Menggunakan tanggal yang aktif dipilih di tab
-                      jumlahDewasa: widget.jumlahDewasa,
-                      jumlahBayi: widget.jumlahBayi,
-                    ),
-                  ),
-                );
-              },
-              child: Padding( // Tambahkan Padding agar area tap lebih luas dan teks terlihat baik
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      // Tombol ini sekarang selalu "Pilih Kereta & Lihat Kelas"
-                      // karena detail kelas akan ada di layar berikutnya.
-                      // Atau bisa juga "Lihat Detail Kelas" jika isExpanded masih digunakan
-                      // untuk menampilkan sesuatu di card ini sebelum navigasi.
-                      // Untuk alur ke PilihKelasScreen, teks ini mungkin lebih cocok:
-                      "PILIH KERETA & KELAS",
-                      style: TextStyle(
-                          color: Theme.of(context).primaryColor,
-                          fontWeight: FontWeight.w600),
-                    ),
-                    const SizedBox(width: 8),
-                    Icon(
-                        Icons.arrow_forward_ios, // Icon yang lebih mengindikasikan navigasi
-                        color: Theme.of(context).primaryColor,
-                        size: 16),
-                  ],
-                ),
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => PilihKelasScreen(
+                jadwalDipesan: jadwal,
+                stasiunAsalDisplay: widget.stasiunAsal, // Kirim display name yang dicari customer
+                stasiunTujuanDisplay: widget.stasiunTujuan, // Kirim display name yang dicari customer
+                tanggalBerangkat: _currentSelectedDate,
+                jumlahDewasa: widget.jumlahDewasa,
+                jumlahBayi: widget.jumlahBayi,
               ),
             ),
-            // Bagian if (jadwal.isExpanded) bisa dihapus jika semua detail kelas
-            // hanya akan ditampilkan di PilihKelasScreen.
-            // Jika Anda masih ingin ada expand/collapse di sini, maka _toggleExpand dan
-            // _buildKelasItem perlu dipertahankan dan disesuaikan.
-            // Untuk sekarang, saya hapus asumsi semua detail kelas ada di PilihKelasScreen.
-            // if (jadwal.isExpanded)
-            //   Padding(
-            //     padding: const EdgeInsets.only(top: 0.0),
-            //     child: Column(
-            //       children: jadwal.daftarKelasHarga.map((kelas) {
-            //         return _buildKelasItem(kelas, jadwal);
-            //       }).toList(),
-            //     ),
-            //   ),
-          ],
+          );
+        },
+        borderRadius: BorderRadius.circular(12.0),
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Text(
+                      "${jadwal.namaKereta.toUpperCase()} (${jadwal.idKereta})",
+                      style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).primaryColorDark),
+                    ),
+                  ),
+                  Text(
+                    "mulai ${currencyFormatter.format(jadwal.hargaMulaiDari)}",
+                    style: const TextStyle(
+                        fontSize: 13,
+                        color: Colors.orange,
+                        fontWeight: FontWeight.w500),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12.0),
+              Row(
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(jadwal.jamBerangkatFormatted, // Waktu berangkat keseluruhan kereta
+                          style: const TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold)),
+                      Text(jadwal.idStasiunAsal, // Stasiun awal keseluruhan rute kereta
+                          style: const TextStyle(
+                              fontSize: 13, color: Colors.black54)),
+                    ],
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Icon(Icons.linear_scale,
+                            color: Colors.grey.shade400, size: 20),
+                        Text(jadwal.durasiPerjalananTotal, // Durasi total perjalanan kereta
+                            style: TextStyle(
+                                fontSize: 11, color: Colors.grey.shade600)),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(jadwal.jamTibaFormatted, // Waktu tiba keseluruhan kereta
+                          style: const TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold)),
+                      Text(jadwal.idStasiunTujuan, // Stasiun akhir keseluruhan rute kereta
+                          style: const TextStyle(
+                              fontSize: 13, color: Colors.black54)),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
-
-// Widget _buildKelasItem dihilangkan karena detail kelas akan ada di PilihKelasScreen
-// Jika Anda masih ingin ada preview kelas di sini, Anda bisa mengembalikan dan menyesuaikannya.
 }
+

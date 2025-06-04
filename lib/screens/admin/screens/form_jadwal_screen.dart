@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import '../../../models/JadwalModel.dart';
 import '../../../models/jadwal_kelas_info_model.dart';
+import '../../../models/jadwal_perhentian_model.dart'; // Impor model perhentian
 import '../../../models/KeretaModel.dart';
 import '../../../models/stasiun_model.dart';
 import '../services/admin_firestore_service.dart';
@@ -20,61 +21,46 @@ class _FormJadwalScreenState extends State<FormJadwalScreen> {
   final _formKey = GlobalKey<FormState>();
   final AdminFirestoreService _adminService = AdminFirestoreService();
 
-  // Controllers & State untuk data jadwal
   KeretaModel? _selectedKereta;
-  StasiunModel? _selectedStasiunAsal;
-  StasiunModel? _selectedStasiunTujuan;
-  DateTime? _selectedTanggalBerangkat;
-  TimeOfDay? _selectedJamBerangkat;
-  DateTime? _selectedTanggalTiba;
-  TimeOfDay? _selectedJamTiba;
 
-  // Untuk daftar kelas harga
   List<JadwalKelasInfoModel> _daftarKelasHarga = [];
-  // Controller untuk input kelas baru (opsional, bisa juga langsung tambah objek)
   final _namaKelasController = TextEditingController();
   final _subKelasController = TextEditingController();
   final _hargaKelasController = TextEditingController();
   final _ketersediaanKelasController = TextEditingController();
   final _idGerbongKelasController = TextEditingController();
 
+  // State untuk detail perhentian
+  List<JadwalPerhentianInput> _detailPerhentianInputList = [];
 
   bool get _isEditing => widget.jadwalToEdit != null;
   List<KeretaModel> _keretaList = [];
-  List<StasiunModel> _stasiunList = [];
+  List<StasiunModel> _stasiunListAll = [];
 
   @override
   void initState() {
     super.initState();
     _fetchDropdownData();
-    if (_isEditing) {
-      final jadwal = widget.jadwalToEdit!;
-      // Pre-fill data jika sedang edit
-      // _selectedKereta diisi setelah _fetchDropdownData
-      // _selectedStasiunAsal diisi setelah _fetchDropdownData
-      // _selectedStasiunTujuan diisi setelah _fetchDropdownData
-      _selectedTanggalBerangkat = jadwal.tanggalBerangkat.toDate();
-      _selectedJamBerangkat = TimeOfDay.fromDateTime(jadwal.tanggalBerangkat.toDate());
-      _selectedTanggalTiba = jadwal.jamTiba.toDate(); // jamTiba adalah Timestamp lengkap
-      _selectedJamTiba = TimeOfDay.fromDateTime(jadwal.jamTiba.toDate());
-      _daftarKelasHarga = List.from(jadwal.daftarKelasHarga); // Salin list
-    } else {
-      // Default: 1 kelas kosong saat menambah jadwal baru
-      // _tambahItemKelas(); // Bisa diaktifkan jika ingin ada 1 form kelas default
+  }
+
+  @override
+  void dispose() {
+    _namaKelasController.dispose();
+    _subKelasController.dispose();
+    _hargaKelasController.dispose();
+    _ketersediaanKelasController.dispose();
+    _idGerbongKelasController.dispose();
+    for (var item in _detailPerhentianInputList) {
+      item.dispose();
     }
+    super.dispose();
   }
 
   Future<void> _fetchDropdownData() async {
     try {
-      _keretaList = await _adminService.getKeretaList().first; // Ambil data sekali
-      _stasiunList = await _adminService.getStasiunList().first; // Ambil data sekali
-      if (_isEditing && widget.jadwalToEdit != null) {
-        // Set selected value untuk dropdowns jika sedang edit
-        final jadwal = widget.jadwalToEdit!;
-        _selectedKereta = _keretaList.firstWhere((k) => k.id == jadwal.idKereta, orElse: () => _keretaList.isNotEmpty ? _keretaList.first : null as KeretaModel);
-        _selectedStasiunAsal = _stasiunList.firstWhere((s) => s.id == jadwal.idStasiunAsal, orElse: () => _stasiunList.isNotEmpty ? _stasiunList.first : null as StasiunModel);
-        _selectedStasiunTujuan = _stasiunList.firstWhere((s) => s.id == jadwal.idStasiunTujuan, orElse: () => _stasiunList.isNotEmpty ? _stasiunList.first : null as StasiunModel);
-      }
+      _keretaList = await _adminService.getKeretaList().first;
+      _stasiunListAll = await _adminService.getStasiunList().first;
+      _initializeFormFields();
       if(mounted) setState(() {});
     } catch (e) {
       print("Error fetching dropdown data: $e");
@@ -82,39 +68,102 @@ class _FormJadwalScreenState extends State<FormJadwalScreen> {
     }
   }
 
+  void _initializeFormFields() {
+    if (_isEditing && widget.jadwalToEdit != null) {
+      final jadwal = widget.jadwalToEdit!;
+      try {
+        _selectedKereta = _keretaList.firstWhere((k) => k.id == jadwal.idKereta);
+      } catch (e) { _selectedKereta = null; }
 
-  Future<void> _pilihTanggalWaktu(BuildContext context, bool isBerangkat) async {
-    DateTime initialDate = (isBerangkat ? _selectedTanggalBerangkat : _selectedTanggalTiba) ?? DateTime.now();
-    TimeOfDay initialTime = (isBerangkat ? _selectedJamBerangkat : _selectedJamTiba) ?? TimeOfDay.now();
+      _daftarKelasHarga = List.from(jadwal.daftarKelasHarga);
 
-    final DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: initialDate,
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2030),
-    );
+      _detailPerhentianInputList = jadwal.detailPerhentian.map((p) {
+        StasiunModel? stasiun;
+        try { stasiun = _stasiunListAll.firstWhere((s) => s.kode == p.idStasiun); } catch (e) { stasiun = null;}
+        return JadwalPerhentianInput(
+          selectedStasiun: stasiun,
+          tanggalTiba: p.waktuTiba?.toDate(),
+          jamTiba: p.waktuTiba != null ? TimeOfDay.fromDateTime(p.waktuTiba!.toDate()) : null,
+          tanggalBerangkat: p.waktuBerangkat?.toDate(),
+          jamBerangkat: p.waktuBerangkat != null ? TimeOfDay.fromDateTime(p.waktuBerangkat!.toDate()) : null,
+          urutan: p.urutan,
+        );
+      }).toList();
 
-    if (pickedDate != null && mounted) {
-      final TimeOfDay? pickedTime = await showTimePicker(
-        context: context,
-        initialTime: initialTime,
+    } else {
+      // Default 2 field perhentian (asal & tujuan) saat menambah baru
+      _addDetailPerhentianField(isAsal: true); // Asal
+      _addDetailPerhentianField(isTujuan: true); // Tujuan
+    }
+    if(mounted) setState(() {});
+  }
+
+  void _addDetailPerhentianField({bool isAsal = false, bool isTujuan = false, int? insertAtIndex}) {
+    setState(() {
+      int urutanBaru = _detailPerhentianInputList.length;
+      if (isAsal && _detailPerhentianInputList.isNotEmpty) urutanBaru = 0; // Selalu di awal
+      else if (isTujuan && _detailPerhentianInputList.length > 1) urutanBaru = _detailPerhentianInputList.length; // Selalu di akhir
+
+      final newItem = JadwalPerhentianInput(urutan: urutanBaru);
+
+      if (insertAtIndex != null && insertAtIndex < _detailPerhentianInputList.length) {
+        _detailPerhentianInputList.insert(insertAtIndex, newItem);
+      } else if (isAsal) {
+        _detailPerhentianInputList.insert(0, newItem);
+      }
+      else {
+        _detailPerhentianInputList.add(newItem);
+      }
+      _updateUrutanPerhentian();
+    });
+  }
+
+  void _removeDetailPerhentianField(int index) {
+    // Minimal harus ada 2 perhentian (asal dan tujuan)
+    if (_detailPerhentianInputList.length <= 2) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Minimal harus ada stasiun asal dan tujuan.")),
       );
+      return;
+    }
+    setState(() {
+      _detailPerhentianInputList[index].dispose(); // Jika ada controller di dalamnya
+      _detailPerhentianInputList.removeAt(index);
+      _updateUrutanPerhentian();
+    });
+  }
+
+  void _updateUrutanPerhentian() {
+    for (int i = 0; i < _detailPerhentianInputList.length; i++) {
+      _detailPerhentianInputList[i].urutan = i;
+    }
+  }
+
+
+  Future<void> _pilihTanggalWaktuPerhentian(BuildContext context, int index, bool isTiba) async {
+    final perhentian = _detailPerhentianInputList[index];
+    DateTime? initialDate = (isTiba ? perhentian.tanggalTiba : perhentian.tanggalBerangkat) ?? DateTime.now();
+    TimeOfDay? initialTime = (isTiba ? perhentian.jamTiba : perhentian.jamBerangkat) ?? TimeOfDay.now();
+
+    final DateTime? pickedDate = await showDatePicker(context: context, initialDate: initialDate, firstDate: DateTime(2020), lastDate: DateTime(2030));
+    if (pickedDate != null && mounted) {
+      final TimeOfDay? pickedTime = await showTimePicker(context: context, initialTime: initialTime);
       if (pickedTime != null && mounted) {
         setState(() {
-          if (isBerangkat) {
-            _selectedTanggalBerangkat = pickedDate;
-            _selectedJamBerangkat = pickedTime;
+          if (isTiba) {
+            perhentian.tanggalTiba = pickedDate;
+            perhentian.jamTiba = pickedTime;
           } else {
-            _selectedTanggalTiba = pickedDate;
-            _selectedJamTiba = pickedTime;
+            perhentian.tanggalBerangkat = pickedDate;
+            perhentian.jamBerangkat = pickedTime;
           }
         });
       }
     }
   }
 
+
   void _tambahItemKelas() {
-    // Validasi input kelas sebelum menambah (jika ada form input aktif)
     if (_namaKelasController.text.isNotEmpty && _hargaKelasController.text.isNotEmpty) {
       final harga = int.tryParse(_hargaKelasController.text);
       if (harga == null) {
@@ -130,33 +179,25 @@ class _FormJadwalScreenState extends State<FormJadwalScreen> {
           idGerbong: _idGerbongKelasController.text.isEmpty ? null : _idGerbongKelasController.text,
         ));
       });
-      // Kosongkan controller setelah menambah
-      _namaKelasController.clear();
-      _subKelasController.clear();
-      _hargaKelasController.clear();
-      _ketersediaanKelasController.clear();
-      _idGerbongKelasController.clear();
+      _namaKelasController.clear(); _subKelasController.clear(); _hargaKelasController.clear();
+      _ketersediaanKelasController.clear(); _idGerbongKelasController.clear();
     } else {
-      // Atau tambahkan kelas kosong jika tidak ada form input aktif
-      // setState(() {
-      //   _daftarKelasHarga.add(JadwalKelasInfoModel(namaKelas: '', harga: 0, ketersediaan: 'Tersedia'));
-      // });
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Nama kelas dan harga harus diisi.")));
     }
   }
 
   void _hapusItemKelas(int index) {
-    setState(() {
-      _daftarKelasHarga.removeAt(index);
-    });
+    setState(() { _daftarKelasHarga.removeAt(index); });
   }
 
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_selectedKereta == null || _selectedStasiunAsal == null || _selectedStasiunTujuan == null ||
-        _selectedTanggalBerangkat == null || _selectedJamBerangkat == null ||
-        _selectedTanggalTiba == null || _selectedJamTiba == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Harap lengkapi semua field utama jadwal.")));
+    if (_selectedKereta == null ) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Harap pilih kereta.")));
+      return;
+    }
+    if (_detailPerhentianInputList.length < 2) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Harap tentukan minimal stasiun asal dan tujuan.")));
       return;
     }
     if (_daftarKelasHarga.isEmpty) {
@@ -164,31 +205,77 @@ class _FormJadwalScreenState extends State<FormJadwalScreen> {
       return;
     }
 
-    _formKey.currentState!.save();
+    // Validasi input perhentian
+    List<JadwalPerhentianModel> perhentianFinalList = [];
+    for (int i = 0; i < _detailPerhentianInputList.length; i++) {
+      final input = _detailPerhentianInputList[i];
+      if (input.selectedStasiun == null) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Stasiun pada perhentian ke-${i+1} belum dipilih.")));
+        return;
+      }
+      // Stasiun awal tidak perlu waktu tiba
+      if (i > 0 && (input.tanggalTiba == null || input.jamTiba == null)) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Waktu tiba untuk stasiun ${input.selectedStasiun!.nama} (perhentian ke-${i+1}) belum diisi.")));
+        return;
+      }
+      // Stasiun akhir tidak perlu waktu berangkat
+      if (i < _detailPerhentianInputList.length - 1 && (input.tanggalBerangkat == null || input.jamBerangkat == null)) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Waktu berangkat untuk stasiun ${input.selectedStasiun!.nama} (perhentian ke-${i+1}) belum diisi.")));
+        return;
+      }
 
-    final Timestamp tanggalBerangkatTimestamp = Timestamp.fromDate(DateTime(
-      _selectedTanggalBerangkat!.year, _selectedTanggalBerangkat!.month, _selectedTanggalBerangkat!.day,
-      _selectedJamBerangkat!.hour, _selectedJamBerangkat!.minute,
-    ));
-    final Timestamp tanggalTibaTimestamp = Timestamp.fromDate(DateTime(
-      _selectedTanggalTiba!.year, _selectedTanggalTiba!.month, _selectedTanggalTiba!.day,
-      _selectedJamTiba!.hour, _selectedJamTiba!.minute,
-    ));
+      Timestamp? tsTiba = (i > 0 && input.tanggalTiba != null && input.jamTiba != null)
+          ? Timestamp.fromDate(DateTime(input.tanggalTiba!.year, input.tanggalTiba!.month, input.tanggalTiba!.day, input.jamTiba!.hour, input.jamTiba!.minute))
+          : null;
+      Timestamp? tsBerangkat = (i < _detailPerhentianInputList.length - 1 && input.tanggalBerangkat != null && input.jamBerangkat != null)
+          ? Timestamp.fromDate(DateTime(input.tanggalBerangkat!.year, input.tanggalBerangkat!.month, input.tanggalBerangkat!.day, input.jamBerangkat!.hour, input.jamBerangkat!.minute))
+          : null;
 
-    if (tanggalTibaTimestamp.toDate().isBefore(tanggalBerangkatTimestamp.toDate())) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Tanggal & Jam tiba tidak boleh sebelum tanggal & jam berangkat.")));
+      // Validasi waktu berangkat harus setelah waktu tiba di stasiun yang sama (jika bukan stasiun awal/akhir)
+      if (tsTiba != null && tsBerangkat != null && tsBerangkat.toDate().isBefore(tsTiba.toDate())) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Di stasiun ${input.selectedStasiun!.nama}, waktu berangkat tidak boleh sebelum waktu tiba.")));
+        return;
+      }
+      // Validasi waktu tiba di stasiun berikutnya harus setelah waktu berangkat dari stasiun sebelumnya
+      if (i > 0) {
+        final prevPerhentianInput = _detailPerhentianInputList[i-1];
+        if (prevPerhentianInput.tanggalBerangkat != null && prevPerhentianInput.jamBerangkat != null && tsTiba != null) {
+          final prevTsBerangkat = Timestamp.fromDate(DateTime(prevPerhentianInput.tanggalBerangkat!.year, prevPerhentianInput.tanggalBerangkat!.month, prevPerhentianInput.tanggalBerangkat!.day, prevPerhentianInput.jamBerangkat!.hour, prevPerhentianInput.jamBerangkat!.minute));
+          if (tsTiba.toDate().isBefore(prevTsBerangkat.toDate())) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Waktu tiba di ${input.selectedStasiun!.nama} tidak boleh sebelum waktu berangkat dari stasiun sebelumnya.")));
+            return;
+          }
+        }
+      }
+
+
+      perhentianFinalList.add(JadwalPerhentianModel(
+        idStasiun: input.selectedStasiun!.kode,
+        namaStasiun: input.selectedStasiun!.nama, // Simpan nama stasiunnya juga
+        waktuTiba: tsTiba,
+        waktuBerangkat: tsBerangkat,
+        urutan: input.urutan,
+      ));
+    }
+
+    // Stasiun awal harus punya waktu berangkat, stasiun akhir harus punya waktu tiba
+    if (perhentianFinalList.first.waktuBerangkat == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Stasiun awal harus memiliki waktu berangkat.")));
+      return;
+    }
+    if (perhentianFinalList.last.waktuTiba == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Stasiun akhir harus memiliki waktu tiba.")));
       return;
     }
 
 
+    _formKey.currentState!.save();
+
     final jadwal = JadwalModel(
-      id: _isEditing ? widget.jadwalToEdit!.id : '', // ID akan di-generate oleh Firestore jika baru
+      id: _isEditing ? widget.jadwalToEdit!.id : '',
       idKereta: _selectedKereta!.id,
-      namaKereta: _selectedKereta!.nama, // Ambil dari KeretaModel yang dipilih
-      idStasiunAsal: _selectedStasiunAsal!.kode, // Kirim kode stasiun
-      idStasiunTujuan: _selectedStasiunTujuan!.kode, // Kirim kode stasiun
-      tanggalBerangkat: tanggalBerangkatTimestamp,
-      jamTiba: tanggalTibaTimestamp,
+      namaKereta: _selectedKereta!.nama,
+      detailPerhentian: perhentianFinalList,
       daftarKelasHarga: _daftarKelasHarga,
     );
 
@@ -225,83 +312,41 @@ class _FormJadwalScreenState extends State<FormJadwalScreen> {
           key: _formKey,
           child: ListView(
             children: <Widget>[
-              // Pemilihan Kereta
               DropdownButtonFormField<KeretaModel>(
                 value: _selectedKereta,
-                items: _keretaList.map((KeretaModel kereta) {
-                  return DropdownMenuItem<KeretaModel>(
-                    value: kereta,
-                    child: Text("${kereta.nama} (${kereta.kelasUtama})"),
-                  );
-                }).toList(),
-                onChanged: (KeretaModel? newValue) {
-                  setState(() { _selectedKereta = newValue; });
-                },
+                items: _keretaList.map((KeretaModel kereta) => DropdownMenuItem<KeretaModel>(value: kereta, child: Text("${kereta.nama} (${kereta.kelasUtama})"))).toList(),
+                onChanged: (KeretaModel? newValue) => setState(() => _selectedKereta = newValue),
                 decoration: const InputDecoration(labelText: 'Pilih Kereta', border: OutlineInputBorder()),
                 validator: (value) => value == null ? 'Kereta harus dipilih' : null,
               ),
-              const SizedBox(height: 16.0),
+              const SizedBox(height: 24.0),
 
-              // Stasiun Asal
-              DropdownButtonFormField<StasiunModel>(
-                value: _selectedStasiunAsal,
-                items: _stasiunList.map((StasiunModel stasiun) {
-                  return DropdownMenuItem<StasiunModel>(
-                    value: stasiun,
-                    child: Text(stasiun.displayName),
-                  );
-                }).toList(),
-                onChanged: (StasiunModel? newValue) {
-                  setState(() { _selectedStasiunAsal = newValue; });
-                },
-                decoration: const InputDecoration(labelText: 'Pilih Stasiun Asal', border: OutlineInputBorder()),
-                validator: (value) => value == null ? 'Stasiun asal harus dipilih' : null,
-              ),
-              const SizedBox(height: 16.0),
-
-              // Stasiun Tujuan
-              DropdownButtonFormField<StasiunModel>(
-                value: _selectedStasiunTujuan,
-                items: _stasiunList.map((StasiunModel stasiun) {
-                  return DropdownMenuItem<StasiunModel>(
-                    value: stasiun,
-                    child: Text(stasiun.displayName),
-                  );
-                }).toList(),
-                onChanged: (StasiunModel? newValue) {
-                  setState(() { _selectedStasiunTujuan = newValue; });
-                },
-                decoration: const InputDecoration(labelText: 'Pilih Stasiun Tujuan', border: OutlineInputBorder()),
-                validator: (value) {
-                  if (value == null) return 'Stasiun tujuan harus dipilih';
-                  if (_selectedStasiunAsal != null && value.id == _selectedStasiunAsal!.id) {
-                    return 'Stasiun tujuan tidak boleh sama dengan stasiun asal';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16.0),
-
-              // Tanggal & Jam Berangkat
-              ListTile(
-                title: Text("Tanggal & Jam Berangkat: ${_selectedTanggalBerangkat == null || _selectedJamBerangkat == null ? 'Belum dipilih' : DateFormat('EEE, dd MMM yyyy HH:mm', 'id_ID').format(DateTime(_selectedTanggalBerangkat!.year, _selectedTanggalBerangkat!.month, _selectedTanggalBerangkat!.day, _selectedJamBerangkat!.hour, _selectedJamBerangkat!.minute))}"),
-                trailing: const Icon(Icons.calendar_today_outlined),
-                onTap: () => _pilihTanggalWaktu(context, true),
-              ),
-              const SizedBox(height: 16.0),
-
-              // Tanggal & Jam Tiba
-              ListTile(
-                title: Text("Tanggal & Jam Tiba: ${_selectedTanggalTiba == null || _selectedJamTiba == null ? 'Belum dipilih' : DateFormat('EEE, dd MMM yyyy HH:mm', 'id_ID').format(DateTime(_selectedTanggalTiba!.year, _selectedTanggalTiba!.month, _selectedTanggalTiba!.day, _selectedJamTiba!.hour, _selectedJamTiba!.minute))}"),
-                trailing: const Icon(Icons.calendar_today_outlined),
-                onTap: () => _pilihTanggalWaktu(context, false),
+              Text("Detail Rute & Perhentian", style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8.0),
+              _buildDaftarPerhentianFields(),
+              const SizedBox(height: 8.0),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton.icon(
+                      icon: const Icon(Icons.add_circle_outline, color: Colors.orange),
+                      label: const Text("Tambah Perhentian Antara", style: TextStyle(color: Colors.orange)),
+                      onPressed: () {
+                        // Tambah sebelum item terakhir (tujuan)
+                        if (_detailPerhentianInputList.length >= 2) {
+                          _addDetailPerhentianField(insertAtIndex: _detailPerhentianInputList.length - 1);
+                        } else {
+                          _addDetailPerhentianField(); // Jika hanya ada 0 atau 1, tambah di akhir
+                        }
+                      }
+                  ),
+                ],
               ),
               const SizedBox(height: 24.0),
 
-              // Input Detail Kelas Harga
               Text("Detail Kelas & Harga", style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
               const SizedBox(height: 8.0),
-              _buildFormTambahKelas(), // Form untuk input kelas baru
+              _buildFormTambahKelas(),
               const SizedBox(height: 8.0),
               ElevatedButton.icon(
                 icon: const Icon(Icons.add_circle_outline),
@@ -310,7 +355,7 @@ class _FormJadwalScreenState extends State<FormJadwalScreen> {
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.teal, foregroundColor: Colors.white),
               ),
               const SizedBox(height: 16.0),
-              _buildDaftarKelasHargaItems(), // Menampilkan list kelas yang sudah ditambahkan
+              _buildDaftarKelasHargaItems(),
 
               const SizedBox(height: 24.0),
               ElevatedButton(
@@ -325,54 +370,140 @@ class _FormJadwalScreenState extends State<FormJadwalScreen> {
     );
   }
 
-  Widget _buildFormTambahKelas() {
-    // Form kecil untuk menambah satu item kelas baru
-    return Card(
-      elevation: 1,
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text("Form Kelas Baru", style: TextStyle(fontWeight: FontWeight.w600)),
-            const SizedBox(height: 8),
-            TextFormField(controller: _namaKelasController, decoration: const InputDecoration(labelText: "Nama Kelas (mis: EKONOMI)")),
-            TextFormField(controller: _subKelasController, decoration: const InputDecoration(labelText: "Sub Kelas (mis: CA, opsional)")),
-            TextFormField(controller: _hargaKelasController, decoration: const InputDecoration(labelText: "Harga (angka)"), keyboardType: TextInputType.number),
-            TextFormField(controller: _ketersediaanKelasController, decoration: const InputDecoration(labelText: "Ketersediaan (mis: Tersedia, 5 Kursi)"), ),
-            TextFormField(controller: _idGerbongKelasController, decoration: const InputDecoration(labelText: "ID Gerbong (opsional)")),
-          ],
-        ),
-      ),
-    );
+  Widget _buildFormTambahKelas() { /* ... (implementasi tetap sama) ... */
+    return Card(elevation: 1, child: Padding(padding: const EdgeInsets.all(12.0), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      const Text("Form Kelas Baru", style: TextStyle(fontWeight: FontWeight.w600)), const SizedBox(height: 8),
+      TextFormField(controller: _namaKelasController, decoration: const InputDecoration(labelText: "Nama Kelas (mis: EKONOMI)")),
+      TextFormField(controller: _subKelasController, decoration: const InputDecoration(labelText: "Sub Kelas (mis: CA, opsional)")),
+      TextFormField(controller: _hargaKelasController, decoration: const InputDecoration(labelText: "Harga (angka)"), keyboardType: TextInputType.number),
+      TextFormField(controller: _ketersediaanKelasController, decoration: const InputDecoration(labelText: "Ketersediaan (mis: Tersedia, 5 Kursi)"), ),
+      TextFormField(controller: _idGerbongKelasController, decoration: const InputDecoration(labelText: "ID Gerbong (opsional)")),
+    ],),),);
   }
 
-  Widget _buildDaftarKelasHargaItems() {
-    if (_daftarKelasHarga.isEmpty) {
+  Widget _buildDaftarKelasHargaItems() { /* ... (implementasi tetap sama) ... */
+    if (_daftarKelasHarga.isEmpty) return const Padding(padding: EdgeInsets.symmetric(vertical: 8.0), child: Text("Belum ada detail kelas ditambahkan.", style: TextStyle(color: Colors.grey)),);
+    return ListView.builder(shrinkWrap: true, physics: const NeverScrollableScrollPhysics(), itemCount: _daftarKelasHarga.length, itemBuilder: (context, index) {
+      final kelas = _daftarKelasHarga[index];
+      return Card(margin: const EdgeInsets.symmetric(vertical: 4.0), child: ListTile(
+        title: Text("${kelas.displayKelasLengkap} - ${NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(kelas.harga)}"),
+        subtitle: Text("Ketersediaan: ${kelas.ketersediaan}${kelas.idGerbong != null ? ', Gerbong: ${kelas.idGerbong}' : ''}"),
+        trailing: IconButton(icon: const Icon(Icons.remove_circle_outline, color: Colors.red), onPressed: () => _hapusItemKelas(index)),
+      ));
+    });
+  }
+
+  Widget _buildDaftarPerhentianFields() {
+    if (_detailPerhentianInputList.isEmpty) {
       return const Padding(
         padding: EdgeInsets.symmetric(vertical: 8.0),
-        child: Text("Belum ada detail kelas ditambahkan.", style: TextStyle(color: Colors.grey)),
+        child: Text("Harap tambahkan stasiun asal dan tujuan.", style: TextStyle(color: Colors.grey)),
       );
     }
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: _daftarKelasHarga.length,
+      itemCount: _detailPerhentianInputList.length,
       itemBuilder: (context, index) {
-        final kelas = _daftarKelasHarga[index];
+        final perhentianInput = _detailPerhentianInputList[index];
+        bool isStasiunAwal = index == 0;
+        bool isStasiunAkhir = index == _detailPerhentianInputList.length - 1;
+        String labelStasiun = "Stasiun Perhentian ${index + 1}";
+        if (isStasiunAwal) labelStasiun = "Stasiun Asal (Keberangkatan)";
+        if (isStasiunAkhir && !isStasiunAwal) labelStasiun = "Stasiun Tujuan (Kedatangan)";
+
+
         return Card(
-          margin: const EdgeInsets.symmetric(vertical: 4.0),
-          child: ListTile(
-            title: Text("${kelas.displayKelasLengkap} - ${NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(kelas.harga)}"),
-            subtitle: Text("Ketersediaan: ${kelas.ketersediaan}${kelas.idGerbong != null ? ', Gerbong: ${kelas.idGerbong}' : ''}"),
-            trailing: IconButton(
-              icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
-              onPressed: () => _hapusItemKelas(index),
+          margin: const EdgeInsets.symmetric(vertical: 8.0),
+          elevation: 1.5,
+          child: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(labelStasiun, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                    if (!isStasiunAwal && !isStasiunAkhir) // Hanya bisa hapus stasiun antara
+                      IconButton(
+                        icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        onPressed: () => _removeDetailPerhentianField(index),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<StasiunModel?>(
+                  value: perhentianInput.selectedStasiun,
+                  items: _stasiunListAll.map((StasiunModel stasiun) {
+                    return DropdownMenuItem<StasiunModel>(
+                      value: stasiun,
+                      child: Text(stasiun.displayName, style: const TextStyle(fontSize: 14)),
+                    );
+                  }).toList(),
+                  onChanged: (StasiunModel? newValue) {
+                    setState(() {
+                      perhentianInput.selectedStasiun = newValue;
+                    });
+                  },
+                  decoration: const InputDecoration(
+                    labelText: 'Pilih Stasiun',
+                    border: OutlineInputBorder(),
+                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                  ),
+                  validator: (value) => value == null ? 'Stasiun harus dipilih' : null,
+                  hint: perhentianInput.selectedStasiun == null ? const Text("Pilih stasiun") : null,
+                ),
+                const SizedBox(height: 12),
+                // Waktu Tiba (tidak untuk stasiun awal)
+                if (!isStasiunAwal)
+                  ListTile(
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    title: Text("Waktu Tiba: ${perhentianInput.tanggalTiba == null || perhentianInput.jamTiba == null ? 'Belum dipilih' : DateFormat('EEE, dd MMM yy HH:mm', 'id_ID').format(DateTime(perhentianInput.tanggalTiba!.year, perhentianInput.tanggalTiba!.month, perhentianInput.tanggalTiba!.day, perhentianInput.jamTiba!.hour, perhentianInput.jamTiba!.minute))}"),
+                    trailing: const Icon(Icons.edit_calendar_outlined, size: 20),
+                    onTap: () => _pilihTanggalWaktuPerhentian(context, index, true), // true untuk isTiba
+                  ),
+                // Waktu Berangkat (tidak untuk stasiun akhir)
+                if (!isStasiunAkhir)
+                  ListTile(
+                    dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    title: Text("Waktu Berangkat: ${perhentianInput.tanggalBerangkat == null || perhentianInput.jamBerangkat == null ? 'Belum dipilih' : DateFormat('EEE, dd MMM yy HH:mm', 'id_ID').format(DateTime(perhentianInput.tanggalBerangkat!.year, perhentianInput.tanggalBerangkat!.month, perhentianInput.tanggalBerangkat!.day, perhentianInput.jamBerangkat!.hour, perhentianInput.jamBerangkat!.minute))}"),
+                    trailing: const Icon(Icons.edit_calendar_outlined, size: 20),
+                    onTap: () => _pilihTanggalWaktuPerhentian(context, index, false), // false untuk isBerangkat
+                  ),
+              ],
             ),
-            // TODO: Tambahkan fungsi edit untuk item kelas ini jika perlu
           ),
         );
       },
     );
+  }
+}
+
+// Helper class untuk menampung state input perhentian di form
+class JadwalPerhentianInput {
+  StasiunModel? selectedStasiun;
+  DateTime? tanggalTiba;
+  TimeOfDay? jamTiba;
+  DateTime? tanggalBerangkat;
+  TimeOfDay? jamBerangkat;
+  int urutan; // Untuk menjaga urutan saat disimpan
+
+  JadwalPerhentianInput({
+    this.selectedStasiun,
+    this.tanggalTiba,
+    this.jamTiba,
+    this.tanggalBerangkat,
+    this.jamBerangkat,
+    required this.urutan,
+  });
+
+  // Jika ada controller di sini, tambahkan dispose method
+  void dispose() {
+    // Tidak ada controller di sini saat ini
   }
 }

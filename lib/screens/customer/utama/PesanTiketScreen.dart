@@ -20,7 +20,7 @@ class _PesanTiketScreenState extends State<PesanTiketScreen> {
 
   DateTime? _selectedTanggalPergi;
   int _jumlahDewasa = 1;
-  int _jumlahBayi = 0; // Sesuai screenshot, bisa diubah jika defaultnya 0
+  int _jumlahBayi = 0;
   bool _isPulangPergi = false;
 
   Future<void> _pilihStasiunUntuk(bool isAsal) async {
@@ -92,9 +92,6 @@ class _PesanTiketScreenState extends State<PesanTiketScreen> {
   }
 
   void _cariTiket() {
-    // Meskipun _formKey.currentState!.validate() mungkin tidak banyak berpengaruh
-    // pada field kustom, tidak masalah untuk tetap ada.
-    // Validasi utama ada pada pengecekan null di bawah.
     if (_formKey.currentState!.validate()) {
       if (_stasiunAsal == null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -132,9 +129,13 @@ class _PesanTiketScreenState extends State<PesanTiketScreen> {
         );
         return;
       }
+      if (_jumlahBayi > _jumlahDewasa) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Jumlah bayi tidak boleh melebihi jumlah penumpang dewasa.')),
+        );
+        return;
+      }
 
-
-      // --- DEBUGGING PRINT STATEMENTS ---
       print("--- Memulai Navigasi ke PilihJadwalScreen ---");
       print("Stasiun Asal: ${_stasiunAsal?.displayName} (ID: ${_stasiunAsal?.id})");
       print("Stasiun Tujuan: ${_stasiunTujuan?.displayName} (ID: ${_stasiunTujuan?.id})");
@@ -142,14 +143,13 @@ class _PesanTiketScreenState extends State<PesanTiketScreen> {
       print("Jumlah Dewasa: $_jumlahDewasa");
       print("Jumlah Bayi: $_jumlahBayi");
       print("--- Mengirim Data ---");
-      // --- END DEBUGGING ---
 
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => PilihJadwalScreen(
-            stasiunAsal: _stasiunAsal!.displayName, // Jika masih error, coba kirim _stasiunAsal!.kode
-            stasiunTujuan: _stasiunTujuan!.displayName, // Jika masih error, coba kirim _stasiunTujuan!.kode
+            stasiunAsal: _stasiunAsal!.displayName,
+            stasiunTujuan: _stasiunTujuan!.displayName,
             tanggalBerangkat: _selectedTanggalPergi!,
             jumlahDewasa: _jumlahDewasa,
             jumlahBayi: _jumlahBayi,
@@ -167,8 +167,8 @@ class _PesanTiketScreenState extends State<PesanTiketScreen> {
   }) {
     return InkWell(
       onTap: onTap,
-      child: Container( // Tambahkan Container untuk padding internal jika perlu
-        padding: const EdgeInsets.symmetric(vertical: 8.0), // Padding vertikal untuk field
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -185,7 +185,7 @@ class _PesanTiketScreenState extends State<PesanTiketScreen> {
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
                         color: stasiun != null
-                            ? Theme.of(context).textTheme.bodyLarge?.color // Warna teks default
+                            ? Theme.of(context).textTheme.bodyLarge?.color
                             : Colors.grey.shade600),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -210,7 +210,6 @@ class _PesanTiketScreenState extends State<PesanTiketScreen> {
       appBar: AppBar(
         title: const Text('Kereta Antar Kota'),
         elevation: 1.0,
-        // backgroundColor: Theme.of(context).canvasColor, // Sesuaikan dengan tema
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -276,7 +275,7 @@ class _PesanTiketScreenState extends State<PesanTiketScreen> {
                               Text(
                                 _selectedTanggalPergi == null
                                     ? 'Pilih tanggal'
-                                    : DateFormat('EEE, dd MMM yyyy', 'id_ID').format(_selectedTanggalPergi!),
+                                    : DateFormat('EEE, dd MMM yy', 'id_ID').format(_selectedTanggalPergi!), // Format EEE, dd MMM yyyy
                                 style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                               ),
                             ],
