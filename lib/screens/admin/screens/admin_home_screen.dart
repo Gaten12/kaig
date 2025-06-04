@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
+import 'list_jadwal_screen.dart';
 import 'list_kereta_screen.dart';
 import 'list_stasiun_screen.dart';
-//import 'list_kereta_screen.dart';
-//import 'list_jadwal_screen.dart';
 import '../../../services/auth_service.dart'; // Untuk logout
 import '../../../screens/login/login_screen.dart'; // Untuk navigasi setelah logout
 
@@ -63,7 +62,7 @@ class AdminHomeScreen extends StatelessWidget {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const ListKeretaScreen()),
+                MaterialPageRoute(builder: (context) => const ListJadwalScreen()),
               );
             },
           ),
