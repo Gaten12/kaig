@@ -1,9 +1,8 @@
-// lib/src/pembelian_tiket/screens/pilih_stasiun_screen.dart (buat file baru)
 import 'package:flutter/material.dart';
-import '../../models/stasiun_model.dart'; // Impor model stasiun
+import '../../../models/stasiun_model.dart'; // Pastikan path ini benar
 
 class PilihStasiunScreen extends StatefulWidget {
-  final String? initialSearchQuery; // Opsional, jika ingin membawa query dari layar sebelumnya
+  final String? initialSearchQuery;
 
   const PilihStasiunScreen({super.key, this.initialSearchQuery});
 
@@ -16,24 +15,29 @@ class _PilihStasiunScreenState extends State<PilihStasiunScreen> {
   List<StasiunModel> _semuaStasiun = [];
   List<StasiunModel> _hasilPencarian = [];
   List<StasiunModel> _stasiunFavorit = [];
-  List<StasiunModel> _terakhirDicari = []; // Untuk kesederhanaan, kita isi manual dulu
+  List<StasiunModel> _terakhirDicari = [];
 
   @override
   void initState() {
     super.initState();
-    _loadStasiunDummy();
-    _hasilPencarian = _semuaStasiun; // Awalnya tampilkan semua
-    if (widget.initialSearchQuery != null) {
+    _loadStasiunDummy(); // Memuat data stasiun (dummy atau dari sumber data)
+
+    if (widget.initialSearchQuery != null && widget.initialSearchQuery!.isNotEmpty) {
       _searchController.text = widget.initialSearchQuery!;
       _filterStasiun(widget.initialSearchQuery!);
+    } else {
+      // Jika tidak ada query awal, _filterStasiun akan menangani _hasilPencarian
+      _filterStasiun('');
     }
+
     _searchController.addListener(() {
       _filterStasiun(_searchController.text);
     });
   }
 
   void _loadStasiunDummy() {
-    // Nantinya data ini dari Firestore atau API
+    // Nantinya data ini idealnya dari Firestore atau API
+    // Pastikan StasiunModel memiliki parameter 'isFavorit' dan 'deskripsiTambahan' di konstruktornya
     _semuaStasiun = [
       StasiunModel(id: "1", nama: "BANDUNG", kode: "BD", kota: "BANDUNG", isFavorit: true),
       StasiunModel(id: "2", nama: "CIPEUNDEUY", kode: "CPD", kota: "KABUPATEN GARUT", isFavorit: true),
@@ -42,62 +46,59 @@ class _PilihStasiunScreenState extends State<PilihStasiunScreen> {
       StasiunModel(id: "5", nama: "BANJAR", kode: "BJR", kota: "KOTA BANJAR"),
       StasiunModel(id: "6", nama: "KROYA", kode: "KYA", kota: "KABUPATEN CILACAP"),
       StasiunModel(id: "7", nama: "KOTA TASIKMALAYA", kode: "TSM", kota: "KOTA TASIKMALAYA", deskripsiTambahan: "SEMUA STASIUN DI KOTA TASIKMALAYA"),
-      StasiunModel(id: "8", nama: "GAMBIR", kode: "GMR", kota: "JAKARTA PUSAT"),
+      StasiunModel(id: "8", nama: "GAMBIR", kode: "GMR", kota: "JAKARTA PUSAT", isFavorit: true), // Menambahkan isFavorit
       StasiunModel(id: "9", nama: "PASAR SENEN", kode: "PSE", kota: "JAKARTA PUSAT"),
       StasiunModel(id: "10", nama: "SURABAYA GUBENG", kode: "SGU", kota: "SURABAYA"),
       StasiunModel(id: "11", nama: "SURABAYA PASAR TURI", kode: "SBI", kota: "SURABAYA"),
       StasiunModel(id: "12", nama: "MALANG", kode: "ML", kota: "MALANG"),
     ];
 
-    _stasiunFavorit = _semuaStasiun.where((s) => s.isFavorit && (s.nama == "BANDUNG" || s.nama == "CIPEUNDEUY")).toList(); // Contoh favorit
-    _terakhirDicari = _semuaStasiun.where((s) => s.id == "1" || s.id == "2" || s.id == "3" || s.id == "4").toList(); // Contoh terakhir dicari
+    _stasiunFavorit = _semuaStasiun.where((s) => s.isFavorit).toList();
+    _terakhirDicari = _semuaStasiun.where((s) => s.id == "1" || s.id == "3" || s.id == "8").toList();
 
-    // Awalnya, hasil pencarian adalah semua stasiun jika tidak ada filter dari search bar
-    _filterStasiun(_searchController.text);
+    _filterStasiun(_searchController.text); // Panggil setelah semua list diinisialisasi
   }
 
   void _filterStasiun(String query) {
+    List<StasiunModel> filtered;
     if (query.isEmpty) {
-      // Jika query kosong, tampilkan favorit dan terakhir dicari, lalu sisanya.
-      // Untuk simplisitas, kita tampilkan semua dulu jika tidak ada query.
-      // Atau kita bisa build UI yang lebih kompleks sesuai screenshot.
-      // Untuk saat ini, kita gabungkan dulu.
-      setState(() {
-        _hasilPencarian = _semuaStasiun;
-      });
-      return;
-    }
-    List<StasiunModel> filtered = _semuaStasiun.where((stasiun) {
-      final namaLower = stasiun.nama.toLowerCase();
-      final kodeLower = stasiun.kode.toLowerCase();
-      final kotaLower = stasiun.kota.toLowerCase();
+      filtered = _semuaStasiun;
+    } else {
       final queryLower = query.toLowerCase();
-      return namaLower.contains(queryLower) ||
-          kodeLower.contains(queryLower) ||
-          kotaLower.contains(queryLower);
-    }).toList();
-    setState(() {
-      _hasilPencarian = filtered;
-    });
+      filtered = _semuaStasiun.where((stasiun) {
+        final namaLower = stasiun.nama.toLowerCase();
+        final kodeLower = stasiun.kode.toLowerCase();
+        final kotaLower = stasiun.kota.toLowerCase();
+        // Pastikan stasiun.deskripsiTambahan ada di StasiunModel Anda
+        final deskripsiLower = stasiun.deskripsiTambahan.toLowerCase();
+        return namaLower.contains(queryLower) ||
+            kodeLower.contains(queryLower) ||
+            kotaLower.contains(queryLower) ||
+            deskripsiLower.contains(queryLower);
+      }).toList();
+    }
+    if (mounted) {
+      setState(() {
+        _hasilPencarian = filtered;
+      });
+    }
   }
 
   void _pilihStasiun(StasiunModel stasiun) {
-    // TODO: Tambahkan logika untuk 'Terakhir dicari' jika perlu
-    Navigator.pop(context, stasiun); // Kembalikan stasiun yang dipilih
+    Navigator.pop(context, stasiun);
   }
 
   void _toggleFavorit(StasiunModel stasiun) {
+    if (!mounted) return;
     setState(() {
-      stasiun.isFavorit = !stasiun.isFavorit;
-      // Update juga di _stasiunFavorit dan _terakhirDicari jika stasiun ada di sana
-      // Untuk data dummy, ini cukup. Untuk data asli, perlu update ke DB.
-      if (stasiun.isFavorit && !_stasiunFavorit.any((s) => s.id == stasiun.id)) {
-        _stasiunFavorit.add(stasiun);
-      } else if (!stasiun.isFavorit) {
+      stasiun.isFavorit = !stasiun.isFavorit; // Membutuhkan field 'isFavorit' di StasiunModel
+      if (stasiun.isFavorit) {
+        if (!_stasiunFavorit.any((s) => s.id == stasiun.id)) {
+          _stasiunFavorit.add(stasiun);
+        }
+      } else {
         _stasiunFavorit.removeWhere((s) => s.id == stasiun.id);
       }
-      // Refresh hasil pencarian agar status bintang terupdate
-      _filterStasiun(_searchController.text);
     });
     print("Stasiun ${stasiun.nama} favorit: ${stasiun.isFavorit}");
   }
@@ -114,15 +115,15 @@ class _PilihStasiunScreenState extends State<PilihStasiunScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        titleSpacing: 0, // Menghilangkan spasi default sebelum title
+        titleSpacing: 0,
         title: TextField(
           controller: _searchController,
-          autofocus: true, // Langsung fokus ke search bar
+          autofocus: true,
           decoration: InputDecoration(
             hintText: 'Cari stasiun atau kota...',
             border: InputBorder.none,
             prefixIcon: Icon(Icons.search, color: Theme.of(context).iconTheme.color?.withOpacity(0.6)),
-            suffixIcon: _searchController.text.isNotEmpty
+            suffixIcon: isSearching
                 ? IconButton(
               icon: const Icon(Icons.clear),
               onPressed: () {
@@ -131,7 +132,7 @@ class _PilihStasiunScreenState extends State<PilihStasiunScreen> {
             )
                 : null,
           ),
-          style: TextStyle(color: Theme.of(context).textTheme.titleLarge?.color, fontSize: 17),
+          style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color, fontSize: 17),
         ),
       ),
       body: Column(
@@ -143,20 +144,32 @@ class _PilihStasiunScreenState extends State<PilihStasiunScreen> {
           ],
           if (!isSearching && _terakhirDicari.isNotEmpty) ...[
             _buildSectionTitle("Terakhir dicari"),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _terakhirDicari.length,
+              itemBuilder: (context, index) {
+                final stasiun = _terakhirDicari[index];
+                return _buildStasiunListItem(stasiun);
+              },
+            ),
           ],
-          // Jika sedang mencari, atau tidak ada favorit/terakhir dicari, langsung tampilkan hasil
-          // Atau tampilkan semua jika tidak ada query di _filterStasiun
+
+          if (_hasilPencarian.isNotEmpty || isSearching)
+            _buildSectionTitle(isSearching ? "Hasil Pencarian" : "Semua Stasiun"),
+
           Expanded(
-            child: ListView.builder(
+            child: _hasilPencarian.isEmpty
+                ? Center(child: Text(isSearching ? "Stasiun tidak ditemukan." : "Tidak ada data stasiun."))
+                : ListView.builder(
               itemCount: _hasilPencarian.length,
               itemBuilder: (context, index) {
                 final stasiun = _hasilPencarian[index];
-                // Jangan tampilkan lagi jika sudah ada di "Terakhir dicari" & tidak sedang search
-                if (!isSearching && _terakhirDicari.any((s) => s.id == stasiun.id) && !_stasiunFavorit.any((s)=> s.id == stasiun.id)) {
-                  // Jika item ini adalah bagian dari _terakhirDicari dan tidak di favorit, tampilkan di sectionnya
-                  if (_terakhirDicari.indexOf(stasiun) == index && index < _terakhirDicari.length) {
-                    // this logic for displaying "Terakhir Dicari" needs refinement to avoid duplicates.
-                    // For now, we simplify by just showing all search results or specific sections if not searching.
+                if (!isSearching && _searchController.text.isEmpty) {
+                  bool sudahAdaDiFavorit = _stasiunFavorit.any((s) => s.id == stasiun.id);
+                  bool sudahAdaDiTerakhirDicari = _terakhirDicari.any((s) => s.id == stasiun.id);
+                  if (sudahAdaDiFavorit || sudahAdaDiTerakhirDicari) {
+                    return const SizedBox.shrink();
                   }
                 }
                 return _buildStasiunListItem(stasiun);
@@ -170,20 +183,20 @@ class _PilihStasiunScreenState extends State<PilihStasiunScreen> {
 
   Widget _buildSectionTitle(String title) {
     return Padding(
-      padding: const EdgeInsets.only(left: 16.0, top: 16.0, bottom: 8.0),
+      padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
       child: Text(
         title,
-        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
+        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
       ),
     );
   }
 
   Widget _buildFavoritList() {
     return SizedBox(
-      height: 100, // Sesuaikan tinggi
+      height: 90,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.only(left: 16.0, right: 8.0),
+        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
         itemCount: _stasiunFavorit.length,
         itemBuilder: (context, index) {
           final stasiun = _stasiunFavorit[index];
@@ -195,12 +208,15 @@ class _PilihStasiunScreenState extends State<PilihStasiunScreen> {
 
   Widget _buildFavoritCard(StasiunModel stasiun) {
     return SizedBox(
-      width: 150, // Lebar kartu favorit
+      width: 160,
       child: Card(
-        color: Colors.yellow.shade100,
-        margin: const EdgeInsets.only(right: 8.0, bottom: 8.0, top: 4.0),
+        color: Colors.amber.shade50,
+        elevation: 1.5,
+        margin: const EdgeInsets.symmetric(horizontal: 4.0),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         child: InkWell(
           onTap: () => _pilihStasiun(stasiun),
+          borderRadius: BorderRadius.circular(8),
           child: Padding(
             padding: const EdgeInsets.all(10.0),
             child: Column(
@@ -208,11 +224,10 @@ class _PilihStasiunScreenState extends State<PilihStasiunScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(
                       child: Text(
-                        stasiun.displayName,
+                        stasiun.displayName, // Membutuhkan getter 'displayName' di StasiunModel
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -220,8 +235,9 @@ class _PilihStasiunScreenState extends State<PilihStasiunScreen> {
                     Icon(Icons.star, color: Colors.amber.shade700, size: 18),
                   ],
                 ),
+                const SizedBox(height: 2),
                 Text(
-                  stasiun.displayArea,
+                  stasiun.displayArea, // Membutuhkan getter 'displayArea' di StasiunModel
                   style: const TextStyle(fontSize: 11, color: Colors.black54),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -235,11 +251,11 @@ class _PilihStasiunScreenState extends State<PilihStasiunScreen> {
 
   Widget _buildStasiunListItem(StasiunModel stasiun) {
     return ListTile(
-      title: Text(stasiun.displayName),
-      subtitle: Text(stasiun.displayArea),
+      title: Text(stasiun.displayName), // Membutuhkan getter 'displayName' di StasiunModel
+      subtitle: Text(stasiun.displayArea), // Membutuhkan getter 'displayArea' di StasiunModel
       trailing: IconButton(
         icon: Icon(
-          stasiun.isFavorit ? Icons.star : Icons.star_border,
+          stasiun.isFavorit ? Icons.star : Icons.star_border_outlined, // Membutuhkan field 'isFavorit'
           color: stasiun.isFavorit ? Colors.amber.shade700 : Colors.grey,
         ),
         onPressed: () => _toggleFavorit(stasiun),

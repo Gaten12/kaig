@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'screens/splash_screen.dart';
+import 'screens/customer/splash_screen.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 void main() async {

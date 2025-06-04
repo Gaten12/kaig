@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'PilihJadwalScreen.dart';
 import 'PilihStasiunScreen.dart';
-import '../../models/stasiun_model.dart';
-import '../../widgets/passenger_selection_widget.dart';
+import '../../../models/stasiun_model.dart';
+import '../../../widgets/passenger_selection_widget.dart';
 
 class PesanTiketScreen extends StatefulWidget {
   const PesanTiketScreen({super.key});
