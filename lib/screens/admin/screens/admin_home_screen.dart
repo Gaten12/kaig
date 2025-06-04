@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'list_kereta_screen.dart';
 import 'list_stasiun_screen.dart';
 //import 'list_kereta_screen.dart';
 //import 'list_jadwal_screen.dart';
@@ -49,9 +50,9 @@ class AdminHomeScreen extends StatelessWidget {
             title: "Kelola Kereta",
             icon: Icons.train_outlined,
             onTap: () {
-              // TODO: Navigasi ke ListKeretaScreen
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Fitur Kelola Kereta belum tersedia.')),
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ListKeretaScreen()),
               );
             },
           ),
@@ -60,9 +61,9 @@ class AdminHomeScreen extends StatelessWidget {
             title: "Kelola Jadwal",
             icon: Icons.calendar_today_outlined,
             onTap: () {
-              // TODO: Navigasi ke ListJadwalScreen
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Fitur Kelola Jadwal belum tersedia.')),
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ListKeretaScreen()),
               );
             },
           ),
@@ -86,5 +87,3 @@ class AdminHomeScreen extends StatelessWidget {
   }
 }
 
-
-// File: lib/src/admin/screens/kelola_stasiun/list_stasiun_screen.dart
