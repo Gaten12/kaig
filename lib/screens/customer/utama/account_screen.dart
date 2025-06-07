@@ -13,7 +13,6 @@ class AccountScreen extends StatefulWidget {
 
 class _AccountScreenState extends State<AccountScreen> {
   final AuthService _authService = AuthService();
-  // UserModel? _currentUserModel; // Bisa tetap ada jika perlu data lain dari UserModel
   String _userName = "Pengguna";
 
   @override
@@ -24,10 +23,9 @@ class _AccountScreenState extends State<AccountScreen> {
 
   Future<void> _loadUserData() async {
     final firebaseUser = _authService.currentUser;
-    String displayNameToShow = "Pengguna"; // Default
+    String displayNameToShow = "Pengguna";
 
     if (firebaseUser != null) {
-      // Ambil nama dari data penumpang utama (primary passenger)
       try {
         PassengerModel? primaryPassenger = await _authService.getPrimaryPassenger(firebaseUser.uid);
         if (primaryPassenger != null && primaryPassenger.namaLengkap.isNotEmpty) {
@@ -45,16 +43,11 @@ class _AccountScreenState extends State<AccountScreen> {
           displayNameToShow = firebaseUser.email!.split('@')[0];
         }
       }
-
-      // Jika Anda masih perlu data lain dari UserModel (misal no telepon, role, dll.)
-      // Anda bisa tetap mengambil _currentUserModel di sini:
-      // _currentUserModel = await _authService.getUserModel(firebaseUser.uid);
     }
 
     if (mounted) {
       setState(() {
         _userName = displayNameToShow;
-        // Potong nama jika terlalu panjang untuk tampilan header
         if (_userName.length > 20) {
           _userName = "${_userName.substring(0, 17)}...";
         }
@@ -99,9 +92,10 @@ class _AccountScreenState extends State<AccountScreen> {
             icon: Icons.people_alt_outlined,
             title: "Daftar Penumpang",
             onTap: () {
+              // Membuka ListPenumpangScreen dalam mode manajemen biasa
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const ListPenumpangScreen()),
+                MaterialPageRoute(builder: (context) => const ListPenumpangScreen(isSelectionMode: false)),
               );
             },
           ),
@@ -136,7 +130,7 @@ class _AccountScreenState extends State<AccountScreen> {
               await _authService.signOut();
               if (mounted) {
                 Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (context) =>  LoginEmailScreen()),
+                  MaterialPageRoute(builder: (context) => LoginEmailScreen()),
                       (Route<dynamic> route) => false,
                 );
               }

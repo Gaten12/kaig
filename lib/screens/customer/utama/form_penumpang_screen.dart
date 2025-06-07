@@ -16,13 +16,13 @@ class FormPenumpangScreen extends StatefulWidget {
 
 class _FormPenumpangScreenState extends State<FormPenumpangScreen> {
   final _formKey = GlobalKey<FormState>();
-  final AuthService _authService = AuthService(); // Atau service khusus penumpang
+  final AuthService _authService = AuthService();
 
   late TextEditingController _namaLengkapController;
   late TextEditingController _nomorIdController;
 
-  String? _selectedTipePenumpang; // Dewasa, Bayi
-  String? _selectedTipeId; // KTP, Paspor, SIM
+  String? _selectedTipePenumpang;
+  String? _selectedTipeId;
   DateTime? _selectedTanggalLahir;
   String? _selectedJenisKelamin;
 
@@ -44,7 +44,7 @@ class _FormPenumpangScreenState extends State<FormPenumpangScreen> {
       _selectedTanggalLahir = p.tanggalLahir.toDate();
       _selectedJenisKelamin = p.jenisKelamin;
     } else {
-      _selectedTipePenumpang = _tipePenumpangOptions.first; // Default Dewasa
+      _selectedTipePenumpang = _tipePenumpangOptions.first;
     }
   }
 
@@ -58,7 +58,7 @@ class _FormPenumpangScreenState extends State<FormPenumpangScreen> {
   Future<void> _pilihTanggalLahir(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: _selectedTanggalLahir ?? DateTime.now().subtract(const Duration(days: 365 * 10)), // Default 10 tahun lalu
+      initialDate: _selectedTanggalLahir ?? DateTime.now().subtract(const Duration(days: 365 * 10)),
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
     );
@@ -70,23 +70,13 @@ class _FormPenumpangScreenState extends State<FormPenumpangScreen> {
   }
 
   Future<void> _submitForm() async {
+    // ... (validasi tetap sama) ...
     if (!_formKey.currentState!.validate()) return;
-    if (_selectedTipePenumpang == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Pilih tipe penumpang.')));
+    if (_selectedTipePenumpang == null || _selectedTipeId == null || _selectedTanggalLahir == null || _selectedJenisKelamin == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Harap lengkapi semua field.')));
       return;
     }
-    if (_selectedTipeId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Pilih tipe ID.')));
-      return;
-    }
-    if (_selectedTanggalLahir == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Pilih tanggal lahir.')));
-      return;
-    }
-    if (_selectedJenisKelamin == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Pilih jenis kelamin.')));
-      return;
-    }
+
 
     _formKey.currentState!.save();
     final user = FirebaseAuth.instance.currentUser;
@@ -96,14 +86,14 @@ class _FormPenumpangScreenState extends State<FormPenumpangScreen> {
     }
 
     final passengerData = PassengerModel(
-      id: _isEditing ? widget.penumpangToEdit!.id : null, // ID ada jika edit
+      id: _isEditing ? widget.penumpangToEdit!.id : null,
       namaLengkap: _namaLengkapController.text,
       tipeId: _selectedTipeId!,
       nomorId: _nomorIdController.text,
       tanggalLahir: Timestamp.fromDate(_selectedTanggalLahir!),
       jenisKelamin: _selectedJenisKelamin!,
       tipePenumpang: _selectedTipePenumpang!,
-      isPrimary: _isEditing ? widget.penumpangToEdit!.isPrimary : false, // isPrimary tidak diubah dari form ini
+      isPrimary: _isEditing ? widget.penumpangToEdit!.isPrimary : false,
     );
 
     try {
@@ -129,11 +119,9 @@ class _FormPenumpangScreenState extends State<FormPenumpangScreen> {
 
   Future<void> _deletePassenger() async {
     if (!_isEditing || widget.penumpangToEdit?.id == null) return;
-
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
-    // Jangan izinkan hapus penumpang utama (isPrimary: true)
     if (widget.penumpangToEdit!.isPrimary == true) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Data penumpang utama tidak dapat dihapus dari sini.')),
@@ -171,7 +159,6 @@ class _FormPenumpangScreenState extends State<FormPenumpangScreen> {
       }
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -237,7 +224,7 @@ class _FormPenumpangScreenState extends State<FormPenumpangScreen> {
                     suffixIcon: const Icon(Icons.calendar_today),
                   ),
                   onTap: () => _pilihTanggalLahir(context),
-                  validator: (value){ // Validasi tidak langsung dari value, tapi dari _selectedTanggalLahir
+                  validator: (value){
                     if(_selectedTanggalLahir == null) return 'Tanggal lahir tidak boleh kosong';
                     return null;
                   }
@@ -260,7 +247,7 @@ class _FormPenumpangScreenState extends State<FormPenumpangScreen> {
                   ),
                 ],
               ),
-              if (_selectedJenisKelamin == null) // Menampilkan pesan validasi jika belum dipilih
+              if (_selectedJenisKelamin == null)
                 Padding(
                   padding: const EdgeInsets.only(left: 12.0, top:0),
                   child: Text("Pilih jenis kelamin", style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 12)),

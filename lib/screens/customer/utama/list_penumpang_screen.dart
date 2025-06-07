@@ -5,24 +5,33 @@ import '../../../services/auth_service.dart'; // Untuk mengambil daftar penumpan
 import 'form_penumpang_screen.dart';
 
 class ListPenumpangScreen extends StatefulWidget {
-  const ListPenumpangScreen({super.key});
+  // Tambahkan parameter untuk membedakan mode manajemen dan mode pemilihan
+  final bool isSelectionMode;
+
+  const ListPenumpangScreen({super.key, this.isSelectionMode = false});
 
   @override
   State<ListPenumpangScreen> createState() => _ListPenumpangScreenState();
 }
 
 class _ListPenumpangScreenState extends State<ListPenumpangScreen> {
-  final AuthService _authService = AuthService(); // Atau service khusus penumpang
+  final AuthService _authService = AuthService();
   Stream<List<PassengerModel>>? _penumpangStream;
 
   @override
   void initState() {
     super.initState();
+    _refreshData(); // Panggil saat pertama kali layar dibuka
+  }
+
+  void _refreshData() {
     final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      // Asumsi AuthService atau service lain memiliki metode getSavedPassengers
-      // Untuk sekarang, kita buat metode dummy di AuthService atau langsung query di sini
-      _penumpangStream = _authService.getSavedPassengers(user.uid);
+    if (user != null && mounted) {
+      setState(() {
+        // Panggil metode getSavedPassengers yang sudah kita perbaiki
+        // untuk hanya mengambil penumpang yang ditambahkan (isPrimary: false)
+        _penumpangStream = _authService.getSavedPassengers(user.uid);
+      });
     }
   }
 
@@ -30,7 +39,7 @@ class _ListPenumpangScreenState extends State<ListPenumpangScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Daftar Penumpang"),
+        title: Text(widget.isSelectionMode ? "Pilih Penumpang" : "Daftar Penumpang"),
       ),
       body: StreamBuilder<List<PassengerModel>>(
         stream: _penumpangStream,
@@ -42,7 +51,8 @@ class _ListPenumpangScreenState extends State<ListPenumpangScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return _buildEmptyState(context);
+            // Jika dalam mode pemilihan, tetap tampilkan tombol Tambah Penumpang Baru
+            return _buildEmptyState(context, isSelectionMode: widget.isSelectionMode);
           }
 
           final penumpangList = snapshot.data!;
@@ -61,14 +71,25 @@ class _ListPenumpangScreenState extends State<ListPenumpangScreen> {
                   title: Text(penumpang.namaLengkap, style: const TextStyle(fontWeight: FontWeight.bold)),
                   subtitle: Text("${penumpang.tipeId} - ${penumpang.nomorId}\n${penumpang.tipePenumpang}"),
                   isThreeLine: true,
-                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  trailing: widget.isSelectionMode
+                      ? null // Tidak ada trailing jika mode pemilihan
+                      : const Icon(Icons.arrow_forward_ios, size: 16),
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => FormPenumpangScreen(penumpangToEdit: penumpang),
-                      ),
-                    ).then((_) => _refreshData()); // Refresh data setelah kembali dari form edit
+                    if (widget.isSelectionMode) {
+                      // Jika mode pemilihan, kembalikan data penumpang yang dipilih
+                      Navigator.pop(context, penumpang);
+                    } else {
+                      // Jika mode manajemen, buka form edit
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => FormPenumpangScreen(penumpangToEdit: penumpang),
+                        ),
+                      ).then((result) {
+                        // Refresh data jika ada perubahan (saat kembali dari form)
+                        if (result == true) _refreshData();
+                      });
+                    }
                   },
                 ),
               );
@@ -81,7 +102,10 @@ class _ListPenumpangScreenState extends State<ListPenumpangScreen> {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const FormPenumpangScreen()),
-          ).then((_) => _refreshData()); // Refresh data setelah kembali dari form tambah
+          ).then((result) {
+            // Refresh data jika ada perubahan (saat kembali dari form)
+            if (result == true) _refreshData();
+          });
         },
         icon: const Icon(Icons.add),
         label: const Text("Tambah Penumpang"),
@@ -89,38 +113,41 @@ class _ListPenumpangScreenState extends State<ListPenumpangScreen> {
     );
   }
 
-  void _refreshData() {
-    // Memuat ulang stream atau data
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null && mounted) {
-      setState(() {
-        _penumpangStream = _authService.getSavedPassengers(user.uid);
-      });
-    }
-  }
-
-  Widget _buildEmptyState(BuildContext context) {
+  Widget _buildEmptyState(BuildContext context, {bool isSelectionMode = false}) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.people_outline, size: 80, color: Colors.grey.shade400),
-            const SizedBox(height: 16),
-            Text(
-              "Belum Ada Penumpang Tersimpan",
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.grey.shade700),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              "Anda dapat menambahkan daftar penumpang untuk mempermudah saat pemesanan tiket.",
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade600),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            // Tombol Tambah Penumpang juga bisa diletakkan di sini jika FAB tidak terlihat
+            if (!isSelectionMode) ...[ // Tampilkan ikon dan teks hanya jika bukan mode pemilihan
+              Icon(Icons.people_outline, size: 80, color: Colors.grey.shade400),
+              const SizedBox(height: 16),
+              Text(
+                "Belum Ada Penumpang Tersimpan",
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.grey.shade700),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                "Anda dapat menambahkan daftar penumpang untuk mempermudah saat pemesanan tiket.",
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade600),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+            ] else ...[
+              Text(
+                "Tidak ada penumpang tersimpan.",
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade600),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                "Tekan tombol di bawah untuk menambahkan penumpang baru.",
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey.shade600),
+                textAlign: TextAlign.center,
+              ),
+            ]
           ],
         ),
       ),

@@ -1,39 +1,48 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'kereta_rute_template_model.dart';
 
 class KeretaModel {
-  final String id; // ID dokumen dari Firestore (bisa di-generate otomatis)
-  final String nama; // Nama kereta, contoh: "ARGO WILIS"
-  final String kelasUtama; // Kelas utama layanan kereta, contoh: "Eksekutif", "Ekonomi"
-  final int jumlahKursi; // Total jumlah kursi pada kereta tersebut
+  final String id;
+  final String nama;
+  final List<String> idRangkaianGerbong;
+  final List<KeretaRuteTemplateModel> templateRute;
+  final int totalKursi;
 
   KeretaModel({
     required this.id,
     required this.nama,
-    required this.kelasUtama,
-    required this.jumlahKursi,
+    this.idRangkaianGerbong = const [],
+    this.templateRute = const [],
+    this.totalKursi = 0,
   });
 
-  // Factory constructor untuk membuat instance KeretaModel dari Firestore DocumentSnapshot
   factory KeretaModel.fromFirestore(DocumentSnapshot<Map<String, dynamic>> snapshot) {
     final data = snapshot.data();
-    if (data == null) {
-      throw Exception("Data kereta null untuk dokumen ID: ${snapshot.id}");
+    if (data == null) throw Exception("Data kereta null");
+
+    List<KeretaRuteTemplateModel> rute = [];
+    if (data['templateRute'] != null && data['templateRute'] is List) {
+      rute = (data['templateRute'] as List)
+          .map((item) => KeretaRuteTemplateModel.fromMap(item as Map<String, dynamic>))
+          .toList();
+      rute.sort((a,b) => a.urutan.compareTo(b.urutan));
     }
+
     return KeretaModel(
-      id: snapshot.id, // Mengambil ID dokumen dari snapshot
+      id: snapshot.id,
       nama: data['nama'] ?? '',
-      kelasUtama: data['kelas'] ?? data['kelasUtama'] ?? '', // Fleksibel jika nama field 'kelas' atau 'kelasUtama'
-      jumlahKursi: data['jumlah_kursi'] as int? ?? 0, // Pastikan tipe data int
+      idRangkaianGerbong: List<String>.from(data['idRangkaianGerbong'] ?? []),
+      templateRute: rute,
+      totalKursi: data['totalKursi'] as int? ?? 0,
     );
   }
 
-  // Method untuk mengubah instance KeretaModel menjadi Map untuk Firestore
   Map<String, dynamic> toFirestore() {
     return {
       'nama': nama,
-      'kelas': kelasUtama, // Menyimpan sebagai 'kelas' di Firestore
-      'jumlah_kursi': jumlahKursi,
-      // ID tidak perlu dimasukkan di sini karena itu adalah ID dokumen
+      'idRangkaianGerbong': idRangkaianGerbong,
+      'templateRute': templateRute.map((item) => item.toMap()).toList(),
+      'totalKursi': totalKursi,
     };
   }
 }

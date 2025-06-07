@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import '../../../services/auth_service.dart';
+import '../../login/login_screen.dart';
+import 'list_gerbong_screen.dart';
 import 'list_jadwal_screen.dart';
 import 'list_kereta_screen.dart';
 import 'list_stasiun_screen.dart';
-import '../../../services/auth_service.dart'; // Untuk logout
-import '../../../screens/login/login_screen.dart'; // Untuk navigasi setelah logout
 
 class AdminHomeScreen extends StatelessWidget {
   const AdminHomeScreen({super.key});
@@ -12,7 +13,7 @@ class AdminHomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final AuthService authService = AuthService();
 
-    // Daftar item menu
+    // Daftar item menu yang lebih terstruktur
     final List<Map<String, dynamic>> menuItems = [
       {
         "title": "Kelola Stasiun",
@@ -21,6 +22,17 @@ class AdminHomeScreen extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const ListStasiunScreen()),
+          );
+        },
+      },
+      {
+        "title": "Kelola Tipe Gerbong",
+        "icon": Icons.view_comfortable_outlined,
+        "onTap": () {
+          // Pastikan Anda sudah membuat ListGerbongScreen
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ListGerbongScreen()),
           );
         },
       },
@@ -59,13 +71,26 @@ class AdminHomeScreen extends StatelessWidget {
             fontWeight: FontWeight.w200,
           ),
         ),
+        iconTheme: const IconThemeData(color: Colors.white), // Untuk tombol back jika ada
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
             color: Colors.white,
             onPressed: () async {
-              await authService.signOut();
-              if (context.mounted) {
+              final confirmLogout = await showDialog<bool>(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: const Text("Konfirmasi Keluar"),
+                  content: const Text("Anda yakin ingin keluar dari akun admin?"),
+                  actions: [
+                    TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text("Batal")),
+                    TextButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text("Keluar", style: TextStyle(color: Colors.red))),
+                  ],
+                ),
+              );
+
+              if (confirmLogout == true && context.mounted) {
+                await authService.signOut();
                 Navigator.of(context).pushAndRemoveUntil(
                   MaterialPageRoute(builder: (context) => LoginEmailScreen()),
                       (Route<dynamic> route) => false,
@@ -78,10 +103,10 @@ class AdminHomeScreen extends StatelessWidget {
       body: GridView.builder(
         padding: const EdgeInsets.all(16.0),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3, // Menampilkan 2 item per baris
-          crossAxisSpacing: 12.0, // Jarak horizontal antar item
-          mainAxisSpacing: 12.0, // Jarak vertikal antar item
-          childAspectRatio: 1.0, // Rasio aspek item (lebar/tinggi)
+          crossAxisCount: 2, // Menampilkan 2 item per baris
+          crossAxisSpacing: 16.0,
+          mainAxisSpacing: 16.0,
+          childAspectRatio: 1.1, // Rasio aspek item (lebar/tinggi)
         ),
         itemCount: menuItems.length,
         itemBuilder: (context, index) {
@@ -104,27 +129,27 @@ class AdminHomeScreen extends StatelessWidget {
     return Card(
       elevation: 2.0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10.0), // Membuat sudut Card lebih bulat
+        borderRadius: BorderRadius.circular(12.0),
       ),
-      child: InkWell( // Menggunakan InkWell agar efek ripple saat ditekan terlihat
+      child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(10.0),
+        borderRadius: BorderRadius.circular(12.0),
         child: Padding(
           padding: const EdgeInsets.all(12.0),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center, // Pusatkan konten secara vertikal
-            crossAxisAlignment: CrossAxisAlignment.center, // Pusatkan konten secara horizontal
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
-              Icon(icon, size: 80, color: Theme.of(context).primaryColor), // Ukuran ikon diperbesar
-              const SizedBox(height: 8.0), // Jarak antara ikon dan teks
+              Icon(icon, size: 48, color: Theme.of(context).primaryColor), // Ukuran ikon disesuaikan
+              const SizedBox(height: 12.0),
               Text(
                 title,
-                textAlign: TextAlign.center, // Teks rata tengah
+                textAlign: TextAlign.center,
                 style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 16, // Ukuran font disesuaikan
+                  fontWeight: FontWeight.w600, // Sedikit lebih tebal
                 ),
-                overflow: TextOverflow.ellipsis, // Menangani teks yang terlalu panjang
+                overflow: TextOverflow.ellipsis,
                 maxLines: 2,
               ),
             ],
