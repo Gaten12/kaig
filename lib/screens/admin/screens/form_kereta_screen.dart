@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // Untuk TextInputFormatter
-import '../../../models/KeretaModel.dart';
-import '../services/admin_firestore_service.dart';
+import '../../../models/KeretaModel.dart'; // Pastikan path ini benar
+import '../services/admin_firestore_service.dart'; // Pastikan path ini benar
 
 class FormKeretaScreen extends StatefulWidget {
   final KeretaModel? keretaToEdit;
@@ -25,9 +25,12 @@ class _FormKeretaScreenState extends State<FormKeretaScreen> {
   @override
   void initState() {
     super.initState();
-    _namaController = TextEditingController(text: widget.keretaToEdit?.nama ?? '');
-    _kelasUtamaController = TextEditingController(text: widget.keretaToEdit?.kelasUtama ?? '');
-    _jumlahKursiController = TextEditingController(text: widget.keretaToEdit?.jumlahKursi.toString() ?? '');
+    _namaController =
+        TextEditingController(text: widget.keretaToEdit?.nama ?? '');
+    _kelasUtamaController =
+        TextEditingController(text: widget.keretaToEdit?.kelasUtama ?? '');
+    _jumlahKursiController = TextEditingController(
+        text: widget.keretaToEdit?.jumlahKursi.toString() ?? '');
   }
 
   @override
@@ -43,13 +46,9 @@ class _FormKeretaScreenState extends State<FormKeretaScreen> {
       _formKey.currentState!.save();
 
       final kereta = KeretaModel(
-        // Jika editing, ID diambil dari keretaToEdit.
-        // Jika baru, ID akan di-generate oleh Firestore saat add, jadi bisa string kosong atau null.
-        // Namun, karena addKereta di service tidak mengembalikan ID ke model ini,
-        // dan updateKereta butuh ID, maka ID harus ada di model.
-        // Untuk add, kita bisa biarkan ID kosong, dan service akan meng-generate.
-        // Untuk update, kita pakai ID yang ada.
-        id: _isEditing ? widget.keretaToEdit!.id : '', // ID akan di-generate oleh Firestore saat add
+        id: _isEditing
+            ? widget.keretaToEdit!.id
+            : '', // ID akan di-generate oleh Firestore saat add
         nama: _namaController.text,
         kelasUtama: _kelasUtamaController.text,
         jumlahKursi: int.tryParse(_jumlahKursiController.text) ?? 0,
@@ -63,7 +62,9 @@ class _FormKeretaScreenState extends State<FormKeretaScreen> {
         }
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Kereta berhasil ${ _isEditing ? "diperbarui" : "ditambahkan"}!')),
+            SnackBar(
+                content: Text(
+                    'Kereta berhasil ${_isEditing ? "diperbarui" : "ditambahkan"}!')),
           );
           Navigator.pop(context); // Kembali ke layar list
         }
@@ -79,77 +80,148 @@ class _FormKeretaScreenState extends State<FormKeretaScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Definisikan BorderSide yang akan digunakan berulang kali
+    final BorderSide defaultBorderSide =
+    BorderSide(color: Colors.grey.shade400); // Warna abu-abu muda
+    final BorderSide focusedBorderSide = BorderSide(
+        color: Colors.blueGrey.shade700, width: 2.0); // Warna tema saat fokus
+    final BorderSide errorBorderSide =
+    const BorderSide(color: Colors.red, width: 1.0); // Warna merah untuk error
+
+    // Definisikan InputBorder untuk konsistensi
+    final OutlineInputBorder defaultOutlineInputBorder = OutlineInputBorder(
+      borderSide: defaultBorderSide,
+      borderRadius: BorderRadius.circular(8.0),
+    );
+
+    final OutlineInputBorder focusedOutlineInputBorder = OutlineInputBorder(
+      borderSide: focusedBorderSide,
+      borderRadius: BorderRadius.circular(8.0),
+    );
+
+    final OutlineInputBorder errorOutlineInputBorder = OutlineInputBorder(
+      borderSide: errorBorderSide,
+      borderRadius: BorderRadius.circular(8.0),
+    );
+
+    final OutlineInputBorder focusedErrorOutlineInputBorder = OutlineInputBorder(
+      borderSide: errorBorderSide.copyWith(width: 2.0), // Error dan fokus, sedikit lebih tebal
+      borderRadius: BorderRadius.circular(8.0),
+    );
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEditing ? "Edit Kereta" : "Tambah Kereta Baru"),
+        toolbarHeight: 80,
+        backgroundColor: Colors.blueGrey,
+        title: Text(
+          _isEditing ? "Edit Kereta" : "Tambah Kereta Baru",
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 24,
+            fontWeight: FontWeight.w200,
+          ),
+        ),
+        iconTheme: const IconThemeData(color: Colors.white), // Agar tombol back juga putih
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: <Widget>[
-              TextFormField(
-                controller: _namaController,
-                decoration: const InputDecoration(
-                  labelText: 'Nama Kereta',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.train_rounded),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Nama kereta tidak boleh kosong';
-                  }
-                  return null;
-                },
+      body: Center( // Menengahkan Card di layar
+        child: SingleChildScrollView( // Memastikan form bisa di-scroll
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Card( // Menggunakan Card untuk membungkus form
+              elevation: 4.0, // Memberi sedikit bayangan
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0), // Memberi sudut rounded
               ),
-              const SizedBox(height: 16.0),
-              TextFormField(
-                controller: _kelasUtamaController,
-                decoration: const InputDecoration(
-                  labelText: 'Kelas Utama Kereta (mis: Eksekutif, Ekonomi)',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.airline_seat_recline_normal_outlined),
+              child: Padding(
+                padding: const EdgeInsets.all(24.0), // Padding di dalam Card
+                child: Form(
+                  key: _formKey,
+                  child: Column( // Mengubah ListView menjadi Column
+                    mainAxisSize: MainAxisSize.min, // Agar Column tidak mengambil tinggi maksimal
+                    children: <Widget>[
+                      TextFormField(
+                        controller: _namaController,
+                        decoration: InputDecoration(
+                          labelText: 'Nama Kereta',
+                          enabledBorder: defaultOutlineInputBorder,
+                          focusedBorder: focusedOutlineInputBorder,
+                          errorBorder: errorOutlineInputBorder,
+                          focusedErrorBorder: focusedErrorOutlineInputBorder,
+                          prefixIcon: Icon(Icons.train_rounded, color: Colors.blueGrey.shade700),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Nama kereta tidak boleh kosong';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16.0),
+                      TextFormField(
+                        controller: _kelasUtamaController,
+                        decoration: InputDecoration(
+                          labelText: 'Kelas Utama Kereta (mis: Eksekutif, Ekonomi)',
+                          enabledBorder: defaultOutlineInputBorder,
+                          focusedBorder: focusedOutlineInputBorder,
+                          errorBorder: errorOutlineInputBorder,
+                          focusedErrorBorder: focusedErrorOutlineInputBorder,
+                          prefixIcon: Icon(Icons.airline_seat_recline_normal_outlined, color: Colors.blueGrey.shade700),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Kelas utama tidak boleh kosong';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16.0),
+                      TextFormField(
+                        controller: _jumlahKursiController,
+                        decoration: InputDecoration(
+                          labelText: 'Jumlah Kursi Total',
+                          enabledBorder: defaultOutlineInputBorder,
+                          focusedBorder: focusedOutlineInputBorder,
+                          errorBorder: errorOutlineInputBorder,
+                          focusedErrorBorder: focusedErrorOutlineInputBorder,
+                          prefixIcon: Icon(Icons.event_seat_outlined, color: Colors.blueGrey.shade700),
+                        ),
+                        keyboardType: TextInputType.number,
+                        inputFormatters: <TextInputFormatter>[
+                          FilteringTextInputFormatter.digitsOnly
+                        ],
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Jumlah kursi tidak boleh kosong';
+                          }
+                          if (int.tryParse(value) == null ||
+                              int.parse(value) <= 0) {
+                            return 'Masukkan jumlah kursi yang valid (lebih dari 0)';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 24.0),
+                      ElevatedButton(
+                        onPressed: _submitForm,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blueGrey, // Menyamakan dengan AppBar
+                          foregroundColor: Colors.white, // Warna teks tombol
+                          padding: const EdgeInsets.symmetric(vertical: 12.0),
+                          minimumSize: const Size(double.infinity, 50),
+                          shape: RoundedRectangleBorder( // Memberi sudut rounded pada tombol
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                        ),
+                        child: Text(
+                          _isEditing ? 'Simpan Perubahan' : 'Tambah Kereta',
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Kelas utama tidak boleh kosong';
-                  }
-                  return null;
-                },
               ),
-              const SizedBox(height: 16.0),
-              TextFormField(
-                controller: _jumlahKursiController,
-                decoration: const InputDecoration(
-                  labelText: 'Jumlah Kursi Total',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.event_seat_outlined),
-                ),
-                keyboardType: TextInputType.number,
-                inputFormatters: <TextInputFormatter>[
-                  FilteringTextInputFormatter.digitsOnly
-                ],
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Jumlah kursi tidak boleh kosong';
-                  }
-                  if (int.tryParse(value) == null || int.parse(value) <= 0) {
-                    return 'Masukkan jumlah kursi yang valid (lebih dari 0)';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 24.0),
-              ElevatedButton(
-                onPressed: _submitForm,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 12.0),
-                  minimumSize: const Size(double.infinity, 50),
-                ),
-                child: Text(_isEditing ? 'Simpan Perubahan' : 'Tambah Kereta', style: const TextStyle(fontSize: 16)),
-              ),
-            ],
+            ),
           ),
         ),
       ),
