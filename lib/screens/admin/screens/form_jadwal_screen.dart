@@ -304,7 +304,15 @@ class _FormJadwalScreenState extends State<FormJadwalScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEditing ? "Edit Jadwal" : "Tambah Jadwal Baru"),
+        toolbarHeight: 80,
+        backgroundColor: Colors.blueGrey,
+        title: Text(_isEditing ? "Edit Jadwal" : "Tambah Jadwal Baru",
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 24,
+            fontWeight: FontWeight.w200,
+          ),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
