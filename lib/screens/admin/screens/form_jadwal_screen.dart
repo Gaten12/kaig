@@ -54,11 +54,9 @@ class _FormJadwalScreenState extends State<FormJadwalScreen> {
         _adminService.getKeretaList().first,
         _adminService.getGerbongTipeList().first,
       ]);
-      // PERBAIKAN: Cast hasil Future.wait ke tipe yang benar
       _keretaList = results[0] as List<KeretaModel>;
       _semuaTipeGerbong = results[1] as List<GerbongTipeModel>;
 
-      // Logika untuk mode edit
       if (_isEditing) {
         _initializeForEditMode();
       }
@@ -72,21 +70,18 @@ class _FormJadwalScreenState extends State<FormJadwalScreen> {
 
   void _initializeForEditMode() {
     final jadwal = widget.jadwalToEdit!;
-    // Set kereta yang dipilih
     try {
       _selectedKereta = _keretaList.firstWhere((k) => k.id == jadwal.idKereta);
     } catch (e) {
       print("Gagal menemukan kereta yang akan di-edit: $e");
     }
 
-    // Set tanggal yang dipilih (mode edit hanya untuk 1 tanggal)
     _selectedDates = [jadwal.tanggalBerangkatUtama.toDate()];
 
-    // Inisialisasi map harga dan isi dengan data yang ada
     _hargaPerKelas.clear();
     final kelasDiRangkaian = _getKelasFromRangkaian(_selectedKereta?.idRangkaianGerbong ?? []);
     for (var kelas in kelasDiRangkaian) {
-      _hargaPerKelas[kelas.name] = []; // Buat list kosong dulu
+      _hargaPerKelas[kelas.name] = [];
     }
     for (var hargaInfo in jadwal.daftarKelasHarga) {
       _hargaPerKelas[hargaInfo.namaKelas]?.add(
@@ -126,11 +121,7 @@ class _FormJadwalScreenState extends State<FormJadwalScreen> {
   }
 
   void _showMultiDatePicker() async {
-    // Mode edit tidak mengizinkan perubahan tanggal untuk simplisitas
-    if (_isEditing) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Tanggal tidak dapat diubah pada mode edit.")));
-      return;
-    }
+    // Pengecekan _isEditing tidak lagi diperlukan di sini karena UI yang akan mengontrol
     await showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -169,6 +160,7 @@ class _FormJadwalScreenState extends State<FormJadwalScreen> {
   }
 
   Future<void> _submitForm() async {
+    // ... (Logika _submitForm tetap sama) ...
     if (_isLoading || _isSubmitting) return;
     if (!_formKey.currentState!.validate()) return;
     if (_selectedKereta == null) {
@@ -298,7 +290,6 @@ class _FormJadwalScreenState extends State<FormJadwalScreen> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -314,7 +305,7 @@ class _FormJadwalScreenState extends State<FormJadwalScreen> {
               DropdownButtonFormField<KeretaModel>(
                 value: _selectedKereta,
                 items: _keretaList.map((kereta) => DropdownMenuItem(value: kereta, child: Text(kereta.nama))).toList(),
-                onChanged: _isEditing ? null : _onKeretaSelected, // Tidak bisa ganti kereta saat edit
+                onChanged: _isEditing ? null : _onKeretaSelected,
                 decoration: InputDecoration(
                   labelText: 'Pilih Kereta',
                   border: const OutlineInputBorder(),
@@ -332,16 +323,17 @@ class _FormJadwalScreenState extends State<FormJadwalScreen> {
                 const Text("Tanggal Keberangkatan", style: TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 InkWell(
-                  onTap: _isEditing ? _showMultiDatePicker : null,
+                  // PERBAIKAN: onTap hanya aktif jika TIDAK sedang mengedit
+                  onTap: !_isEditing ? _showMultiDatePicker : null,
                   child: Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      border: Border.all(color: _isEditing ? Colors.grey : Colors.grey.shade300),
+                      border: Border.all(color: Colors.grey.shade400),
                       borderRadius: BorderRadius.circular(4),
                       color: _isEditing ? Colors.grey[200] : null,
                     ),
                     child: Row(children: [
-                      Icon(Icons.calendar_month, color: _isEditing ? Colors.grey.shade700 : Colors.grey),
+                      Icon(Icons.calendar_month, color: Colors.grey.shade700),
                       const SizedBox(width: 12),
                       Expanded(child: Text(_selectedDates.isEmpty ? "Pilih satu atau beberapa tanggal" : "${_selectedDates.length} tanggal dipilih")),
                     ]),
