@@ -4,6 +4,7 @@ import '../../../models/JadwalModel.dart';
 import '../../../models/jadwal_kelas_info_model.dart';
 import '../../../widgets/pilih_kursi_layout_screen.dart';
 import 'DataPenumpangScreen.dart';
+import 'pilih_gerbong_screen.dart';
 
 class PilihKursiStepScreen extends StatefulWidget {
   final JadwalModel jadwalDipesan;
@@ -33,23 +34,22 @@ class _PilihKursiStepScreenState extends State<PilihKursiStepScreen> {
   }
 
   void _pilihKursiUntukPenumpang(int indexPenumpang) async {
+    // Navigasi ke PilihGerbongScreen, bukan langsung ke PilihKursiLayoutScreen
     final String? hasilPilihKursi = await Navigator.push<String>(
       context,
       MaterialPageRoute(
-        builder: (context) => PilihKursiLayoutScreen(
-          jadwalId: widget.jadwalDipesan.id,
-          kelasInfo: widget.kelasDipilih,
+        builder: (context) => PilihGerbongScreen(
+          jadwalDipesan: widget.jadwalDipesan,
+          kelasDipilih: widget.kelasDipilih,
           penumpangSaatIni: widget.dataPenumpangList[indexPenumpang],
-          kursiYangSudahDipilihGrup: _kursiTerpilih.values.toList(),
+          kursiYangSudahDipilihGrup: _kursiTerpilih.values.where((k) => k != _kursiTerpilih[indexPenumpang]).toList(),
         ),
       ),
     );
 
     if (hasilPilihKursi != null && mounted) {
       setState(() {
-        // Hapus pilihan sebelumnya dari penumpang lain jika kursi yang sama dipilih
         _kursiTerpilih.removeWhere((key, value) => value == hasilPilihKursi);
-        // Set kursi baru untuk penumpang saat ini
         _kursiTerpilih[indexPenumpang] = hasilPilihKursi;
       });
     }

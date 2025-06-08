@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../models/KeretaModel.dart';
 import '../../../models/gerbong_tipe_model.dart';
+import '../../../models/rangkaian_gerbong_model.dart';
 import '../../../models/stasiun_model.dart';
-import '../../../models/kereta_rute_template_model.dart'; // Impor model rute
+import '../../../models/kereta_rute_template_model.dart';
 import '../services/admin_firestore_service.dart';
 
 class FormKeretaScreen extends StatefulWidget {
@@ -20,7 +21,7 @@ class _FormKeretaScreenState extends State<FormKeretaScreen> {
 
   late TextEditingController _namaController;
 
-  List<GerbongTipeModel> _rangkaianGerbong = [];
+  List<RangkaianGerbongInput> _rangkaianGerbongInput = [];
   List<KeretaRuteTemplateInput> _templateRuteInput = [];
 
   List<GerbongTipeModel> _semuaTipeGerbong = [];
@@ -48,10 +49,15 @@ class _FormKeretaScreenState extends State<FormKeretaScreen> {
 
       if (_isEditing && widget.keretaToEdit != null) {
         final kereta = widget.keretaToEdit!;
-        _rangkaianGerbong = kereta.idRangkaianGerbong.map((idGerbong) {
-          try { return _semuaTipeGerbong.firstWhere((g) => g.id == idGerbong); }
-          catch (e) { return null; }
-        }).whereType<GerbongTipeModel>().toList();
+
+        _rangkaianGerbongInput = kereta.rangkaian.map((rg) {
+          try {
+            return RangkaianGerbongInput(
+              nomorGerbong: rg.nomorGerbong,
+              selectedTipeGerbong: _semuaTipeGerbong.firstWhere((g) => g.id == rg.idTipeGerbong),
+            );
+          } catch (e) { return null; }
+        }).whereType<RangkaianGerbongInput>().toList();
 
         _templateRuteInput = kereta.templateRute.map((rute) {
           try {
@@ -75,6 +81,9 @@ class _FormKeretaScreenState extends State<FormKeretaScreen> {
   @override
   void dispose() {
     _namaController.dispose();
+    for (var item in _templateRuteInput) {
+      item.dispose();
+    }
     super.dispose();
   }
 
@@ -86,7 +95,7 @@ class _FormKeretaScreenState extends State<FormKeretaScreen> {
           content: SizedBox(
               width: double.maxFinite,
               child: _semuaTipeGerbong.isEmpty
-                  ? const Text("Tidak ada data gerbong. Harap tambah tipe gerbong di menu 'Kelola Tipe Gerbong'.")
+                  ? const Text("Tidak ada data. Harap tambah tipe gerbong di menu 'Kelola Tipe Gerbong'.")
                   : ListView.builder(
                 shrinkWrap: true,
                 itemCount: _semuaTipeGerbong.length,
@@ -102,11 +111,43 @@ class _FormKeretaScreenState extends State<FormKeretaScreen> {
           actions: [ TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text("Batal")) ],
         )
     );
-    if (gerbongTerpilih != null) setState(() => _rangkaianGerbong.add(gerbongTerpilih));
+    if (gerbongTerpilih != null) {
+      setState(() => _rangkaianGerbongInput.add(RangkaianGerbongInput(nomorGerbong: _rangkaianGerbongInput.length + 1, selectedTipeGerbong: gerbongTerpilih)));
+      _updateNomorGerbong();
+    }
   }
 
-  void _addRuteField() => setState(() => _templateRuteInput.add(KeretaRuteTemplateInput(urutan: _templateRuteInput.length)));
-  void _removeRuteField(int index) => setState(() => _templateRuteInput.removeAt(index));
+  void _addRuteField() {
+    setState(() {
+      _templateRuteInput.add(KeretaRuteTemplateInput(urutan: _templateRuteInput.length));
+    });
+  }
+
+  void _removeRuteField(int index) {
+    setState(() {
+      _templateRuteInput.removeAt(index);
+      _updateUrutanRute();
+    });
+  }
+
+  void _updateUrutanRute() {
+    for (int i = 0; i < _templateRuteInput.length; i++) {
+      _templateRuteInput[i].urutan = i;
+    }
+  }
+
+  void _removeGerbongField(int index) {
+    setState(() {
+      _rangkaianGerbongInput.removeAt(index);
+      _updateNomorGerbong();
+    });
+  }
+
+  void _updateNomorGerbong() {
+    for (int i = 0; i < _rangkaianGerbongInput.length; i++) {
+      _rangkaianGerbongInput[i].nomorGerbong = i + 1;
+    }
+  }
 
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
@@ -114,14 +155,20 @@ class _FormKeretaScreenState extends State<FormKeretaScreen> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Harap lengkapi rute dengan minimal 2 stasiun (asal & tujuan).')));
       return;
     }
+    if (_rangkaianGerbongInput.isEmpty || _rangkaianGerbongInput.any((g) => g.selectedTipeGerbong == null)) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Rangkaian kereta tidak boleh kosong dan semua gerbong harus dipilih tipenya.')));
+      return;
+    }
 
-    final totalKursi = _rangkaianGerbong.fold<int>(0, (sum, item) => sum + item.jumlahKursi);
+    final totalKursi = _rangkaianGerbongInput.fold<int>(0, (sum, item) => sum + (item.selectedTipeGerbong?.jumlahKursi ?? 0));
 
-    // PERBAIKAN: Menghapus parameter kelasUtama
     final kereta = KeretaModel(
       id: _isEditing ? widget.keretaToEdit!.id : '',
       nama: _namaController.text,
-      idRangkaianGerbong: _rangkaianGerbong.map((g) => g.id).toList(),
+      rangkaian: _rangkaianGerbongInput.map((input) => RangkaianGerbongModel(
+        nomorGerbong: input.nomorGerbong,
+        idTipeGerbong: input.selectedTipeGerbong!.id,
+      )).toList(),
       templateRute: _templateRuteInput.map((input) => KeretaRuteTemplateModel(
         stasiunId: input.selectedStasiun!.kode,
         namaStasiun: input.selectedStasiun!.nama,
@@ -149,7 +196,7 @@ class _FormKeretaScreenState extends State<FormKeretaScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final totalKursiDisplay = _rangkaianGerbong.fold<int>(0, (sum, item) => sum + item.jumlahKursi);
+    final totalKursiDisplay = _rangkaianGerbongInput.fold<int>(0, (sum, item) => sum + (item.selectedTipeGerbong?.jumlahKursi ?? 0));
 
     return Scaffold(
       appBar: AppBar(title: Text(_isEditing ? "Edit Kereta" : "Tambah Kereta Baru")),
@@ -197,30 +244,38 @@ class _FormKeretaScreenState extends State<FormKeretaScreen> {
   Widget _buildGerbongList() {
     return Container(
       decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade400), borderRadius: BorderRadius.circular(8)),
-      child: _rangkaianGerbong.isEmpty
+      child: _rangkaianGerbongInput.isEmpty
           ? const Padding(padding: EdgeInsets.all(24), child: Center(child: Text("Belum ada gerbong ditambahkan.")))
           : ReorderableListView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
-        itemCount: _rangkaianGerbong.length,
+        itemCount: _rangkaianGerbongInput.length,
         onReorder: (oldIndex, newIndex) {
           setState(() {
             if (newIndex > oldIndex) newIndex -= 1;
-            final item = _rangkaianGerbong.removeAt(oldIndex);
-            _rangkaianGerbong.insert(newIndex, item);
+            final item = _rangkaianGerbongInput.removeAt(oldIndex);
+            _rangkaianGerbongInput.insert(newIndex, item);
+            _updateNomorGerbong();
           });
         },
         itemBuilder: (context, index) {
-          final gerbong = _rangkaianGerbong[index];
-          final key = ValueKey('gerbong_${gerbong.id}_$index');
+          final gerbongInput = _rangkaianGerbongInput[index];
+          final key = ValueKey('gerbong_input_${gerbongInput.hashCode}');
           return ListTile(
             key: key,
             leading: const Icon(Icons.drag_handle, color: Colors.grey),
-            title: Text(gerbong.namaTipeLengkap),
-            subtitle: Text("Layout: ${gerbong.tipeLayout.deskripsi}, Kursi: ${gerbong.jumlahKursi}"),
+            title: Text("Gerbong ${gerbongInput.nomorGerbong}"),
+            subtitle: DropdownButtonFormField<GerbongTipeModel>(
+              value: gerbongInput.selectedTipeGerbong,
+              isExpanded: true,
+              items: _semuaTipeGerbong.map((g) => DropdownMenuItem(value: g, child: Text(g.namaTipeLengkap, overflow: TextOverflow.ellipsis,))).toList(),
+              onChanged: (value) => setState(() => gerbongInput.selectedTipeGerbong = value),
+              decoration: const InputDecoration(hintText: "Pilih Tipe", border: InputBorder.none, isDense: true),
+              validator: (v) => v == null ? "Pilih tipe" : null,
+            ),
             trailing: IconButton(
               icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
-              onPressed: () => setState(() => _rangkaianGerbong.removeAt(index)),
+              onPressed: () => _removeGerbongField(index),
             ),
           );
         },
@@ -242,7 +297,7 @@ class _FormKeretaScreenState extends State<FormKeretaScreen> {
             if (newIndex > oldIndex) newIndex -= 1;
             final item = _templateRuteInput.removeAt(oldIndex);
             _templateRuteInput.insert(newIndex, item);
-            for (int i = 0; i < _templateRuteInput.length; i++) { _templateRuteInput[i].urutan = i; }
+            _updateUrutanRute();
           });
         },
         itemBuilder: (context, index) {
@@ -322,12 +377,12 @@ class KeretaRuteTemplateInput {
   TimeOfDay? jamBerangkat;
   int urutan;
 
-  KeretaRuteTemplateInput({
-    this.selectedStasiun,
-    this.jamTiba,
-    this.jamBerangkat,
-    required this.urutan,
-  });
+  KeretaRuteTemplateInput({this.selectedStasiun, this.jamTiba, this.jamBerangkat, required this.urutan});
 
-  void dispose() {}
+  void dispose() {} // Tidak ada controller untuk di-dispose
+}
+class RangkaianGerbongInput {
+  int nomorGerbong;
+  GerbongTipeModel? selectedTipeGerbong;
+  RangkaianGerbongInput({required this.nomorGerbong, this.selectedTipeGerbong});
 }

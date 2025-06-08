@@ -2,13 +2,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../models/JadwalModel.dart';
 import '../../../models/KeretaModel.dart';
 import '../../../models/gerbong_tipe_model.dart'; // Menggunakan model baru
+import '../../../models/kursi_model.dart';
 import '../../../models/stasiun_model.dart';
-
 
 class AdminFirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  // --- Stasiun CRUD ---
   CollectionReference<StasiunModel> get stasiunCollection =>
       _db.collection('stasiun').withConverter<StasiunModel>(
         fromFirestore: (snapshots, _) => StasiunModel.fromFirestore(snapshots),
@@ -64,6 +63,7 @@ class AdminFirestoreService {
       );
 
   Stream<List<GerbongTipeModel>> getGerbongTipeList() {
+    // Membutuhkan indeks komposit: kelas (Asc), subTipe (Asc)
     return gerbongTipeCollection
         .orderBy('kelas')
         .orderBy('subTipe')
@@ -110,19 +110,21 @@ class AdminFirestoreService {
       query = query.orderBy('queryWaktuBerangkatUtama', descending: true);
     }
 
-    return query.snapshots().map((snapshot) {
+    return query
+        .snapshots()
+        .map((snapshot) {
       List<JadwalModel> jadwalList = snapshot.docs.map((doc) {
         try { return doc.data(); }
-        catch (e) { print("Error parsing jadwal ID: ${doc.id}. Error: $e"); return null; }
+        catch (e) { print("Error parsing dokumen jadwal ID: ${doc.id}. Error: $e"); return null; }
       }).whereType<JadwalModel>().toList();
 
       if (tanggal != null && kodeAsal != null && kodeTujuan != null) {
-        // Filter tambahan di client untuk stasiun tujuan dan urutan
+        // Filter tambahan di client
         jadwalList = jadwalList.where((jadwal) {
-          bool mengandungTujuan = jadwal.ruteLengkapKodeStasiun.contains(kodeTujuan.toUpperCase());
-          if (!mengandungTujuan) return false;
-          int indexAsal = jadwal.ruteLengkapKodeStasiun.indexOf(kodeAsal.toUpperCase());
-          int indexTujuan = jadwal.ruteLengkapKodeStasiun.indexOf(kodeTujuan.toUpperCase());
+          final rute = jadwal.ruteLengkapKodeStasiun.map((k) => k.toUpperCase()).toList();
+          if (!rute.contains(kodeTujuan.toUpperCase())) return false;
+          int indexAsal = rute.indexOf(kodeAsal.toUpperCase());
+          int indexTujuan = rute.indexOf(kodeTujuan.toUpperCase());
           return indexAsal < indexTujuan;
         }).toList();
       }
@@ -141,62 +143,72 @@ class AdminFirestoreService {
   Future<void> deleteJadwal(String jadwalId) {
     return jadwalCollection.doc(jadwalId).delete();
   }
-  Future<void> generateKursiUntukJadwal(String jadwalId, List<GerbongTipeModel> gerbongList) async {
+
+  // --- Kursi CRUD ---
+  Stream<List<KursiModel>> getKursiListForJadwal(String jadwalId, int nomorGerbong) {
+    final kursiCollection = _db
+        .collection('jadwal')
+        .doc(jadwalId)
+        .collection('kursi')
+        .withConverter<KursiModel>(
+      fromFirestore: (snapshots, _) => KursiModel.fromFirestore(snapshots),
+      toFirestore: (kursi, _) => kursi.toFirestore(),
+    );
+
+    return kursiCollection
+        .where('nomor_gerbong', isEqualTo: nomorGerbong)
+        .orderBy('nomor_kursi')
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) => doc.data()).toList());
+  }
+
+  Future<void> generateKursiUntukJadwal(String jadwalId, List<GerbongTipeModel> rangkaianGerbong) async {
     final WriteBatch batch = _db.batch();
-    // Path ke subkoleksi 'kursi' di dalam dokumen jadwal yang spesifik
     final kursiCollection = _db.collection('jadwal').doc(jadwalId).collection('kursi');
 
-    for (final gerbong in gerbongList) {
+    for (int i = 0; i < rangkaianGerbong.length; i++) {
+      final gerbong = rangkaianGerbong[i];
+      final nomorGerbongSaatIni = i + 1;
+
       List<String> nomorKursiGenerated = [];
-      // Logika untuk generate nomor kursi berdasarkan tipe layout
       switch (gerbong.tipeLayout) {
         case TipeLayoutGerbong.layout_2_2:
-        // Contoh: Untuk 50 kursi, bisa 12 baris x 4 (48) + 1 baris x 2
-          int barisPenuh = (gerbong.jumlahKursi / 4).floor();
-          int sisa = gerbong.jumlahKursi % 4;
-          for (int i = 1; i <= barisPenuh; i++) {
-            nomorKursiGenerated.addAll(['${i}A', '${i}B', '${i}C', '${i}D']);
-          }
-          if (sisa > 0) {
-            final sisaKursi = ['A', 'B', 'C', 'D'].take(sisa);
-            for (var kursiSisa in sisaKursi) {
-              nomorKursiGenerated.add('${barisPenuh + 1}$kursiSisa');
-            }
-          }
+          int baris = (gerbong.jumlahKursi / 4).ceil();
+          for (int r = 1; r <= baris; r++) { nomorKursiGenerated.addAll(['${r}A', '${r}B', '${r}C', '${r}D']); }
           break;
         case TipeLayoutGerbong.layout_3_2:
-          int barisPenuh = (gerbong.jumlahKursi / 5).floor();
-          int sisa = gerbong.jumlahKursi % 5;
-          for (int i = 1; i <= barisPenuh; i++) {
-            nomorKursiGenerated.addAll(['${i}A', '${i}B', '${i}C', '${i}D', '${i}E']);
-          }
-          if (sisa > 0) {
-            final sisaKursi = ['A', 'B', 'C', 'D', 'E'].take(sisa);
-            for (var kursiSisa in sisaKursi) {
-              nomorKursiGenerated.add('${barisPenuh + 1}$kursiSisa');
-            }
-          }
+          int baris = (gerbong.jumlahKursi / 5).ceil();
+          for (int r = 1; r <= baris; r++) { nomorKursiGenerated.addAll(['${r}A', '${r}B', '${r}C', '${r}D', '${r}E']); }
           break;
-      // Tambahkan case untuk layout_2_1 dan layout_1_1 jika perlu
-        default: // case TipeLayoutGerbong.lainnya:
-          for (int i = 1; i <= gerbong.jumlahKursi; i++) {
-            nomorKursiGenerated.add('$i');
-          }
+        case TipeLayoutGerbong.layout_2_1:
+          int baris = (gerbong.jumlahKursi / 3).ceil();
+          for (int r = 1; r <= baris; r++) { nomorKursiGenerated.addAll(['${r}A', '${r}B', '${r}C']); }
+          break;
+        case TipeLayoutGerbong.layout_1_1:
+          int baris = (gerbong.jumlahKursi / 2).ceil();
+          for (int r = 1; r <= baris; r++) { nomorKursiGenerated.addAll(['${r}A', '${r}B']); }
+          break;
+        default:
+          for (int k = 1; k <= gerbong.jumlahKursi; k++) { nomorKursiGenerated.add('$k'); }
       }
 
-      for (final nomorKursi in nomorKursiGenerated) {
-        final kursiDocRef = kursiCollection.doc(); // Firestore generate ID untuk setiap kursi
+      // Ambil hanya sejumlah kursi yang seharusnya ada
+      final kursiFinal = nomorKursiGenerated.take(gerbong.jumlahKursi);
+
+      for (final nomorKursi in kursiFinal) {
+        final kursiDocRef = kursiCollection.doc();
         batch.set(kursiDocRef, {
           'id_jadwal': jadwalId,
-          'id_gerbong': gerbong.id, // ID dari master tipe gerbong
+          'id_tipe_gerbong': gerbong.id,
+          'nomor_gerbong': nomorGerbongSaatIni,
           'nomor_kursi': nomorKursi,
-          'status': 'tersedia', // Status awal saat di-generate
-          'segmenTerisi': [], // Array kosong untuk menampung segmen yg dipesan
+          'status': 'tersedia',
+          'segmenTerisi': [],
         });
       }
     }
 
     await batch.commit();
-    print("Batch write untuk ${gerbongList.length} gerbong berhasil di-commit.");
+    print("Batch write untuk ${rangkaianGerbong.length} gerbong berhasil di-commit.");
   }
 }

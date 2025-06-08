@@ -13,23 +13,22 @@ class ListKeretaScreen extends StatefulWidget {
 class _ListKeretaScreenState extends State<ListKeretaScreen> {
   final AdminFirestoreService _adminService = AdminFirestoreService();
   final TextEditingController _searchController = TextEditingController();
-  List<KeretaModel> _allKereta = [];
-  List<KeretaModel> _filteredKereta = [];
+
+  // Menggunakan StreamBuilder secara langsung lebih sederhana untuk daftar real-time
+  // State lokal untuk filter tidak lagi diperlukan jika StreamBuilder menangani data
+
+  String _searchQuery = "";
 
   @override
   void initState() {
     super.initState();
-    _adminService.getKeretaList().listen((keretaList) {
+    _searchController.addListener(() {
+      // Panggil setState untuk memicu rebuild dengan query baru
       if (mounted) {
         setState(() {
-          _allKereta = keretaList;
-          _filterKereta();
+          _searchQuery = _searchController.text;
         });
       }
-    });
-
-    _searchController.addListener(() {
-      _filterKereta();
     });
   }
 
@@ -37,21 +36,6 @@ class _ListKeretaScreenState extends State<ListKeretaScreen> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
-  }
-
-  void _filterKereta() {
-    final searchQuery = _searchController.text;
-    if (searchQuery.isEmpty) {
-      _filteredKereta = List.from(_allKereta);
-    } else {
-      final searchQueryLower = searchQuery.toLowerCase();
-      _filteredKereta = _allKereta.where((kereta) {
-        return kereta.nama.toLowerCase().contains(searchQueryLower);
-      }).toList();
-    }
-    if (mounted) {
-      setState(() {});
-    }
   }
 
   @override
@@ -83,72 +67,100 @@ class _ListKeretaScreenState extends State<ListKeretaScreen> {
             ),
           ),
           Expanded(
-            child: _filteredKereta.isEmpty
-                ? Center(child: Text(_searchController.text.isNotEmpty ? "Kereta tidak ditemukan." : "Belum ada data kereta."))
-                : ListView.builder(
-              itemCount: _filteredKereta.length,
-              itemBuilder: (context, index) {
-                final kereta = _filteredKereta[index];
-                // Menampilkan informasi dari model baru
-                String ruteDisplay = kereta.templateRute.isNotEmpty
-                    ? "${kereta.templateRute.first.stasiunId} ❯ ${kereta.templateRute.last.stasiunId}"
-                    : "Rute belum diatur";
-                String rangkaianDisplay = "Rangkaian: ${kereta.idRangkaianGerbong.length} gerbong";
-                String kursiDisplay = "Kapasitas: ${kereta.totalKursi} kursi";
+            child: StreamBuilder<List<KeretaModel>>(
+              stream: _adminService.getKeretaList(),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return Center(child: Text("Error: ${snapshot.error}"));
+                }
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(child: Text("Belum ada data kereta."));
+                }
 
-                return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
-                  child: ListTile(
-                    title: Text(kereta.nama, style: const TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Text("$ruteDisplay\n$rangkaianDisplay, $kursiDisplay"),
-                    isThreeLine: true,
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.edit_outlined, color: Colors.blue.shade700),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => FormKeretaScreen(keretaToEdit: kereta),
-                              ),
-                            );
-                          },
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.delete_outline, color: Colors.red.shade700),
-                          onPressed: () async {
-                            final confirm = await showDialog<bool>(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  title: const Text('Konfirmasi Hapus'),
-                                  content: Text('Anda yakin ingin menghapus kereta ${kereta.nama}?'),
-                                  actions: <Widget>[
-                                    TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Batal')),
-                                    TextButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Hapus', style: TextStyle(color: Colors.red))),
-                                  ],
+                List<KeretaModel> allKereta = snapshot.data!;
+                List<KeretaModel> filteredKereta = allKereta;
+
+                if (_searchQuery.isNotEmpty) {
+                  filteredKereta = allKereta
+                      .where((kereta) => kereta.nama.toLowerCase().contains(_searchQuery.toLowerCase()))
+                      .toList();
+                }
+
+                if (filteredKereta.isEmpty) {
+                  return Center(child: Text(_searchQuery.isNotEmpty ? "Kereta tidak ditemukan." : "Belum ada data kereta."));
+                }
+
+                return ListView.builder(
+                  itemCount: filteredKereta.length,
+                  itemBuilder: (context, index) {
+                    final kereta = filteredKereta[index];
+
+                    // Menampilkan informasi dari model baru yang sudah diperbaiki
+                    String ruteDisplay = kereta.templateRute.isNotEmpty
+                        ? "${kereta.templateRute.first.stasiunId} ❯ ${kereta.templateRute.last.stasiunId}"
+                        : "Rute belum diatur";
+                    // PERBAIKAN: Menggunakan kereta.rangkaian.length
+                    String rangkaianDisplay = "Rangkaian: ${kereta.rangkaian.length} gerbong";
+                    String kursiDisplay = "Kapasitas: ${kereta.totalKursi} kursi";
+
+                    return Card(
+                      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
+                      child: ListTile(
+                        title: Text(kereta.nama, style: const TextStyle(fontWeight: FontWeight.bold)),
+                        subtitle: Text("$ruteDisplay\n$rangkaianDisplay, $kursiDisplay"),
+                        isThreeLine: true,
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: Icon(Icons.edit_outlined, color: Colors.blue.shade700),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => FormKeretaScreen(keretaToEdit: kereta),
+                                  ),
                                 );
                               },
-                            );
-                            if (confirm == true) {
-                              try {
-                                await _adminService.deleteKereta(kereta.id);
-                                if(context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${kereta.nama} berhasil dihapus.')));
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.delete_outline, color: Colors.red.shade700),
+                              onPressed: () async {
+                                final confirm = await showDialog<bool>(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      title: const Text('Konfirmasi Hapus'),
+                                      content: Text('Anda yakin ingin menghapus kereta ${kereta.nama}?'),
+                                      actions: <Widget>[
+                                        TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Batal')),
+                                        TextButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Hapus', style: TextStyle(color: Colors.red))),
+                                      ],
+                                    );
+                                  },
+                                );
+                                if (confirm == true) {
+                                  try {
+                                    await _adminService.deleteKereta(kereta.id);
+                                    if(context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${kereta.nama} berhasil dihapus.')));
+                                    }
+                                  } catch (e) {
+                                    if(context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menghapus kereta: $e')));
+                                    }
+                                  }
                                 }
-                              } catch (e) {
-                                if(context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menghapus kereta: $e')));
-                                }
-                              }
-                            }
-                          },
+                              },
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
+                      ),
+                    );
+                  },
                 );
               },
             ),
