@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kaig/screens/customer/utama/tiket_saya_screen.dart';
 import '../../../models/passenger_model.dart';
 import '../../../services/auth_service.dart';
 import 'PesanTiketScreen.dart';
@@ -107,21 +108,27 @@ class BerandaContent extends StatelessWidget {
 
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  // 1. Tambahkan parameter initialIndex di sini
+  final int initialIndex;
+
+  // 2. Perbarui constructor untuk menerima parameter
+  const HomeScreen({super.key, this.initialIndex = 0});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _selectedIndex = 0;
+  // Hapus inisialisasi di sini
+  late int _selectedIndex;
   final AuthService _authService = AuthService();
   String _userName = "Pengguna";
 
   static const List<Widget> _widgetOptions = <Widget>[
     BerandaContent(),
     PesanTiketScreen(),
-    Center(child: Text('Halaman Tiket Saya (Segera Hadir)')),
+    // Ganti widget placeholder dengan halaman TiketSayaScreen yang sebenarnya
+    TiketSayaScreen(),
     Center(child: Text('Halaman Promo (Segera Hadir)')),
     AccountScreen(),
   ];
@@ -129,6 +136,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    // 3. Gunakan nilai dari widget untuk inisialisasi state
+    _selectedIndex = widget.initialIndex;
     _loadCurrentUserName();
   }
 
@@ -168,14 +177,13 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_selectedIndex == 0 ? 'Selamat Datang, $_userName' : _getAppBarTitle(_selectedIndex)),
+        title: Text(_getAppBarTitle(_selectedIndex)),
         automaticallyImplyLeading: false,
         actions: [
           if (_selectedIndex == 0)
             IconButton(
               icon: const Icon(Icons.shopping_cart_outlined),
               onPressed: () {
-                print("Shopping cart tapped");
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Fitur Keranjang belum tersedia.')),
                 );

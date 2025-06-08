@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:kaig/screens/customer/utama/pembayaran_screen.dart';
 import '../../../models/JadwalModel.dart';
 import '../../../models/jadwal_kelas_info_model.dart';
 import '../../../widgets/pilih_kursi_layout_screen.dart';
@@ -56,18 +57,24 @@ class _PilihKursiStepScreenState extends State<PilihKursiStepScreen> {
   }
 
   void _lanjutkanKePembayaran() {
-    // Validasi: pastikan semua penumpang sudah memilih kursi
     if (_kursiTerpilih.length < widget.dataPenumpangList.length) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Harap pilih kursi untuk semua penumpang.')),
       );
       return;
     }
-    // TODO: Navigasi ke layar pembayaran dengan semua data yang terkumpul
-    print("Kursi yang dipilih: $_kursiTerpilih");
-    print("Lanjut ke pembayaran...");
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Fitur Pembayaran belum tersedia.')),
+
+    // Navigasi ke halaman pembayaran baru (buat file ini)
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PembayaranScreen(
+          jadwalDipesan: widget.jadwalDipesan,
+          kelasDipilih: widget.kelasDipilih,
+          dataPenumpangList: widget.dataPenumpangList,
+          kursiTerpilih: _kursiTerpilih,
+        ),
+      ),
     );
   }
 
