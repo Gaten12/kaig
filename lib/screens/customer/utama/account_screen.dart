@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+// import 'package:kaig/screens/customer/utama/informasi_data_diri.dart';
+import 'package:kaig/screens/customer/utama/tentang_aplikasi.dart';
+import 'package:flutter/cupertino.dart';
 import '../../../models/passenger_model.dart';
 import '../../../services/auth_service.dart'; // Pastikan path ini benar
 import '../../../screens/login/login_screen.dart'; // Halaman login
@@ -13,6 +16,7 @@ class AccountScreen extends StatefulWidget {
 
 class _AccountScreenState extends State<AccountScreen> {
   final AuthService _authService = AuthService();
+  // UserModel? _currentUserModel; // Bisa tetap ada jika perlu data lain dari UserModel
   String _userName = "Pengguna";
 
   @override
@@ -23,9 +27,10 @@ class _AccountScreenState extends State<AccountScreen> {
 
   Future<void> _loadUserData() async {
     final firebaseUser = _authService.currentUser;
-    String displayNameToShow = "Pengguna";
+    String displayNameToShow = "Pengguna"; // Default
 
     if (firebaseUser != null) {
+      // Ambil nama dari data penumpang utama (primary passenger)
       try {
         PassengerModel? primaryPassenger = await _authService.getPrimaryPassenger(firebaseUser.uid);
         if (primaryPassenger != null && primaryPassenger.namaLengkap.isNotEmpty) {
@@ -43,11 +48,16 @@ class _AccountScreenState extends State<AccountScreen> {
           displayNameToShow = firebaseUser.email!.split('@')[0];
         }
       }
+
+      // Jika Anda masih perlu data lain dari UserModel (misal no telepon, role, dll.)
+      // Anda bisa tetap mengambil _currentUserModel di sini:
+      // _currentUserModel = await _authService.getUserModel(firebaseUser.uid);
     }
 
     if (mounted) {
       setState(() {
         _userName = displayNameToShow;
+        // Potong nama jika terlalu panjang untuk tampilan header
         if (_userName.length > 20) {
           _userName = "${_userName.substring(0, 17)}...";
         }
@@ -55,14 +65,52 @@ class _AccountScreenState extends State<AccountScreen> {
     }
   }
 
+  // --- FUNGSI BARU UNTUK MENAMPILKAN DIALOG ---
+  void _showLogoutConfirmationDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return CupertinoAlertDialog(
+          title: const Text("Konfirmasi"),
+          content: const Text("Apakah Anda yakin ingin keluar dari akun Anda sekarang?"),
+          actions: <Widget>[
+            CupertinoDialogAction(
+              child: const Text("TIDAK"),
+              onPressed: () {
+                Navigator.of(context).pop(); // Tutup dialog
+              },
+            ),
+            CupertinoDialogAction(
+              isDefaultAction: true, // Membuat teks menjadi tebal (gaya default iOS)
+              onPressed: () async {
+                // Tutup dialog terlebih dahulu
+                Navigator.of(context).pop();
+
+                // Lakukan proses logout
+                await _authService.signOut();
+                if (mounted) {
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (context) => LoginEmailScreen()),
+                        (Route<dynamic> route) => false,
+                  );
+                }
+              },
+              child: const Text("IYA"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Akun Saya"),
-        automaticallyImplyLeading: false,
-        elevation: 1.0,
-      ),
+      // appBar: AppBar(
+      //   // title: const Text("Akun Saya"),
+      //   // automaticallyImplyLeading: false,
+      //   // elevation: 1.0,
+      // ),
       body: ListView(
         children: <Widget>[
           _buildProfileHeader(context),
@@ -92,10 +140,9 @@ class _AccountScreenState extends State<AccountScreen> {
             icon: Icons.people_alt_outlined,
             title: "Daftar Penumpang",
             onTap: () {
-              // Membuka ListPenumpangScreen dalam mode manajemen biasa
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const ListPenumpangScreen(isSelectionMode: false)),
+                MaterialPageRoute(builder: (context) => const ListPenumpangScreen()),
               );
             },
           ),
@@ -115,28 +162,33 @@ class _AccountScreenState extends State<AccountScreen> {
             icon: Icons.info_outline,
             title: "Tentang Aplikasi TrainOrder",
             onTap: () {
-              showDialog(context: context, builder: (ctx) => AlertDialog(
-                title: const Text("Tentang Aplikasi"),
-                content: const Text("Aplikasi Pemesanan Tiket Kereta Api TrainOrder v1.0.0"),
-                actions: [TextButton(onPressed: ()=>Navigator.of(ctx).pop(), child: const Text("OK"))],
-              ));
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const TentangAplikasiScreen()),
+              );
+              // showDialog(context: context, builder: (ctx) => AlertDialog(
+              //   title: const Text("Tentang Aplikasi"),
+              //   content: const Text("Aplikasi Pemesanan Tiket Kereta Api TrainOrder v1.0.0"),
+              //   actions: [TextButton(onPressed: ()=>Navigator.of(ctx).pop(), child: const Text("OK"))],
+              // ));
             },
           ),
           _buildMenuItem(
             context,
             icon: Icons.logout,
             title: "Keluar",
-            onTap: () async {
-              await _authService.signOut();
-              if (mounted) {
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (context) => LoginEmailScreen()),
-                      (Route<dynamic> route) => false,
-                );
-              }
-            },
+            // onTap: () async {
+            //   await _authService.signOut();
+            //   if (mounted) {
+            //     Navigator.of(context).pushAndRemoveUntil(
+            //       MaterialPageRoute(builder: (context) =>  LoginEmailScreen()),
+            //           (Route<dynamic> route) => false,
+            //     );
+            //   }
+            // },
             textColor: Colors.red,
             iconColor: Colors.red,
+            onTap: _showLogoutConfirmationDialog,
           ),
         ],
       ),
@@ -165,9 +217,13 @@ class _AccountScreenState extends State<AccountScreen> {
             icon: const Icon(Icons.edit_outlined, size: 16),
             label: const Text("Kelola Profile"),
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Fitur Kelola Profile belum tersedia.')),
-              );
+              // ScaffoldMessenger.of(context).showSnackBar(
+              //   const SnackBar(content: Text('Fitur Kelola Profile belum tersedia.')),
+              // );
+            //  Navigator.push(
+                // context,
+                // MaterialPageRoute(builder: (context) => const InformasiDataDiriScreen()),
+              // );
             },
             style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
