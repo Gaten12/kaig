@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // Untuk TextInputFormatter
-import '../../../models/KeretaModel.dart'; // Pastikan path ini benar
-import '../services/admin_firestore_service.dart'; // Pastikan path ini benar
+import '../../../models/KeretaModel.dart';
+import '../../../models/gerbong_tipe_model.dart';
+import '../../../models/stasiun_model.dart';
+import '../../../models/kereta_rute_template_model.dart'; // Impor model rute
+import '../services/admin_firestore_service.dart';
 
 class FormKeretaScreen extends StatefulWidget {
   final KeretaModel? keretaToEdit;
@@ -17,214 +19,315 @@ class _FormKeretaScreenState extends State<FormKeretaScreen> {
   final AdminFirestoreService _adminService = AdminFirestoreService();
 
   late TextEditingController _namaController;
-  late TextEditingController _kelasUtamaController;
-  late TextEditingController _jumlahKursiController;
+
+  List<GerbongTipeModel> _rangkaianGerbong = [];
+  List<KeretaRuteTemplateInput> _templateRuteInput = [];
+
+  List<GerbongTipeModel> _semuaTipeGerbong = [];
+  List<StasiunModel> _semuaStasiun = [];
 
   bool get _isEditing => widget.keretaToEdit != null;
+  bool _isLoadingData = true;
 
   @override
   void initState() {
     super.initState();
-    _namaController =
-        TextEditingController(text: widget.keretaToEdit?.nama ?? '');
-    _kelasUtamaController =
-        TextEditingController(text: widget.keretaToEdit?.kelasUtama ?? '');
-    _jumlahKursiController = TextEditingController(
-        text: widget.keretaToEdit?.jumlahKursi.toString() ?? '');
+    _namaController = TextEditingController(text: widget.keretaToEdit?.nama ?? '');
+    _fetchInitialData();
+  }
+
+  Future<void> _fetchInitialData() async {
+    try {
+      final results = await Future.wait([
+        _adminService.getGerbongTipeList().first,
+        _adminService.getStasiunList().first,
+      ]);
+      // PERBAIKAN: Cast hasil Future.wait ke tipe yang benar
+      _semuaTipeGerbong = results[0] as List<GerbongTipeModel>;
+      _semuaStasiun = results[1] as List<StasiunModel>;
+
+      if (_isEditing && widget.keretaToEdit != null) {
+        final kereta = widget.keretaToEdit!;
+        _rangkaianGerbong = kereta.idRangkaianGerbong.map((idGerbong) {
+          try { return _semuaTipeGerbong.firstWhere((g) => g.id == idGerbong); }
+          catch (e) { return null; }
+        }).whereType<GerbongTipeModel>().toList();
+
+        _templateRuteInput = kereta.templateRute.map((rute) {
+          try {
+            final stasiun = _semuaStasiun.firstWhere((s) => s.kode == rute.stasiunId);
+            return KeretaRuteTemplateInput(
+              selectedStasiun: stasiun,
+              jamTiba: rute.jamTiba,
+              jamBerangkat: rute.jamBerangkat,
+              urutan: rute.urutan,
+            );
+          } catch (e) { return null; }
+        }).whereType<KeretaRuteTemplateInput>().toList();
+      }
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Gagal memuat data master: $e")));
+    } finally {
+      if (mounted) setState(() => _isLoadingData = false);
+    }
   }
 
   @override
   void dispose() {
     _namaController.dispose();
-    _kelasUtamaController.dispose();
-    _jumlahKursiController.dispose();
     super.dispose();
   }
 
+  Future<void> _showPilihGerbongDialog() async {
+    final GerbongTipeModel? gerbongTerpilih = await showDialog<GerbongTipeModel>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text("Pilih Tipe Gerbong"),
+          content: SizedBox(
+              width: double.maxFinite,
+              child: _semuaTipeGerbong.isEmpty
+                  ? const Text("Tidak ada data gerbong. Harap tambah tipe gerbong di menu 'Kelola Tipe Gerbong'.")
+                  : ListView.builder(
+                shrinkWrap: true,
+                itemCount: _semuaTipeGerbong.length,
+                itemBuilder: (context, index) {
+                  final gerbong = _semuaTipeGerbong[index];
+                  return ListTile(
+                    title: Text(gerbong.namaTipeLengkap),
+                    subtitle: Text("Layout: ${gerbong.tipeLayout.deskripsi}, Kursi: ${gerbong.jumlahKursi}"),
+                    onTap: () => Navigator.of(context).pop(gerbong),
+                  );
+                },
+              )),
+          actions: [ TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text("Batal")) ],
+        )
+    );
+    if (gerbongTerpilih != null) setState(() => _rangkaianGerbong.add(gerbongTerpilih));
+  }
+
+  void _addRuteField() => setState(() => _templateRuteInput.add(KeretaRuteTemplateInput(urutan: _templateRuteInput.length)));
+  void _removeRuteField(int index) => setState(() => _templateRuteInput.removeAt(index));
+
   Future<void> _submitForm() async {
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
+    if (!_formKey.currentState!.validate()) return;
+    if (_templateRuteInput.length < 2 || _templateRuteInput.any((s) => s.selectedStasiun == null)) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Harap lengkapi rute dengan minimal 2 stasiun (asal & tujuan).')));
+      return;
+    }
 
-      final kereta = KeretaModel(
-        id: _isEditing
-            ? widget.keretaToEdit!.id
-            : '', // ID akan di-generate oleh Firestore saat add
-        nama: _namaController.text,
-        kelasUtama: _kelasUtamaController.text,
-        jumlahKursi: int.tryParse(_jumlahKursiController.text) ?? 0,
-      );
+    final totalKursi = _rangkaianGerbong.fold<int>(0, (sum, item) => sum + item.jumlahKursi);
 
-      try {
-        if (_isEditing) {
-          await _adminService.updateKereta(kereta);
-        } else {
-          await _adminService.addKereta(kereta);
-        }
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text(
-                    'Kereta berhasil ${_isEditing ? "diperbarui" : "ditambahkan"}!')),
-          );
-          Navigator.pop(context); // Kembali ke layar list
-        }
-      } catch (e) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Gagal menyimpan kereta: $e')),
-          );
-        }
+    // PERBAIKAN: Menghapus parameter kelasUtama
+    final kereta = KeretaModel(
+      id: _isEditing ? widget.keretaToEdit!.id : '',
+      nama: _namaController.text,
+      idRangkaianGerbong: _rangkaianGerbong.map((g) => g.id).toList(),
+      templateRute: _templateRuteInput.map((input) => KeretaRuteTemplateModel(
+        stasiunId: input.selectedStasiun!.kode,
+        namaStasiun: input.selectedStasiun!.nama,
+        jamTiba: input.jamTiba,
+        jamBerangkat: input.jamBerangkat,
+        urutan: input.urutan,
+      )).toList(),
+      totalKursi: totalKursi,
+    );
+
+    try {
+      if (_isEditing) {
+        await _adminService.updateKereta(kereta);
+      } else {
+        await _adminService.addKereta(kereta);
       }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Kereta berhasil ${ _isEditing ? "diperbarui" : "ditambahkan"}!')));
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menyimpan kereta: $e')));
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Definisikan BorderSide yang akan digunakan berulang kali
-    final BorderSide defaultBorderSide =
-    BorderSide(color: Colors.grey.shade400); // Warna abu-abu muda
-    final BorderSide focusedBorderSide = BorderSide(
-        color: Colors.blueGrey.shade700, width: 2.0); // Warna tema saat fokus
-    final BorderSide errorBorderSide =
-    const BorderSide(color: Colors.red, width: 1.0); // Warna merah untuk error
-
-    // Definisikan InputBorder untuk konsistensi
-    final OutlineInputBorder defaultOutlineInputBorder = OutlineInputBorder(
-      borderSide: defaultBorderSide,
-      borderRadius: BorderRadius.circular(8.0),
-    );
-
-    final OutlineInputBorder focusedOutlineInputBorder = OutlineInputBorder(
-      borderSide: focusedBorderSide,
-      borderRadius: BorderRadius.circular(8.0),
-    );
-
-    final OutlineInputBorder errorOutlineInputBorder = OutlineInputBorder(
-      borderSide: errorBorderSide,
-      borderRadius: BorderRadius.circular(8.0),
-    );
-
-    final OutlineInputBorder focusedErrorOutlineInputBorder = OutlineInputBorder(
-      borderSide: errorBorderSide.copyWith(width: 2.0), // Error dan fokus, sedikit lebih tebal
-      borderRadius: BorderRadius.circular(8.0),
-    );
+    final totalKursiDisplay = _rangkaianGerbong.fold<int>(0, (sum, item) => sum + item.jumlahKursi);
 
     return Scaffold(
-      appBar: AppBar(
-        toolbarHeight: 80,
-        backgroundColor: Colors.blueGrey,
-        title: Text(
-          _isEditing ? "Edit Kereta" : "Tambah Kereta Baru",
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 24,
-            fontWeight: FontWeight.w200,
-          ),
-        ),
-        iconTheme: const IconThemeData(color: Colors.white), // Agar tombol back juga putih
-      ),
-      body: Center( // Menengahkan Card di layar
-        child: SingleChildScrollView( // Memastikan form bisa di-scroll
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Card( // Menggunakan Card untuk membungkus form
-              elevation: 4.0, // Memberi sedikit bayangan
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0), // Memberi sudut rounded
+      appBar: AppBar(title: Text(_isEditing ? "Edit Kereta" : "Tambah Kereta Baru")),
+      body: _isLoadingData
+          ? const Center(child: CircularProgressIndicator())
+          : Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            children: <Widget>[
+              TextFormField(controller: _namaController, decoration: const InputDecoration(labelText: 'Nama Kereta (e.g., KA Taksaka)', border: OutlineInputBorder()), validator: (v) => v == null || v.isEmpty ? 'Nama tidak boleh kosong' : null),
+              const SizedBox(height: 24.0),
+
+              _buildSectionHeader("Template Rute & Waktu"),
+              _buildRuteList(),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(onPressed: _addRuteField, icon: const Icon(Icons.add), label: const Text("Tambah Stasiun Rute")),
               ),
-              child: Padding(
-                padding: const EdgeInsets.all(24.0), // Padding di dalam Card
-                child: Form(
-                  key: _formKey,
-                  child: Column( // Mengubah ListView menjadi Column
-                    mainAxisSize: MainAxisSize.min, // Agar Column tidak mengambil tinggi maksimal
-                    children: <Widget>[
-                      TextFormField(
-                        controller: _namaController,
-                        decoration: InputDecoration(
-                          labelText: 'Nama Kereta',
-                          enabledBorder: defaultOutlineInputBorder,
-                          focusedBorder: focusedOutlineInputBorder,
-                          errorBorder: errorOutlineInputBorder,
-                          focusedErrorBorder: focusedErrorOutlineInputBorder,
-                          prefixIcon: Icon(Icons.train_rounded, color: Colors.blueGrey.shade700),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Nama kereta tidak boleh kosong';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16.0),
-                      TextFormField(
-                        controller: _kelasUtamaController,
-                        decoration: InputDecoration(
-                          labelText: 'Kelas Utama Kereta (mis: Eksekutif, Ekonomi)',
-                          enabledBorder: defaultOutlineInputBorder,
-                          focusedBorder: focusedOutlineInputBorder,
-                          errorBorder: errorOutlineInputBorder,
-                          focusedErrorBorder: focusedErrorOutlineInputBorder,
-                          prefixIcon: Icon(Icons.airline_seat_recline_normal_outlined, color: Colors.blueGrey.shade700),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Kelas utama tidak boleh kosong';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16.0),
-                      TextFormField(
-                        controller: _jumlahKursiController,
-                        decoration: InputDecoration(
-                          labelText: 'Jumlah Kursi Total',
-                          enabledBorder: defaultOutlineInputBorder,
-                          focusedBorder: focusedOutlineInputBorder,
-                          errorBorder: errorOutlineInputBorder,
-                          focusedErrorBorder: focusedErrorOutlineInputBorder,
-                          prefixIcon: Icon(Icons.event_seat_outlined, color: Colors.blueGrey.shade700),
-                        ),
-                        keyboardType: TextInputType.number,
-                        inputFormatters: <TextInputFormatter>[
-                          FilteringTextInputFormatter.digitsOnly
-                        ],
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Jumlah kursi tidak boleh kosong';
-                          }
-                          if (int.tryParse(value) == null ||
-                              int.parse(value) <= 0) {
-                            return 'Masukkan jumlah kursi yang valid (lebih dari 0)';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 24.0),
-                      ElevatedButton(
-                        onPressed: _submitForm,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blueGrey, // Menyamakan dengan AppBar
-                          foregroundColor: Colors.white, // Warna teks tombol
-                          padding: const EdgeInsets.symmetric(vertical: 12.0),
-                          minimumSize: const Size(double.infinity, 50),
-                          shape: RoundedRectangleBorder( // Memberi sudut rounded pada tombol
-                            borderRadius: BorderRadius.circular(8.0),
-                          ),
-                        ),
-                        child: Text(
-                          _isEditing ? 'Simpan Perubahan' : 'Tambah Kereta',
-                          style: const TextStyle(fontSize: 16),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              const SizedBox(height: 24.0),
+
+              _buildSectionHeader("Rangkaian Gerbong (Total: $totalKursiDisplay kursi)"),
+              _buildGerbongList(),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(onPressed: _showPilihGerbongDialog, icon: const Icon(Icons.add), label: const Text("Tambah Gerbong")),
               ),
-            ),
+
+              const SizedBox(height: 32.0),
+              ElevatedButton(
+                onPressed: _submitForm,
+                style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 50)),
+                child: Text(_isEditing ? 'Simpan Perubahan' : 'Tambah Kereta', style: const TextStyle(fontSize: 16)),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
+
+  Widget _buildSectionHeader(String title) { return Padding(padding: const EdgeInsets.only(bottom: 8.0), child: Text(title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold))); }
+
+  Widget _buildGerbongList() {
+    return Container(
+      decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade400), borderRadius: BorderRadius.circular(8)),
+      child: _rangkaianGerbong.isEmpty
+          ? const Padding(padding: EdgeInsets.all(24), child: Center(child: Text("Belum ada gerbong ditambahkan.")))
+          : ReorderableListView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: _rangkaianGerbong.length,
+        onReorder: (oldIndex, newIndex) {
+          setState(() {
+            if (newIndex > oldIndex) newIndex -= 1;
+            final item = _rangkaianGerbong.removeAt(oldIndex);
+            _rangkaianGerbong.insert(newIndex, item);
+          });
+        },
+        itemBuilder: (context, index) {
+          final gerbong = _rangkaianGerbong[index];
+          final key = ValueKey('gerbong_${gerbong.id}_$index');
+          return ListTile(
+            key: key,
+            leading: const Icon(Icons.drag_handle, color: Colors.grey),
+            title: Text(gerbong.namaTipeLengkap),
+            subtitle: Text("Layout: ${gerbong.tipeLayout.deskripsi}, Kursi: ${gerbong.jumlahKursi}"),
+            trailing: IconButton(
+              icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
+              onPressed: () => setState(() => _rangkaianGerbong.removeAt(index)),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildRuteList() {
+    return Container(
+      decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade400), borderRadius: BorderRadius.circular(8)),
+      child: _templateRuteInput.isEmpty
+          ? const Padding(padding: EdgeInsets.all(24), child: Center(child: Text("Tambahkan stasiun untuk memulai rute.")))
+          : ReorderableListView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: _templateRuteInput.length,
+        onReorder: (oldIndex, newIndex) {
+          setState(() {
+            if (newIndex > oldIndex) newIndex -= 1;
+            final item = _templateRuteInput.removeAt(oldIndex);
+            _templateRuteInput.insert(newIndex, item);
+            for (int i = 0; i < _templateRuteInput.length; i++) { _templateRuteInput[i].urutan = i; }
+          });
+        },
+        itemBuilder: (context, index) {
+          final key = ValueKey('rute_stasiun_$index');
+          final ruteInput = _templateRuteInput[index];
+          bool isStasiunAwal = index == 0;
+          bool isStasiunAkhir = index == _templateRuteInput.length - 1;
+
+          return Padding(
+            key: key,
+            padding: const EdgeInsets.fromLTRB(8, 4, 0, 4),
+            child: Row(
+              children: [
+                const Icon(Icons.drag_handle, color: Colors.grey),
+                const SizedBox(width: 8),
+                Expanded(
+                  flex: 3,
+                  child: DropdownButtonFormField<StasiunModel>(
+                    value: ruteInput.selectedStasiun,
+                    isExpanded: true,
+                    items: _semuaStasiun.map((s) => DropdownMenuItem(value: s, child: Text(s.displayName, overflow: TextOverflow.ellipsis))).toList(),
+                    onChanged: (value) => setState(() => ruteInput.selectedStasiun = value),
+                    decoration: InputDecoration(hintText: "Stasiun ${index + 1}", border: InputBorder.none, isDense: true),
+                    validator: (v) => v == null ? "Pilih" : null,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                if (!isStasiunAwal)
+                  Expanded(
+                    flex: 2,
+                    child: _buildTimePickerField("Tiba", ruteInput.jamTiba, (newTime) => setState(() => ruteInput.jamTiba = newTime)),
+                  ),
+                if (!isStasiunAkhir)
+                  Expanded(
+                    flex: 2,
+                    child: _buildTimePickerField("Berangkat", ruteInput.jamBerangkat, (newTime) => setState(() => ruteInput.jamBerangkat = newTime)),
+                  ),
+                IconButton(icon: const Icon(Icons.delete_outline, color: Colors.red), onPressed: () => _removeRuteField(index)),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildTimePickerField(String label, TimeOfDay? currentTime, Function(TimeOfDay) onTimeChanged) {
+    return InkWell(
+      onTap: () async {
+        final TimeOfDay? pickedTime = await showTimePicker(
+          context: context,
+          initialTime: currentTime ?? TimeOfDay.now(),
+        );
+        if (pickedTime != null) {
+          onTimeChanged(pickedTime);
+        }
+      },
+      child: InputDecorator(
+        decoration: InputDecoration(
+          labelText: label,
+          border: InputBorder.none,
+          isDense: true,
+        ),
+        child: Text(
+          currentTime?.format(context) ?? '--:--',
+          style: const TextStyle(fontWeight: FontWeight.w500),
+        ),
+      ),
+    );
+  }
+}
+
+// Helper class untuk state UI form
+class KeretaRuteTemplateInput {
+  StasiunModel? selectedStasiun;
+  TimeOfDay? jamTiba;
+  TimeOfDay? jamBerangkat;
+  int urutan;
+
+  KeretaRuteTemplateInput({
+    this.selectedStasiun,
+    this.jamTiba,
+    this.jamBerangkat,
+    required this.urutan,
+  });
+
+  void dispose() {}
 }

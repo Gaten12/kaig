@@ -6,9 +6,9 @@ import 'DataPenumpangScreen.dart'; // Layar selanjutnya
 
 class PilihKelasScreen extends StatelessWidget {
   final JadwalModel jadwalDipesan;
-  final String stasiunAsalDisplay; // Misal: "GAMBIR (GMR)"
-  final String stasiunTujuanDisplay; // Misal: "CEPER (CE)"
-  final DateTime tanggalBerangkat; // Tanggal yang dicari/dipilih customer di tab
+  final String stasiunAsalDisplay;
+  final String stasiunTujuanDisplay;
+  final DateTime tanggalBerangkat;
   final int jumlahDewasa;
   final int jumlahBayi;
 
@@ -30,9 +30,7 @@ class PilihKelasScreen extends StatelessWidget {
     if (jumlahBayi > 0) {
       penumpangInfo += ", ${jumlahBayi} Bayi";
     }
-    // Menggunakan tanggal berangkat utama dari jadwal yang dipesan untuk info di AppBar
-    // Ini adalah tanggal keberangkatan kereta dari stasiun paling awal di rutenya.
-    String tanggalKeretaBerangkatInfo = DateFormat('EEE, dd MMM yy', 'id_ID')
+    String tanggalInfo = DateFormat('EEE, dd MMM yy', 'id_ID')
         .format(jadwalDipesan.tanggalBerangkatUtama.toDate());
 
     return Scaffold(
@@ -41,14 +39,12 @@ class PilihKelasScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              // Menampilkan segmen yang dicari customer
               "$stasiunAsalDisplay ❯ $stasiunTujuanDisplay",
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               overflow: TextOverflow.ellipsis,
             ),
             Text(
-              // Menampilkan tanggal keberangkatan kereta dan info penumpang
-              "$tanggalKeretaBerangkatInfo • $penumpangInfo",
+              "$tanggalInfo • $penumpangInfo",
               style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal),
             ),
           ],
@@ -58,11 +54,10 @@ class PilihKelasScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
-          // Bagian ini menampilkan rute lengkap dari kereta yang dipilih
-          _buildRuteKeretaSection(context, jadwalDipesan),
+          _buildRuteKeretaSection(context, jadwalDipesan, stasiunAsalDisplay, stasiunTujuanDisplay),
           const SizedBox(height: 24.0),
           Text(
-            "Pilih Kelas & Harga", // Judul diubah agar lebih sesuai
+            "Pilih Kelas & Harga",
             style: Theme.of(context)
                 .textTheme
                 .titleLarge
@@ -80,7 +75,10 @@ class PilihKelasScreen extends StatelessWidget {
               itemCount: jadwalDipesan.daftarKelasHarga.length,
               itemBuilder: (context, index) {
                 final kelas = jadwalDipesan.daftarKelasHarga[index];
-                bool isHabis = kelas.ketersediaan.toLowerCase() == "habis";
+                // Ketersediaan sekarang dicek berdasarkan kuota
+                bool isTersedia = kelas.kuota > 0;
+                String ketersediaanText = isTersedia ? "Tersedia (${kelas.kuota} kursi)" : "Habis";
+
                 return Card(
                   elevation: 1.5,
                   margin: const EdgeInsets.symmetric(vertical: 6.0),
@@ -92,9 +90,9 @@ class PilihKelasScreen extends StatelessWidget {
                       style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
                     subtitle: Text(
-                      "Status: ${kelas.ketersediaan}",
+                      ketersediaanText,
                       style: TextStyle(
-                        color: isHabis ? Colors.red : Colors.green.shade700,
+                        color: isTersedia ? Colors.green.shade700 : Colors.red,
                       ),
                     ),
                     trailing: Text(
@@ -102,25 +100,23 @@ class PilihKelasScreen extends StatelessWidget {
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
-                        color: isHabis
+                        color: !isTersedia
                             ? Colors.grey
-                            : Theme.of(context).colorScheme.primary, // Menggunakan colorScheme
+                            : Theme.of(context).colorScheme.primary,
                       ),
                     ),
-                    onTap: isHabis
+                    onTap: !isTersedia
                         ? null
                         : () {
                       print(
-                          "Kelas dipilih: ${kelas.displayKelasLengkap} untuk kereta ${jadwalDipesan.namaKereta}");
+                          "Kelas dipilih: ${kelas.displayKelasLengkap}");
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => DataPenumpangScreen(
                             jadwalDipesan: jadwalDipesan,
                             kelasDipilih: kelas,
-                            // Menggunakan tanggal berangkat utama dari jadwal yang dipilih
-                            // atau tanggal yang dipilih customer di tab, tergantung kebutuhan
-                            tanggalBerangkat: tanggalBerangkat, // Tanggal dari parameter widget (pilihan customer)
+                            tanggalBerangkat: tanggalBerangkat,
                             jumlahDewasa: jumlahDewasa,
                             jumlahBayi: jumlahBayi,
                           ),
@@ -136,7 +132,7 @@ class PilihKelasScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildRuteKeretaSection(BuildContext context, JadwalModel jadwal) {
+  Widget _buildRuteKeretaSection(BuildContext context, JadwalModel jadwal, String asalDisplay, String tujuanDisplay) {
     List<Widget> ruteWidgets = [];
     if (jadwal.detailPerhentian.isEmpty) {
       ruteWidgets.add(const Center(child: Text("Detail rute tidak tersedia.")));
@@ -150,11 +146,10 @@ class PilihKelasScreen extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 4.0),
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start, // Agar teks dan ikon sejajar atas
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Kolom Waktu (Kiri)
                   SizedBox(
-                    width: 100, // Lebar tetap untuk konsistensi
+                    width: 100,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       mainAxisAlignment: MainAxisAlignment.start,
@@ -170,7 +165,6 @@ class PilihKelasScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  // Garis Vertikal dan Ikon
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12.0),
                     child: Column(
@@ -183,7 +177,7 @@ class PilihKelasScreen extends StatelessWidget {
                         ),
                         if (!isStasiunAkhirRute)
                           Container(
-                            height: 30, // Tinggi garis disesuaikan
+                            height: 30,
                             width: 1.5,
                             color: Colors.grey.shade300,
                             margin: const EdgeInsets.symmetric(vertical: 2),
@@ -191,10 +185,9 @@ class PilihKelasScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  // Kolom Nama Stasiun (Kanan)
                   Expanded(
                     child: Padding(
-                      padding: const EdgeInsets.only(top: 1.0), // Sedikit penyesuaian posisi
+                      padding: const EdgeInsets.only(top: 1.0),
                       child: Text(
                         perhentian.namaStasiun.isNotEmpty ? perhentian.namaStasiun.toUpperCase() : perhentian.idStasiun.toUpperCase(),
                         style: TextStyle(
@@ -227,11 +220,11 @@ class PilihKelasScreen extends StatelessWidget {
             style: const TextStyle(fontSize: 12, color: Colors.grey)),
         const SizedBox(height: 16.0),
         Card(
-          elevation: 1.5, // Sedikit dikurangi
+          elevation: 1.5,
           shape:
           RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0), // Padding disesuaikan
+            padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: ruteWidgets,

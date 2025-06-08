@@ -12,20 +12,24 @@ class ListKeretaScreen extends StatefulWidget {
 
 class _ListKeretaScreenState extends State<ListKeretaScreen> {
   final AdminFirestoreService _adminService = AdminFirestoreService();
-  String _searchQuery = "";
+  final TextEditingController _searchController = TextEditingController();
   List<KeretaModel> _allKereta = [];
   List<KeretaModel> _filteredKereta = [];
-
-  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
+    _adminService.getKeretaList().listen((keretaList) {
+      if (mounted) {
+        setState(() {
+          _allKereta = keretaList;
+          _filterKereta();
+        });
+      }
+    });
+
     _searchController.addListener(() {
-      setState(() {
-        _searchQuery = _searchController.text;
-        _filterKereta();
-      });
+      _filterKereta();
     });
   }
 
@@ -36,20 +40,17 @@ class _ListKeretaScreenState extends State<ListKeretaScreen> {
   }
 
   void _filterKereta() {
-    if (_searchQuery.isEmpty) {
+    final searchQuery = _searchController.text;
+    if (searchQuery.isEmpty) {
       _filteredKereta = List.from(_allKereta);
     } else {
+      final searchQueryLower = searchQuery.toLowerCase();
       _filteredKereta = _allKereta.where((kereta) {
-        final namaLower = kereta.nama.toLowerCase();
-        // Anda bisa menambahkan field lain untuk dicari, misalnya kelasUtama
-        final kelasUtamaLower = kereta.kelasUtama.toLowerCase();
-        final searchQueryLower = _searchQuery.toLowerCase();
-
-        return namaLower.contains(searchQueryLower) ||
-            kelasUtamaLower.contains(searchQueryLower);
-        // Jika hanya ingin mencari berdasarkan nama:
-        // return namaLower.contains(searchQueryLower);
+        return kereta.nama.toLowerCase().contains(searchQueryLower);
       }).toList();
+    }
+    if (mounted) {
+      setState(() {});
     }
   }
 
@@ -57,15 +58,7 @@ class _ListKeretaScreenState extends State<ListKeretaScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        toolbarHeight: 80,
-        backgroundColor: Colors.blueGrey,
-        title: const Text("Daftar Kereta",
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 24,
-            fontWeight: FontWeight.w200,
-          ),
-        ),
+        title: const Text("Daftar Kereta"),
       ),
       body: Column(
         children: [
@@ -74,121 +67,88 @@ class _ListKeretaScreenState extends State<ListKeretaScreen> {
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                labelText: "Cari Kereta (Nama atau Kelas)", // Sesuaikan label
-                hintText: "Masukkan nama atau kelas kereta...", // Sesuaikan hint
+                labelText: "Cari Nama Kereta",
+                hintText: "Masukkan nama kereta...",
                 prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.0),
                 ),
-                suffixIcon: _searchQuery.isNotEmpty
+                suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
                   icon: const Icon(Icons.clear),
-                  onPressed: () {
-                    _searchController.clear();
-                  },
+                  onPressed: () => _searchController.clear(),
                 )
                     : null,
               ),
             ),
           ),
           Expanded(
-            child: StreamBuilder<List<KeretaModel>>(
-              stream: _adminService.getKeretaList(),
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  print("Error Stream Kereta: ${snapshot.error}");
-                  return Center(child: Text("Error: ${snapshot.error}"));
-                }
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  _allKereta = [];
-                  _filterKereta();
-                  return const Center(child: Text("Belum ada data kereta."));
-                }
+            child: _filteredKereta.isEmpty
+                ? Center(child: Text(_searchController.text.isNotEmpty ? "Kereta tidak ditemukan." : "Belum ada data kereta."))
+                : ListView.builder(
+              itemCount: _filteredKereta.length,
+              itemBuilder: (context, index) {
+                final kereta = _filteredKereta[index];
+                // Menampilkan informasi dari model baru
+                String ruteDisplay = kereta.templateRute.isNotEmpty
+                    ? "${kereta.templateRute.first.stasiunId} ❯ ${kereta.templateRute.last.stasiunId}"
+                    : "Rute belum diatur";
+                String rangkaianDisplay = "Rangkaian: ${kereta.idRangkaianGerbong.length} gerbong";
+                String kursiDisplay = "Kapasitas: ${kereta.totalKursi} kursi";
 
-                if (_allKereta != snapshot.data!) {
-                  _allKereta = snapshot.data!;
-                  _filterKereta();
-                }
-
-                if (_filteredKereta.isEmpty && _searchQuery.isNotEmpty) {
-                  return const Center(child: Text("Kereta tidak ditemukan."));
-                }
-                if (_filteredKereta.isEmpty && _allKereta.isEmpty) {
-                  return const Center(child: Text("Belum ada data kereta."));
-                }
-
-                return ListView.builder(
-                  itemCount: _filteredKereta.length,
-                  itemBuilder: (context, index) {
-                    final kereta = _filteredKereta[index];
-                    return Card(
-                      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
-                      child: ListTile(
-                        title: Text(kereta.nama, style: const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text("Kelas Utama: ${kereta.kelasUtama}\nJumlah Kursi: ${kereta.jumlahKursi}"),
-                        isThreeLine: true,
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: Icon(Icons.edit_outlined, color: Colors.blue.shade700),
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => FormKeretaScreen(keretaToEdit: kereta),
-                                  ),
-                                );
-                              },
-                            ),
-                            IconButton(
-                              icon: Icon(Icons.delete_outline, color: Colors.red.shade700),
-                              onPressed: () async {
-                                final confirm = await showDialog<bool>(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return AlertDialog(
-                                      title: const Text('Konfirmasi Hapus'),
-                                      content: Text('Anda yakin ingin menghapus kereta ${kereta.nama}?'),
-                                      actions: <Widget>[
-                                        TextButton(
-                                          onPressed: () => Navigator.of(context).pop(false),
-                                          child: const Text('Batal'),
-                                        ),
-                                        TextButton(
-                                          onPressed: () => Navigator.of(context).pop(true),
-                                          child: const Text('Hapus', style: TextStyle(color: Colors.red)),
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                );
-                                if (confirm == true) {
-                                  try {
-                                    await _adminService.deleteKereta(kereta.id);
-                                    if(context.mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text('${kereta.nama} berhasil dihapus.')),
-                                      );
-                                    }
-                                  } catch (e) {
-                                    if(context.mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text('Gagal menghapus kereta: $e')),
-                                      );
-                                    }
-                                  }
-                                }
-                              },
-                            ),
-                          ],
+                return Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
+                  child: ListTile(
+                    title: Text(kereta.nama, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    subtitle: Text("$ruteDisplay\n$rangkaianDisplay, $kursiDisplay"),
+                    isThreeLine: true,
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.edit_outlined, color: Colors.blue.shade700),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => FormKeretaScreen(keretaToEdit: kereta),
+                              ),
+                            );
+                          },
                         ),
-                      ),
-                    );
-                  },
+                        IconButton(
+                          icon: Icon(Icons.delete_outline, color: Colors.red.shade700),
+                          onPressed: () async {
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: const Text('Konfirmasi Hapus'),
+                                  content: Text('Anda yakin ingin menghapus kereta ${kereta.nama}?'),
+                                  actions: <Widget>[
+                                    TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Batal')),
+                                    TextButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Hapus', style: TextStyle(color: Colors.red))),
+                                  ],
+                                );
+                              },
+                            );
+                            if (confirm == true) {
+                              try {
+                                await _adminService.deleteKereta(kereta.id);
+                                if(context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${kereta.nama} berhasil dihapus.')));
+                                }
+                              } catch (e) {
+                                if(context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menghapus kereta: $e')));
+                                }
+                              }
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
                 );
               },
             ),
