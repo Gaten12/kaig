@@ -12,6 +12,7 @@ class TentangAplikasiScreen extends StatelessWidget {
         style: const TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.bold,
+          color: Colors.black87, // Sedikit penyesuaian warna agar lebih jelas
         ),
       ),
     );
@@ -35,9 +36,27 @@ class TentangAplikasiScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text("Kebijakan Privasi"),
-        elevation: 1.0,
+        // Tombol kembali berwarna putih
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        // Judul AppBar sesuai gambar
+        title: Center(
+          child: const Text(
+            "Tentang Aplikasi",
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        // Warna AppBar sesuai gambar
+        backgroundColor: const Color(0xFFB71C1C),
+        // Menghilangkan bayangan di bawah AppBar
+        elevation: 0,
       ),
       body: SingleChildScrollView(
         child: Padding(

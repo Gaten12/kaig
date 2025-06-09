@@ -26,80 +26,188 @@ class _LoginEmailScreenState extends State<LoginEmailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Selamat Datang di TrainOrder!'),
-        automaticallyImplyLeading: true, // Tombol kembali
-      ),
-      body: Padding(
-        padding: EdgeInsets.all(20.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              // Anda bisa menambahkan LOGO di sini jika diinginkan, sesuai wireframe
-              // Container(
-              //   width: 100,
-              //   height: 100,
-              //   color: Colors.grey[300],
-              //   alignment: Alignment.center,
-              //   child: Text('LOGO', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              //   margin: EdgeInsets.only(bottom: 30),
-              // ),
-              Text(
-                'Silakan masuk atau daftar sekarang untuk mulai menjelajahi semua layanan yang kami sediakan.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16),
+    final screenHeight = MediaQuery.of(context).size.height;
+        return Scaffold(
+      // Menggunakan warna merah sebagai background utama
+      backgroundColor: const Color(0xFFC50000),
+      body: SingleChildScrollView(
+        child: Stack(
+          children: [
+            // === Bagian Atas (Latar Belakang Merah dengan Logo) ===
+            Container(
+              height: screenHeight,
+              width: double.infinity,
+              color: const Color(0xFFC50000),
+            ),
+            Positioned(
+              top: screenHeight * 0.15, // Posisi logo dari atas
+              left: 0,
+              right: 0,
+              child: Image.asset(
+                'images/logo.png', // Pastikan path logo benar
+                height: 150, // Sesuaikan ukuran logo jika perlu
               ),
-              SizedBox(height: 30),
-              TextFormField(
-                decoration: InputDecoration(
-                  labelText: 'Email',
-                  hintText: 'Masukkan Email',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.0),
+            ),
+
+            // === Bagian Bawah (Form Putih dengan Sudut Melengkung) ===
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(30.0),
+                    topRight: Radius.circular(30.0),
                   ),
                 ),
-                keyboardType: TextInputType.emailAddress,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Email tidak boleh kosong';
-                  }
-                  if (!value.contains('@') || !value.contains('.')) {
-                    return 'Format email tidak valid';
-                  }
-                  return null;
-                },
-                onSaved: (value) => _email = value,
-              ),
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _submitEmail,
-                child: Text('MASUK'),
-                style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: 15),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      // --- Judul ---
+                      const Text(
+                        'Selamat Datang di TrainOrder!',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+
+                      // --- Sub-judul ---
+                      RichText(
+                        text: TextSpan(
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: Colors.grey[600],
+                            height: 1.5,
+                          ),
+                          children: const <TextSpan>[
+                            TextSpan(text: 'Silakan '),
+                            TextSpan(
+                                text: 'masuk',
+                                style: TextStyle(fontWeight: FontWeight.bold)),
+                            TextSpan(text: ' atau '),
+                            TextSpan(
+                                text: 'daftar sekarang!',
+                                style: TextStyle(fontWeight: FontWeight.bold)),
+                            TextSpan(
+                                text:
+                                    ' untuk mulai menjelajahi semua layanan yang kami sediakan.'),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // --- Input Email ---
+                      const Text(
+                        'Email',
+                        style: TextStyle(
+                          color: Colors.black54,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        decoration: InputDecoration(
+                          hintText: 'Masukkan Email',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                            borderSide: BorderSide(
+                              color: Colors.grey[300]!,
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                            borderSide: BorderSide(
+                              color: Colors.grey[300]!,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                            borderSide: const BorderSide(
+                              color: Colors.blue, // Warna border saat di-fokus
+                            ),
+                          ),
+                          contentPadding:
+                              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        ),
+                        keyboardType: TextInputType.emailAddress,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Email tidak boleh kosong';
+                          }
+                          if (!value.contains('@') || !value.contains('.')) {
+                            return 'Format email tidak valid';
+                          }
+                          return null;
+                        },
+                        onSaved: (value) => _email = value,
+                      ),
+                      const SizedBox(height: 24),
+
+                      // --- Tombol Masuk ---
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _submitEmail,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                const Color(0xFF304FFE), // Warna biru solid
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                          ),
+                          child: const Text(
+                            'MASUK',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 40), // Spasi menuju link daftar
+
+                      // --- Link Daftar ---
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Tidak Punya Akun? ',
+                            style: TextStyle(color: Colors.grey[600]),
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => DaftarAkunScreen()),
+                              );
+                            },
+                            child: const Text(
+                              'Daftar Sekarang',
+                              style: TextStyle(
+                                color: Color(0xFF304FFE), // Warna biru
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('Tidak Punya Akun? '),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => DaftarAkunScreen()), // Arahkan ke layar registrasi
-                      );
-                    },
-                    child: Text('Daftar Sekarang'),
-                  ),
-                ],
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
