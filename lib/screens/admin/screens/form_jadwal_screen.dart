@@ -302,80 +302,103 @@ class _FormJadwalScreenState extends State<FormJadwalScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(_isEditing ? "Edit Jadwal" : "Buat Jadwal Baru")),
+      appBar: AppBar(
+        toolbarHeight: 80,
+        backgroundColor: Colors.blueGrey,
+        title: Text(_isEditing ? "Edit Jadwal" : "Buat Jadwal Baru",
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 24,
+            fontWeight: FontWeight.w200,
+          ),
+        ),
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : Padding(
+          : SingleChildScrollView( // Ditambahkan agar Card bisa di-scroll jika kontennya panjang
         padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              DropdownButtonFormField<KeretaModel>(
-                value: _selectedKereta,
-                items: _keretaList.map((kereta) => DropdownMenuItem(value: kereta, child: Text(kereta.nama))).toList(),
-                onChanged: _isEditing ? null : _onKeretaSelected, // Tidak bisa ganti kereta saat edit
-                decoration: InputDecoration(
-                  labelText: 'Pilih Kereta',
-                  border: const OutlineInputBorder(),
-                  filled: _isEditing,
-                  fillColor: Colors.grey[200],
-                ),
-                validator: (value) => value == null ? 'Kereta harus dipilih' : null,
-              ),
-
-              if (_selectedKereta != null) ...[
-                const SizedBox(height: 24),
-                _buildInfoKeretaTerpilih(),
-                const SizedBox(height: 24),
-
-                const Text("Tanggal Keberangkatan", style: TextStyle(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 8),
-                InkWell(
-                  onTap: _isEditing ? _showMultiDatePicker : null,
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: _isEditing ? Colors.grey : Colors.grey.shade300),
-                      borderRadius: BorderRadius.circular(4),
-                      color: _isEditing ? Colors.grey[200] : null,
+        child: Card( // <--- WIDGET CARD DITAMBAHKAN DI SINI
+          elevation: 4,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Form(
+              key: _formKey,
+              child: Column( // Menggunakan Column karena ListView di dalam Card tidak ideal
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  DropdownButtonFormField<KeretaModel>(
+                    value: _selectedKereta,
+                    items: _keretaList.map((kereta) => DropdownMenuItem(value: kereta, child: Text(kereta.nama))).toList(),
+                    onChanged: _isEditing ? null : _onKeretaSelected,
+                    decoration: InputDecoration(
+                      labelText: 'Pilih Kereta',
+                      border: const OutlineInputBorder(),
+                      filled: _isEditing,
+                      fillColor: Colors.grey[200],
                     ),
-                    child: Row(children: [
-                      Icon(Icons.calendar_month, color: _isEditing ? Colors.grey.shade700 : Colors.grey),
-                      const SizedBox(width: 12),
-                      Expanded(child: Text(_selectedDates.isEmpty ? "Pilih satu atau beberapa tanggal" : "${_selectedDates.length} tanggal dipilih")),
-                    ]),
+                    validator: (value) => value == null ? 'Kereta harus dipilih' : null,
                   ),
-                ),
-                if (_isEditing)
-                  const Padding(
-                    padding: EdgeInsets.only(top: 4.0),
-                    child: Text(
-                      'Tanggal tidak dapat diubah pada mode edit. Buat jadwal baru untuk tanggal lain.',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
+
+                  if (_selectedKereta != null) ...[
+                    const SizedBox(height: 24),
+                    _buildInfoKeretaTerpilih(),
+                    const SizedBox(height: 24),
+
+                    const Text("Tanggal Keberangkatan", style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    InkWell(
+                      onTap: _showMultiDatePicker,
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: _isEditing ? Colors.grey : Colors.grey.shade300),
+                          borderRadius: BorderRadius.circular(4),
+                          color: _isEditing ? Colors.grey[200] : null,
+                        ),
+                        child: Row(children: [
+                          Icon(Icons.calendar_month, color: _isEditing ? Colors.grey.shade700 : Colors.grey),
+                          const SizedBox(width: 12),
+                          Expanded(child: Text(_selectedDates.isEmpty ? "Pilih satu atau beberapa tanggal" : "${_selectedDates.length} tanggal dipilih")),
+                        ]),
+                      ),
                     ),
-                  ),
-                const SizedBox(height: 24),
+                    if (_isEditing)
+                      const Padding(
+                        padding: EdgeInsets.only(top: 4.0),
+                        child: Text(
+                          'Tanggal tidak dapat diubah pada mode edit. Buat jadwal baru untuk tanggal lain.',
+                          style: TextStyle(fontSize: 12, color: Colors.grey),
+                        ),
+                      ),
+                    const SizedBox(height: 24),
 
-                ..._hargaPerKelas.entries.map((entry) {
-                  return _buildHargaKelasSection(entry.key, entry.value);
-                }).toList(),
+                    ..._hargaPerKelas.entries.map((entry) {
+                      return _buildHargaKelasSection(entry.key, entry.value);
+                    }).toList(),
 
-                const SizedBox(height: 32),
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.save_alt_outlined),
-                  label: Text(_isEditing ? 'Simpan Perubahan Harga' : 'Simpan & Generate Jadwal'),
-                  onPressed: _isLoading || _isSubmitting ? null : _submitForm,
-                  style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 50)),
-                ),
-                if (_isSubmitting) ...[
-                  const SizedBox(height: 16),
-                  const Center(child: CircularProgressIndicator()),
-                  const SizedBox(height: 8),
-                  const Center(child: Text("Menyimpan jadwal dan men-generate kursi...", textAlign: TextAlign.center)),
+                    const SizedBox(height: 32),
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.save_alt_outlined),
+                      label: Text(_isEditing ? 'Simpan Perubahan Harga' : 'Simpan & Generate Jadwal'),
+                      onPressed: _isLoading || _isSubmitting ? null : _submitForm,
+                      style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 50),
+                      backgroundColor: Colors.blueGrey,
+                      ),
+                    ),
+                    if (_isSubmitting) ...[
+                      const SizedBox(height: 16),
+                      const Center(child: CircularProgressIndicator()),
+                      const SizedBox(height: 8),
+                      const Center(child: Text("Menyimpan jadwal dan men-generate kursi...", textAlign: TextAlign.center)),
+                    ],
+                  ],
                 ],
-              ],
-            ],
+              ),
+            ),
           ),
         ),
       ),
@@ -384,9 +407,12 @@ class _FormJadwalScreenState extends State<FormJadwalScreen> {
 
   Widget _buildInfoKeretaTerpilih() {
     if (_selectedKereta == null) return const SizedBox.shrink();
-    return Card(
-      elevation: 0,
-      color: Colors.grey[100],
+    // Diubah menjadi Container karena sudah di dalam Card utama
+    return Container(
+      decoration: BoxDecoration(
+          color: Colors.grey[100],
+          borderRadius: BorderRadius.circular(8)
+      ),
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Column(
@@ -424,6 +450,7 @@ class _FormJadwalScreenState extends State<FormJadwalScreen> {
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 4.0),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
                     flex: 3,

@@ -85,8 +85,8 @@ class _FormStasiunScreenState extends State<FormStasiunScreen> {
     BorderSide(color: Colors.grey.shade400); // Warna abu-abu muda
     final BorderSide focusedBorderSide =
     BorderSide(color: Colors.blueGrey.shade700, width: 2.0); // Warna tema saat fokus
-    final BorderSide errorBorderSide =
-    const BorderSide(color: Colors.red, width: 1.0); // Warna merah untuk error
+    const BorderSide errorBorderSide =
+    BorderSide(color: Colors.red, width: 1.0); // Warna merah untuk error
 
     // Definisikan InputBorder untuk konsistensi
     final OutlineInputBorder defaultOutlineInputBorder = OutlineInputBorder(
