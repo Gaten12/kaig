@@ -43,13 +43,11 @@ class _FormKeretaScreenState extends State<FormKeretaScreen> {
         _adminService.getGerbongTipeList().first,
         _adminService.getStasiunList().first,
       ]);
-      // PERBAIKAN: Cast hasil Future.wait ke tipe yang benar
       _semuaTipeGerbong = results[0] as List<GerbongTipeModel>;
       _semuaStasiun = results[1] as List<StasiunModel>;
 
       if (_isEditing && widget.keretaToEdit != null) {
         final kereta = widget.keretaToEdit!;
-
         _rangkaianGerbongInput = kereta.rangkaian.map((rg) {
           try {
             return RangkaianGerbongInput(
@@ -198,54 +196,141 @@ class _FormKeretaScreenState extends State<FormKeretaScreen> {
   Widget build(BuildContext context) {
     final totalKursiDisplay = _rangkaianGerbongInput.fold<int>(0, (sum, item) => sum + (item.selectedTipeGerbong?.jumlahKursi ?? 0));
 
+    // Definisikan border style agar konsisten
+    final OutlineInputBorder defaultOutlineInputBorder = OutlineInputBorder(
+      borderSide: BorderSide(color: Colors.grey.shade400),
+      borderRadius: BorderRadius.circular(8.0),
+    );
+    final OutlineInputBorder focusedOutlineInputBorder = OutlineInputBorder(
+      borderSide: BorderSide(color: Colors.blueGrey.shade700, width: 2.0),
+      borderRadius: BorderRadius.circular(8.0),
+    );
+
     return Scaffold(
-      appBar: AppBar(title: Text(_isEditing ? "Edit Kereta" : "Tambah Kereta Baru")),
+      // --- PERUBAHAN AppBar ---
+      appBar: AppBar(
+        toolbarHeight: 80,
+        backgroundColor: Colors.blueGrey,
+        title: Text(
+          _isEditing ? "Edit Kereta" : "Tambah Kereta Baru",
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 24,
+            fontWeight: FontWeight.w200,
+          ),
+        ),
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      // --- PERUBAHAN Body ---
       body: _isLoadingData
           ? const Center(child: CircularProgressIndicator())
-          : Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: <Widget>[
-              TextFormField(controller: _namaController, decoration: const InputDecoration(labelText: 'Nama Kereta (e.g., KA Taksaka)', border: OutlineInputBorder()), validator: (v) => v == null || v.isEmpty ? 'Nama tidak boleh kosong' : null),
-              const SizedBox(height: 24.0),
-
-              _buildSectionHeader("Template Rute & Waktu"),
-              _buildRuteList(),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton.icon(onPressed: _addRuteField, icon: const Icon(Icons.add), label: const Text("Tambah Stasiun Rute")),
+          : Center(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            // --- Bungkus dengan Card ---
+            child: Card(
+              elevation: 4.0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0),
               ),
-              const SizedBox(height: 24.0),
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      // --- PERUBAHAN TextFormField Style ---
+                      TextFormField(
+                        controller: _namaController,
+                        decoration: InputDecoration(
+                          labelText: 'Nama Kereta (e.g., KA Taksaka)',
+                          enabledBorder: defaultOutlineInputBorder,
+                          focusedBorder: focusedOutlineInputBorder,
+                          prefixIcon: Icon(Icons.train_outlined, color: Colors.blueGrey.shade700),
+                        ),
+                        validator: (v) => v == null || v.isEmpty ? 'Nama tidak boleh kosong' : null,
+                      ),
+                      const SizedBox(height: 24.0),
 
-              _buildSectionHeader("Rangkaian Gerbong (Total: $totalKursiDisplay kursi)"),
-              _buildGerbongList(),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton.icon(onPressed: _showPilihGerbongDialog, icon: const Icon(Icons.add), label: const Text("Tambah Gerbong")),
-              ),
+                      _buildSectionHeader("Template Rute & Waktu"),
+                      const SizedBox(height: 8.0),
+                      _buildRuteList(),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton.icon(
+                          onPressed: _addRuteField,
+                          icon: const Icon(Icons.add),
+                          label: const Text("Tambah Stasiun Rute"),
+                          style: TextButton.styleFrom(foregroundColor: Colors.blueGrey.shade800),
+                        ),
+                      ),
+                      const SizedBox(height: 24.0),
 
-              const SizedBox(height: 32.0),
-              ElevatedButton(
-                onPressed: _submitForm,
-                style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 50)),
-                child: Text(_isEditing ? 'Simpan Perubahan' : 'Tambah Kereta', style: const TextStyle(fontSize: 16)),
+                      _buildSectionHeader("Rangkaian Gerbong (Total: $totalKursiDisplay kursi)"),
+                      const SizedBox(height: 8.0),
+                      _buildGerbongList(),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton.icon(
+                          onPressed: _showPilihGerbongDialog,
+                          icon: const Icon(Icons.add),
+                          label: const Text("Tambah Gerbong"),
+                          style: TextButton.styleFrom(foregroundColor: Colors.blueGrey.shade800),
+                        ),
+                      ),
+                      const SizedBox(height: 32.0),
+                      // --- PERUBAHAN ElevatedButton Style ---
+                      ElevatedButton(
+                        onPressed: _submitForm,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blueGrey,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12.0),
+                          minimumSize: const Size(double.infinity, 50),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                        ),
+                        child: Text(
+                          _isEditing ? 'Simpan Perubahan' : 'Tambah Kereta',
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildSectionHeader(String title) { return Padding(padding: const EdgeInsets.only(bottom: 8.0), child: Text(title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold))); }
+  Widget _buildSectionHeader(String title) {
+    return Text(
+      title,
+      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+        fontWeight: FontWeight.bold,
+        color: Colors.blueGrey.shade800,
+      ),
+    );
+  }
 
   Widget _buildGerbongList() {
     return Container(
-      decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade400), borderRadius: BorderRadius.circular(8)),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(8),
+      ),
       child: _rangkaianGerbongInput.isEmpty
-          ? const Padding(padding: EdgeInsets.all(24), child: Center(child: Text("Belum ada gerbong ditambahkan.")))
+          ? const Padding(
+        padding: EdgeInsets.all(24),
+        child: Center(child: Text("Belum ada gerbong ditambahkan.", textAlign: TextAlign.center)),
+      )
           : ReorderableListView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
@@ -263,18 +348,18 @@ class _FormKeretaScreenState extends State<FormKeretaScreen> {
           final key = ValueKey('gerbong_input_${gerbongInput.hashCode}');
           return ListTile(
             key: key,
-            leading: const Icon(Icons.drag_handle, color: Colors.grey),
+            leading: ReorderableDragStartListener(index: index, child: const Icon(Icons.drag_handle, color: Colors.grey)),
             title: Text("Gerbong ${gerbongInput.nomorGerbong}"),
             subtitle: DropdownButtonFormField<GerbongTipeModel>(
               value: gerbongInput.selectedTipeGerbong,
               isExpanded: true,
               items: _semuaTipeGerbong.map((g) => DropdownMenuItem(value: g, child: Text(g.namaTipeLengkap, overflow: TextOverflow.ellipsis,))).toList(),
               onChanged: (value) => setState(() => gerbongInput.selectedTipeGerbong = value),
-              decoration: const InputDecoration(hintText: "Pilih Tipe", border: InputBorder.none, isDense: true),
+              decoration: const InputDecoration(hintText: "Pilih Tipe", border: InputBorder.none, isDense: true, contentPadding: EdgeInsets.zero),
               validator: (v) => v == null ? "Pilih tipe" : null,
             ),
             trailing: IconButton(
-              icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
+              icon: const Icon(Icons.remove_circle_outline, color: Colors.redAccent),
               onPressed: () => _removeGerbongField(index),
             ),
           );
@@ -285,9 +370,15 @@ class _FormKeretaScreenState extends State<FormKeretaScreen> {
 
   Widget _buildRuteList() {
     return Container(
-      decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade400), borderRadius: BorderRadius.circular(8)),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(8),
+      ),
       child: _templateRuteInput.isEmpty
-          ? const Padding(padding: EdgeInsets.all(24), child: Center(child: Text("Tambahkan stasiun untuk memulai rute.")))
+          ? const Padding(
+        padding: EdgeInsets.all(24),
+        child: Center(child: Text("Tambahkan stasiun untuk memulai rute.", textAlign: TextAlign.center)),
+      )
           : ReorderableListView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
@@ -308,34 +399,35 @@ class _FormKeretaScreenState extends State<FormKeretaScreen> {
 
           return Padding(
             key: key,
-            padding: const EdgeInsets.fromLTRB(8, 4, 0, 4),
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const Icon(Icons.drag_handle, color: Colors.grey),
+                ReorderableDragStartListener(index: index, child: const Icon(Icons.drag_handle, color: Colors.grey)),
                 const SizedBox(width: 8),
                 Expanded(
-                  flex: 3,
+                  flex: 5,
                   child: DropdownButtonFormField<StasiunModel>(
                     value: ruteInput.selectedStasiun,
                     isExpanded: true,
                     items: _semuaStasiun.map((s) => DropdownMenuItem(value: s, child: Text(s.displayName, overflow: TextOverflow.ellipsis))).toList(),
                     onChanged: (value) => setState(() => ruteInput.selectedStasiun = value),
-                    decoration: InputDecoration(hintText: "Stasiun ${index + 1}", border: InputBorder.none, isDense: true),
+                    decoration: InputDecoration(hintText: "Stasiun ${index + 1}", border: InputBorder.none, isDense: true, contentPadding: EdgeInsets.zero),
                     validator: (v) => v == null ? "Pilih" : null,
                   ),
                 ),
                 const SizedBox(width: 8),
                 if (!isStasiunAwal)
                   Expanded(
-                    flex: 2,
+                    flex: 3,
                     child: _buildTimePickerField("Tiba", ruteInput.jamTiba, (newTime) => setState(() => ruteInput.jamTiba = newTime)),
                   ),
                 if (!isStasiunAkhir)
                   Expanded(
-                    flex: 2,
+                    flex: 3,
                     child: _buildTimePickerField("Berangkat", ruteInput.jamBerangkat, (newTime) => setState(() => ruteInput.jamBerangkat = newTime)),
                   ),
-                IconButton(icon: const Icon(Icons.delete_outline, color: Colors.red), onPressed: () => _removeRuteField(index)),
+                IconButton(icon: const Icon(Icons.delete_outline, color: Colors.redAccent), onPressed: () => _removeRuteField(index)),
               ],
             ),
           );
@@ -350,6 +442,17 @@ class _FormKeretaScreenState extends State<FormKeretaScreen> {
         final TimeOfDay? pickedTime = await showTimePicker(
           context: context,
           initialTime: currentTime ?? TimeOfDay.now(),
+          builder: (context, child) { // Optional: Theming the picker
+            return Theme(
+              data: Theme.of(context).copyWith(
+                colorScheme: const ColorScheme.light(
+                  primary: Colors.blueGrey,
+                  onPrimary: Colors.white,
+                ),
+              ),
+              child: child!,
+            );
+          },
         );
         if (pickedTime != null) {
           onTimeChanged(pickedTime);
@@ -360,10 +463,11 @@ class _FormKeretaScreenState extends State<FormKeretaScreen> {
           labelText: label,
           border: InputBorder.none,
           isDense: true,
+          contentPadding: const EdgeInsets.symmetric(vertical: 8),
         ),
         child: Text(
           currentTime?.format(context) ?? '--:--',
-          style: const TextStyle(fontWeight: FontWeight.w500),
+          style: const TextStyle(fontWeight: FontWeight.w500, color: Colors.blueGrey),
         ),
       ),
     );
@@ -381,6 +485,7 @@ class KeretaRuteTemplateInput {
 
   void dispose() {} // Tidak ada controller untuk di-dispose
 }
+
 class RangkaianGerbongInput {
   int nomorGerbong;
   GerbongTipeModel? selectedTipeGerbong;

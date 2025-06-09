@@ -55,7 +55,6 @@ class _FormJadwalScreenState extends State<FormJadwalScreen> {
         _adminService.getKeretaList().first,
         _adminService.getGerbongTipeList().first,
       ]);
-      // PERBAIKAN: Cast hasil Future.wait ke tipe yang benar
       _keretaList = results[0] as List<KeretaModel>;
       _semuaTipeGerbong = results[1] as List<GerbongTipeModel>;
 
@@ -301,83 +300,145 @@ class _FormJadwalScreenState extends State<FormJadwalScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Definisikan border style agar konsisten
+    final OutlineInputBorder defaultOutlineInputBorder = OutlineInputBorder(
+      borderSide: BorderSide(color: Colors.grey.shade400),
+      borderRadius: BorderRadius.circular(8.0),
+    );
+    final OutlineInputBorder focusedOutlineInputBorder = OutlineInputBorder(
+      borderSide: BorderSide(color: Colors.blueGrey.shade700, width: 2.0),
+      borderRadius: BorderRadius.circular(8.0),
+    );
+
     return Scaffold(
-      appBar: AppBar(title: Text(_isEditing ? "Edit Jadwal" : "Buat Jadwal Baru")),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              DropdownButtonFormField<KeretaModel>(
-                value: _selectedKereta,
-                items: _keretaList.map((kereta) => DropdownMenuItem(value: kereta, child: Text(kereta.nama))).toList(),
-                onChanged: _isEditing ? null : _onKeretaSelected,
-                decoration: InputDecoration(
-                  labelText: 'Pilih Kereta',
-                  border: const OutlineInputBorder(),
-                  filled: _isEditing,
-                  fillColor: Colors.grey[200],
-                ),
-                validator: (value) => value == null ? 'Kereta harus dipilih' : null,
-              ),
-
-              if (_selectedKereta != null) ...[
-                const SizedBox(height: 24),
-                _buildInfoKeretaTerpilih(),
-                const SizedBox(height: 24),
-
-                const Text("Tanggal Keberangkatan", style: TextStyle(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 8),
-                InkWell(
-                  onTap: _isEditing ? null : _showMultiDatePicker,
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade400),
-                      borderRadius: BorderRadius.circular(4),
-                      color: _isEditing ? Colors.grey[200] : null,
-                    ),
-                    child: Row(children: [
-                      Icon(Icons.calendar_month, color: Colors.grey.shade700),
-                      const SizedBox(width: 12),
-                      Expanded(child: Text(_selectedDates.isEmpty ? "Pilih satu atau beberapa tanggal" : "${_selectedDates.length} tanggal dipilih")),
-                    ]),
-                  ),
-                ),
-                if (_isEditing)
-                  const Padding(
-                    padding: EdgeInsets.only(top: 4.0),
-                    child: Text(
-                      'Tanggal tidak dapat diubah pada mode edit.',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
-                    ),
-                  ),
-                const SizedBox(height: 24),
-
-                ..._hargaPerKelas.entries.map((entry) {
-                  return _buildHargaKelasSection(entry.key, entry.value);
-                }).toList(),
-
-                const SizedBox(height: 32),
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.save_alt_outlined),
-                  label: Text(_isEditing ? 'Simpan Perubahan Harga' : 'Simpan & Generate Jadwal'),
-                  onPressed: _isLoading || _isSubmitting ? null : _submitForm,
-                  style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 50)),
-                ),
-                if (_isSubmitting) ...[
-                  const SizedBox(height: 16),
-                  const Center(child: CircularProgressIndicator()),
-                  const SizedBox(height: 8),
-                  const Center(child: Text("Menyimpan jadwal dan men-generate kursi...", textAlign: TextAlign.center)),
-                ],
-              ],
-            ],
+      // --- PERUBAHAN AppBar ---
+      appBar: AppBar(
+        toolbarHeight: 80,
+        backgroundColor: Colors.blueGrey,
+        title: Text(
+          _isEditing ? "Edit Jadwal" : "Buat Jadwal Baru",
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 24,
+            fontWeight: FontWeight.w200,
           ),
         ),
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      // --- PERUBAHAN Body ---
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Center(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            // --- Bungkus dengan Card ---
+            child: Card(
+              elevation: 4.0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // --- PERUBAHAN Dropdown Style ---
+                      DropdownButtonFormField<KeretaModel>(
+                        value: _selectedKereta,
+                        items: _keretaList.map((kereta) => DropdownMenuItem(value: kereta, child: Text(kereta.nama))).toList(),
+                        onChanged: _isEditing ? null : _onKeretaSelected,
+                        decoration: InputDecoration(
+                          labelText: 'Pilih Kereta',
+                          enabledBorder: defaultOutlineInputBorder,
+                          focusedBorder: focusedOutlineInputBorder,
+                          prefixIcon: Icon(Icons.train_outlined, color: Colors.blueGrey.shade700),
+                          filled: _isEditing,
+                          fillColor: Colors.grey[200],
+                        ),
+                        validator: (value) => value == null ? 'Kereta harus dipilih' : null,
+                      ),
+
+                      if (_selectedKereta != null) ...[
+                        const SizedBox(height: 24),
+                        _buildInfoKeretaTerpilih(),
+                        const SizedBox(height: 24),
+
+                        _buildSectionHeader("Tanggal Keberangkatan"),
+                        const SizedBox(height: 8),
+                        // --- PERUBAHAN Date Picker Style ---
+                        InkWell(
+                          onTap: _isEditing ? null : _showMultiDatePicker,
+                          child: InputDecorator(
+                            decoration: InputDecoration(
+                              enabledBorder: defaultOutlineInputBorder,
+                              focusedBorder: focusedOutlineInputBorder,
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 15),
+                              filled: _isEditing,
+                              fillColor: Colors.grey[200],
+                            ),
+                            child: Row(children: [
+                              Icon(Icons.calendar_month, color: Colors.blueGrey.shade700),
+                              const SizedBox(width: 12),
+                              Expanded(child: Text(_selectedDates.isEmpty ? "Pilih satu atau beberapa tanggal" : "${_selectedDates.length} tanggal dipilih")),
+                            ]),
+                          ),
+                        ),
+                        if (_isEditing)
+                          const Padding(
+                            padding: EdgeInsets.only(top: 8.0, left: 12.0),
+                            child: Text(
+                              'Tanggal tidak dapat diubah pada mode edit.',
+                              style: TextStyle(fontSize: 12, color: Colors.grey),
+                            ),
+                          ),
+                        const SizedBox(height: 24),
+
+                        ..._hargaPerKelas.entries.map((entry) {
+                          return _buildHargaKelasSection(entry.key, entry.value, defaultOutlineInputBorder, focusedOutlineInputBorder);
+                        }).toList(),
+
+                        const SizedBox(height: 32),
+                        // --- PERUBAHAN ElevatedButton Style ---
+                        ElevatedButton.icon(
+                          onPressed: _isLoading || _isSubmitting ? null : _submitForm,
+                          icon: _isSubmitting ? Container(width: 20, height: 20, margin: const EdgeInsets.only(right: 8), child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 3)) : const Icon(Icons.save_alt_outlined),
+                          label: Text(_isEditing ? 'Simpan Perubahan Harga' : 'Simpan & Generate Jadwal'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blueGrey,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 12.0),
+                            minimumSize: const Size(double.infinity, 50),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                          ),
+                        ),
+                        if (_isSubmitting) ...[
+                          const SizedBox(height: 16),
+                          const Center(child: Text("Menyimpan jadwal dan men-generate kursi...", textAlign: TextAlign.center, style: TextStyle(color: Colors.blueGrey))),
+                        ],
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Text(
+      title,
+      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+        fontWeight: FontWeight.bold,
+        color: Colors.blueGrey.shade800,
       ),
     );
   }
@@ -386,13 +447,17 @@ class _FormJadwalScreenState extends State<FormJadwalScreen> {
     if (_selectedKereta == null) return const SizedBox.shrink();
     return Card(
       elevation: 0,
-      color: Colors.grey[100],
+      color: Colors.blueGrey[50],
+      shape: RoundedRectangleBorder(
+        side: BorderSide(color: Colors.blueGrey.shade100),
+        borderRadius: BorderRadius.circular(8),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Info Kereta: ${_selectedKereta!.nama}", style: const TextStyle(fontWeight: FontWeight.bold)),
+            Text("Info Kereta: ${_selectedKereta!.nama}", style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey)),
             const Divider(),
             if (_selectedKereta!.templateRute.isNotEmpty)
               Text("Rute: ${_selectedKereta!.templateRute.first.namaStasiun} ❯ ${_selectedKereta!.templateRute.last.namaStasiun}"),
@@ -403,7 +468,7 @@ class _FormJadwalScreenState extends State<FormJadwalScreen> {
     );
   }
 
-  Widget _buildHargaKelasSection(String namaKelas, List<KelasHargaInput> inputs) {
+  Widget _buildHargaKelasSection(String namaKelas, List<KelasHargaInput> inputs, InputBorder defaultBorder, InputBorder focusedBorder) {
     int totalKursiFisik = _selectedKereta!.rangkaian
         .map((rg) {
       try { return _semuaTipeGerbong.firstWhere((g) => g.id == rg.idTipeGerbong); }
@@ -418,56 +483,70 @@ class _FormJadwalScreenState extends State<FormJadwalScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("Harga untuk Kelas: ${namaKelas[0].toUpperCase()}${namaKelas.substring(1)} (Total Kursi Fisik: $totalKursiFisik)", style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          ...List.generate(inputs.length, (index) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4.0),
-              child: Row(
-                children: [
-                  Expanded(
-                    flex: 3,
-                    child: TextFormField(
-                      controller: inputs[index].subKelasController,
-                      decoration: const InputDecoration(labelText: "Sub-Kelas", border: OutlineInputBorder()),
-                      validator: (v) => v == null || v.isEmpty ? 'Wajib' : null,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    flex: 4,
-                    child: TextFormField(
-                      controller: inputs[index].hargaController,
-                      decoration: const InputDecoration(labelText: "Harga (Rp)", border: OutlineInputBorder(), prefixText: "Rp "),
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                      validator: (v) => v == null || v.isEmpty ? 'Wajib' : null,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    flex: 2,
-                    child: TextFormField(
-                      controller: inputs[index].kuotaController,
-                      decoration: const InputDecoration(labelText: "Kuota", border: OutlineInputBorder()),
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                      validator: (v) => v == null || v.isEmpty ? 'Wajib' : null,
-                    ),
-                  ),
-                  IconButton(onPressed: () => _removeHargaSubKelas(namaKelas, index), icon: const Icon(Icons.remove_circle_outline, color: Colors.red)),
-                ],
-              ),
-            );
-          }),
-          Align(
-            alignment: Alignment.centerRight,
-            child: TextButton.icon(
-              icon: const Icon(Icons.add, size: 18),
-              label: const Text("Tambah Sub-Kelas"),
-              onPressed: () => _addHargaSubKelas(namaKelas),
+          _buildSectionHeader("Harga Kelas: ${namaKelas[0].toUpperCase()}${namaKelas.substring(1)} (Kursi: $totalKursiFisik)"),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(8),
             ),
-          )
+            child: Column(
+              children: [
+                ...List.generate(inputs.length, (index) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4.0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          flex: 3,
+                          child: TextFormField(
+                            controller: inputs[index].subKelasController,
+                            decoration: InputDecoration(labelText: "Sub-Kelas", border: defaultBorder, focusedBorder: focusedBorder),
+                            validator: (v) => v == null || v.isEmpty ? 'Wajib' : null,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          flex: 4,
+                          child: TextFormField(
+                            controller: inputs[index].hargaController,
+                            decoration: InputDecoration(labelText: "Harga (Rp)", border: defaultBorder, focusedBorder: focusedBorder),
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                            validator: (v) => v == null || v.isEmpty ? 'Wajib' : null,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          flex: 2,
+                          child: TextFormField(
+                            controller: inputs[index].kuotaController,
+                            decoration: InputDecoration(labelText: "Kuota", border: defaultBorder, focusedBorder: focusedBorder),
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                            validator: (v) => v == null || v.isEmpty ? 'Wajib' : null,
+                          ),
+                        ),
+                        if (inputs.length > 1) // Hanya tampilkan tombol hapus jika ada lebih dari 1
+                          IconButton(onPressed: () => _removeHargaSubKelas(namaKelas, index), icon: const Icon(Icons.remove_circle_outline, color: Colors.redAccent)),
+                      ],
+                    ),
+                  );
+                }),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    icon: const Icon(Icons.add, size: 18),
+                    label: const Text("Tambah Sub-Kelas"),
+                    onPressed: () => _addHargaSubKelas(namaKelas),
+                    style: TextButton.styleFrom(foregroundColor: Colors.blueGrey.shade800),
+                  ),
+                )
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -511,6 +590,10 @@ class _MultiDatePickerState extends State<MultiDatePicker> {
   void initState() {
     super.initState();
     _selectedDates = List.from(widget.initialDates);
+    // Jika ada tanggal awal, fokuskan ke tanggal pertama
+    if (_selectedDates.isNotEmpty) {
+      _focusedDay = _selectedDates.first;
+    }
   }
 
   @override
@@ -520,6 +603,20 @@ class _MultiDatePickerState extends State<MultiDatePicker> {
       firstDay: DateTime.now().subtract(const Duration(days: 30)),
       lastDay: DateTime.now().add(const Duration(days: 365)),
       calendarFormat: CalendarFormat.month,
+      headerStyle: const HeaderStyle(
+        formatButtonVisible: false,
+        titleCentered: true,
+      ),
+      calendarStyle: CalendarStyle(
+        selectedDecoration: const BoxDecoration(
+          color: Colors.blueGrey,
+          shape: BoxShape.circle,
+        ),
+        todayDecoration: BoxDecoration(
+          color: Colors.blueGrey.shade200,
+          shape: BoxShape.circle,
+        ),
+      ),
       selectedDayPredicate: (day) => _selectedDates.any((d) => isSameDay(d, day)),
       onDaySelected: (selectedDay, focusedDay) {
         setState(() {
