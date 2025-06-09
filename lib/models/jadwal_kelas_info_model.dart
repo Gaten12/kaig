@@ -2,10 +2,7 @@ class JadwalKelasInfoModel {
   final String namaKelas;       // e.g., "EKSEKUTIF"
   final String? subKelas;      // e.g., "AA", "A", "H"
   final int harga;
-  final int kuota;             // FIELD BARU: Kuota untuk sub-kelas harga ini
-  // Field 'ketersediaan' dan 'idGerbong' tidak lagi relevan di sini
-  // final String ketersediaan;
-  // final String? idGerbong;
+  final int kuota;             // Kuota untuk sub-kelas harga ini
 
   JadwalKelasInfoModel({
     required this.namaKelas,
@@ -21,7 +18,7 @@ class JadwalKelasInfoModel {
       namaKelas: map['nama_kelas'] ?? '',
       subKelas: map['sub_kelas'],
       harga: map['harga'] ?? 0,
-      kuota: map['kuota'] as int? ?? 0, // Baca kuota dari map
+      kuota: map['kuota'] as int? ?? 0,
     );
   }
 
@@ -30,7 +27,22 @@ class JadwalKelasInfoModel {
       'nama_kelas': namaKelas,
       'sub_kelas': subKelas,
       'harga': harga,
-      'kuota': kuota, // Simpan kuota ke map
+      'kuota': kuota,
     };
+  }
+
+  // Method ini penting untuk memperbarui objek secara immutable (aman)
+  JadwalKelasInfoModel copyWith({
+    String? namaKelas,
+    String? subKelas,
+    int? harga,
+    int? kuota,
+  }) {
+    return JadwalKelasInfoModel(
+      namaKelas: namaKelas ?? this.namaKelas,
+      subKelas: subKelas ?? this.subKelas,
+      harga: harga ?? this.harga,
+      kuota: kuota ?? this.kuota,
+    );
   }
 }

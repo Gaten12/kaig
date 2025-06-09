@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'package:kaig/models/transaksi_model.dart';
 import 'package:kaig/services/transaksi_service.dart';
+import 'detail_riwayat_screen.dart';
+import 'e_tiket_screen.dart';
 
 class TiketSayaScreen extends StatefulWidget {
   const TiketSayaScreen({super.key});
@@ -26,6 +28,8 @@ class _TiketSayaScreenState extends State<TiketSayaScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Halaman "Tiket Saya" tidak memerlukan AppBar sendiri karena
+    // AppBar sudah di-handle oleh HomeScreen.
     return Scaffold(
       body: StreamBuilder<List<TransaksiModel>>(
         stream: _tiketStream,
@@ -56,11 +60,11 @@ class _TiketSayaScreenState extends State<TiketSayaScreen> {
 
           final tiketList = snapshot.data!;
           return ListView.builder(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 80), // Padding bawah agar tidak tertutup nav bar
             itemCount: tiketList.length,
             itemBuilder: (context, index) {
               final tiket = tiketList[index];
-              return _buildTiketCard(tiket);
+              return _buildTiketCard(context, tiket);
             },
           );
         },
@@ -68,68 +72,129 @@ class _TiketSayaScreenState extends State<TiketSayaScreen> {
     );
   }
 
-  Widget _buildTiketCard(TransaksiModel tiket) {
+  Widget _buildTiketCard(BuildContext context, TransaksiModel tiket) {
+    final currencyFormatter = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp. ', decimalDigits: 0);
+    final ruteParts = tiket.rute.split('❯');
+    final stasiunAsal = ruteParts.isNotEmpty ? ruteParts[0].trim() : '';
+    final stasiunTujuan = ruteParts.length > 1 ? ruteParts[1].trim() : '';
+
+    String infoPenumpang = "${tiket.penumpang.length} Dewasa";
+    if (tiket.jumlahBayi > 0) {
+      infoPenumpang += ", ${tiket.jumlahBayi} Bayi";
+    }
+
     return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       elevation: 3,
-      margin: const EdgeInsets.only(bottom: 16),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () {
+          // Aksi default saat kartu di-tap adalah melihat E-Tiket
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => ETiketScreen(tiket: tiket)),
+          );
+        },
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(tiket.namaKereta, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                Text(tiket.status, style: TextStyle(color: Colors.green.shade700, fontWeight: FontWeight.bold)),
-              ],
-            ),
-            Text(tiket.kelas, style: const TextStyle(color: Colors.grey)),
-            const Divider(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(tiket.waktuBerangkat, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                    Text(tiket.rute.split('❯')[0].trim(), style: const TextStyle(color: Colors.grey)),
-                  ],
+            // Header Kartu
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.red.shade700,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(12),
+                  topRight: Radius.circular(12),
                 ),
-                const Icon(Icons.arrow_forward, color: Colors.grey),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(tiket.waktuTiba, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                    Text(tiket.rute.split('❯')[1].trim(), style: const TextStyle(color: Colors.grey)),
-                  ],
-                ),
-              ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text("Kode Pemesanan: ${tiket.kodeBooking}", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  Text(tiket.status, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                ],
+              ),
             ),
-            const SizedBox(height: 8),
-            Center(
-              child: Text(DateFormat('EEEE, dd MMMM yyyy', 'id_ID').format(tiket.tanggalBerangkat.toDate()), style: const TextStyle(fontWeight: FontWeight.w500)),
+            // Body Kartu
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.train, color: Colors.black54, size: 40),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text("KERETA ANTAR KOTA", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        Text(tiket.namaKereta.toUpperCase(), style: const TextStyle(color: Colors.black54)),
+                        const SizedBox(height: 4),
+                        Text(infoPenumpang, style: const TextStyle(fontSize: 12, color: Colors.black54)),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Text(stasiunAsal, style: const TextStyle(fontWeight: FontWeight.bold)),
+                            const Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 8.0),
+                              child: Icon(Icons.arrow_forward, size: 16),
+                            ),
+                            Text(stasiunTujuan, style: const TextStyle(fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-            const Divider(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text("KODE BOOKING", style: TextStyle(color: Colors.grey, fontSize: 12)),
-                    SelectableText(tiket.kodeBooking, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                  ],
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    // TODO: Arahkan ke halaman detail tiket dengan QR Code
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Fitur detail tiket belum diimplementasikan.")));
-                  },
-                  child: const Text("Lihat Tiket"),
-                )
-              ],
-            ),
+            // Footer Kartu
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text("Total Harga", style: TextStyle(color: Colors.black54)),
+                      Text(
+                        currencyFormatter.format(tiket.totalBayar),
+                        style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold, fontSize: 16),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => DetailRiwayatScreen(transaksi: tiket)),
+                          );
+                        },
+                        child: const Text("Detail"),
+                      ),
+                      const SizedBox(width: 8),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white
+                        ),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => ETiketScreen(tiket: tiket)),
+                          );
+                        },
+                        child: const Text("Lihat E-Tiket"),
+                      )
+                    ],
+                  )
+                ],
+              ),
+            )
           ],
         ),
       ),

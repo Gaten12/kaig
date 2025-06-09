@@ -51,7 +51,6 @@ class _KonfirmasiPembayaranScreenState extends State<KonfirmasiPembayaranScreen>
     try {
       final kodeBooking = _generateKodeBooking();
 
-      // Siapkan data penumpang yang lebih lengkap
       final List<Map<String, String>> penumpangData = [];
       widget.kursiTerpilih.forEach((index, kursi) {
         final dataInput = widget.dataPenumpangList[index];
@@ -80,11 +79,15 @@ class _KonfirmasiPembayaranScreenState extends State<KonfirmasiPembayaranScreen>
         tanggalTransaksi: Timestamp.now(),
       );
 
+      // --- PERBAIKAN UTAMA DI SINI ---
+      // Tambahkan parameter 'kelasDipilih' yang hilang
       await _transaksiService.buatTransaksi(
         transaksi: transaksi,
+        kelasDipilih: widget.kelasDipilih, // <-- Baris ini ditambahkan
         jadwalId: widget.jadwalDipesan.id,
         kursiTerpilih: widget.kursiTerpilih.values.toList(),
       );
+      // --- AKHIR PERBAIKAN ---
 
       if (mounted) {
         showDialog(
@@ -136,11 +139,10 @@ class _KonfirmasiPembayaranScreenState extends State<KonfirmasiPembayaranScreen>
     if (widget.metodePembayaran.tipe == TipeMetodePembayaran.ewallet) {
       infoJudul = "Nomor E-Wallet (${widget.metodePembayaran.namaMetode})";
       infoNomor = widget.metodePembayaran.nomor;
-    } else { // Asumsi sisanya adalah Kartu Debit atau metode bank lain
+    } else {
       infoJudul = "Nomor Kartu (${widget.metodePembayaran.namaMetode})";
       infoNomor = "**** **** **** ${widget.metodePembayaran.nomor.substring(widget.metodePembayaran.nomor.length - 4)}";
     }
-
 
     return Scaffold(
       appBar: AppBar(title: const Text("Konfirmasi Pembayaran")),

@@ -1,55 +1,20 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../models/user_data_daftar.dart'; // Model untuk data pendaftaran awal
-import '../../models/user_model.dart'; // Model pengguna Anda
-import '../../models/passenger_model.dart'; // Model penumpang Anda
+import 'package:kaig/models/user_data_daftar.dart';
+import 'package:kaig/models/user_model.dart';
+import 'package:kaig/models/passenger_model.dart';
 
 class AuthService {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  // --- Stream & Getter Pengguna ---
   Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
   User? get currentUser => _firebaseAuth.currentUser;
 
-  Future<UserModel?> getUserModel(String uid) async {
-    try {
-      final docSnapshot = await _firestore.collection('users').doc(uid).get();
-      if (docSnapshot.exists) {
-        return UserModel.fromFirestore(docSnapshot);
-      }
-      print("[AuthService] UserModel tidak ditemukan untuk UID: $uid");
-      return null;
-    } catch (e) {
-      print("Error mendapatkan UserModel: $e");
-      return null;
-    }
-  }
-
-  Future<PassengerModel?> getPrimaryPassenger(String uid) async {
-    print("[AuthService] Mencoba mengambil Primary Passenger untuk UID: $uid");
-    try {
-      final querySnapshot = await _firestore
-          .collection('users')
-          .doc(uid)
-          .collection('passengers')
-          .where('isPrimary', isEqualTo: true)
-          .limit(1)
-          .get();
-
-      if (querySnapshot.docs.isNotEmpty) {
-        print("[AuthService] Primary Passenger ditemukan: ${querySnapshot.docs.first.data()}");
-        return PassengerModel.fromFirestore(querySnapshot.docs.first);
-      }
-      print("[AuthService] Primary Passenger tidak ditemukan untuk UID: $uid");
-      return null;
-    } catch (e) {
-      print("Error mendapatkan Primary Passenger: $e");
-      return null;
-    }
-  }
+  // --- Registrasi & Login ---
 
   Future<UserCredential?> registerWithEmailPassword(String email, String password, UserDataDaftar userDataDaftar) async {
-    // ... implementasi registerWithEmailPassword tetap sama ...
     try {
       UserCredential userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
         email: email,
@@ -59,6 +24,7 @@ class AuthService {
       User? newUser = userCredential.user;
 
       if (newUser != null) {
+        // Buat dokumen user di koleksi 'users'
         UserModel userForFirestore = UserModel(
           id: newUser.uid,
           email: newUser.email ?? userDataDaftar.email,
@@ -68,6 +34,7 @@ class AuthService {
         );
         await _firestore.collection('users').doc(newUser.uid).set(userForFirestore.toFirestore());
 
+        // Buat dokumen penumpang utama (primary passenger) di sub-koleksi
         PassengerModel primaryPassengerData = PassengerModel(
           namaLengkap: userDataDaftar.namaLengkap,
           tipeId: userDataDaftar.tipeId,
@@ -87,7 +54,6 @@ class AuthService {
       }
       return null;
     } on FirebaseAuthException catch (e) {
-      // ... (penanganan error tetap sama) ...
       String friendlyMessage = "Pendaftaran gagal.";
       if (e.code == 'weak-password') {
         friendlyMessage = 'Kata sandi terlalu lemah.';
@@ -98,16 +64,63 @@ class AuthService {
       }
       throw Exception(friendlyMessage);
     } catch (e) {
-      print("Error saat registrasi (catch umum): $e");
       throw Exception("Terjadi kesalahan tidak terduga saat pendaftaran.");
     }
   }
 
-  Future<UserCredential?> signInWithEmailPassword(String email, String password) async { /* ... implementasi tetap sama ... */ return null; }
-  Future<void> signOut() async { /* ... implementasi tetap sama ... */ }
-  Future<void> sendPasswordResetEmail(String email) async { /* ... implementasi tetap sama ... */ }
+  Future<UserCredential> signInWithEmailPassword(String email, String password) async {
+    try {
+      return await _firebaseAuth.signInWithEmailAndPassword(email: email, password: password);
+    } on FirebaseAuthException catch (e) {
+      throw Exception('Gagal login: ${e.message}');
+    }
+  }
 
-  // --- Passenger CRUD ---
+  Future<void> signOut() async {
+    await _firebaseAuth.signOut();
+  }
+
+  Future<void> sendPasswordResetEmail(String email) async {
+    await _firebaseAuth.sendPasswordResetEmail(email: email);
+  }
+
+  // --- Pengambilan Data Pengguna & Penumpang ---
+
+  Future<UserModel?> getUserModel(String uid) async {
+    try {
+      final docSnapshot = await _firestore.collection('users').doc(uid).get();
+      if (docSnapshot.exists) {
+        return UserModel.fromFirestore(docSnapshot);
+      }
+      return null;
+    } catch (e) {
+      print("Error mendapatkan UserModel: $e");
+      return null;
+    }
+  }
+
+  Future<PassengerModel?> getPrimaryPassenger(String uid) async {
+    try {
+      final querySnapshot = await _firestore
+          .collection('users')
+          .doc(uid)
+          .collection('passengers')
+          .where('isPrimary', isEqualTo: true)
+          .limit(1)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        return PassengerModel.fromFirestore(querySnapshot.docs.first);
+      }
+      return null;
+    } catch (e) {
+      print("Error mendapatkan Primary Passenger: $e");
+      return null;
+    }
+  }
+
+  // --- CRUD Penumpang Tambahan ---
+
   CollectionReference<PassengerModel> _passengersCollection(String uid) {
     return _firestore
         .collection('users')
@@ -120,44 +133,86 @@ class AuthService {
   }
 
   Stream<List<PassengerModel>> getSavedPassengers(String uid) {
-    print("[AuthService] Mengambil daftar penumpang tersimpan (isPrimary: false) untuk UID: $uid");
-    // PERHATIAN: Query ini sekarang memfilter penumpang yang bukan utama, dan mengurutkannya berdasarkan nama.
-    // Ini MEMERLUKAN INDEKS KOMPOSIT di Firestore agar bisa berfungsi.
-    // Jika data tidak muncul, buat indeks di Firebase Console:
-    // Koleksi: passengers (Collection Group)
-    // 1. isPrimary (Ascending)
-    // 2. nama_lengkap (Ascending)
     return _passengersCollection(uid)
-        .where('isPrimary', isEqualTo: false) // Mengambil penumpang yang ditambahkan saja
-    // PERBAIKAN DI SINI: Menggunakan 'nama_lengkap' (snake_case) sesuai field di Firestore
+        .where('isPrimary', isEqualTo: false)
         .orderBy('nama_lengkap')
         .snapshots()
-        .map((snapshot) {
-      print("[AuthService] Daftar penumpang tersimpan snapshot diterima, jumlah: ${snapshot.docs.length}");
-      return snapshot.docs.map((doc) => doc.data()).toList();
-    })
-        .handleError((error) {
-      print("[AuthService] Error mengambil daftar penumpang tersimpan: $error");
-      return [];
-    });
+        .map((snapshot) => snapshot.docs.map((doc) => doc.data()).toList());
   }
 
   Future<void> addPassenger(String uid, PassengerModel passenger) {
-    print("[AuthService] Menambahkan penumpang baru untuk UID: $uid, Nama: ${passenger.namaLengkap}");
     return _passengersCollection(uid).add(passenger);
   }
 
   Future<void> updatePassenger(String uid, PassengerModel passenger) {
     if (passenger.id == null) {
-      print("[AuthService] Error: Passenger ID tidak boleh null untuk update.");
       throw Exception("Passenger ID tidak boleh null untuk update");
     }
-    print("[AuthService] Mengupdate penumpang ID: ${passenger.id} untuk UID: $uid");
     return _passengersCollection(uid).doc(passenger.id).update(passenger.toFirestore());
   }
 
   Future<void> deletePassenger(String uid, String passengerId) {
-    print("[AuthService] Menghapus penumpang ID: $passengerId untuk UID: $uid");
     return _passengersCollection(uid).doc(passengerId).delete();
+  }
+
+  // --- FUNGSI-FUNGSI BARU UNTUK KELOLA PROFIL ---
+
+  Future<bool> verifikasiPassword(String password) async {
+    try {
+      final user = currentUser;
+      if (user == null || user.email == null) return false;
+      final cred = EmailAuthProvider.credential(email: user.email!, password: password);
+      await user.reauthenticateWithCredential(cred);
+      return true;
+    } catch (e) {
+      print("Verifikasi password gagal: $e");
+      return false;
+    }
+  }
+
+  Future<void> updateNomorTelepon(String noTeleponBaru) async {
+    final user = currentUser;
+    if (user == null) throw Exception("User tidak login");
+    await _firestore.collection('users').doc(user.uid).update({'no_telepon': noTeleponBaru});
+  }
+
+  Future<void> updateEmail(String emailBaru) async {
+    final user = currentUser;
+    if (user == null) throw Exception("User tidak login");
+    await user.verifyBeforeUpdateEmail(emailBaru);
+    await _firestore.collection('users').doc(user.uid).update({'email': emailBaru});
+  }
+
+  Future<void> updatePrimaryPassenger(PassengerModel updatedData) async {
+    final user = currentUser;
+    if (user == null) throw Exception("User tidak login");
+
+    final querySnapshot = await _firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('passengers')
+        .where('isPrimary', isEqualTo: true)
+        .limit(1)
+        .get();
+
+    if (querySnapshot.docs.isEmpty) {
+      throw Exception("Data penumpang utama tidak ditemukan.");
+    }
+
+    final passengerDocRef = querySnapshot.docs.first.reference;
+    await passengerDocRef.update(updatedData.toFirestore());
+  }
+
+  Future<void> hapusAkun() async {
+    final user = currentUser;
+    if (user == null) throw Exception("User tidak login");
+
+    try {
+      await _firestore.collection('users').doc(user.uid).delete();
+      await user.delete();
+    } catch (e) {
+      print("Gagal menghapus akun: $e");
+      throw Exception("Gagal menghapus akun. Silakan coba login ulang dan ulangi lagi.");
+    }
   }
 }

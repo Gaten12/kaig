@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:kaig/models/transaksi_model.dart';
+import 'package:kaig/screens/customer/utama/detail_riwayat_screen.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 class ETiketScreen extends StatelessWidget {
@@ -10,21 +10,24 @@ class ETiketScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Gunakan tema yang sama dengan Riwayat Transaksi agar konsisten
+    final appBarColor = Colors.red.shade800;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text("E-Tiket"),
-        backgroundColor: Colors.red.shade800,
+        title: const Text("Detail Tiket"),
+        backgroundColor: appBarColor,
         foregroundColor: Colors.white,
       ),
-      backgroundColor: Colors.grey[200], // Latar belakang abu-abu
+      backgroundColor: Colors.grey[200],
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
+          // Bagian Atas: Kode Pemesanan & QR Code
           _buildQrCodeCard(),
           const SizedBox(height: 16),
-          _buildDetailPerjalananCard(context),
-          const SizedBox(height: 16),
-          _buildDetailPenumpangCard(context),
+          // Gabungkan Detail Perjalanan dan Penumpang dalam satu Card
+          _buildDetailCard(context),
         ],
       ),
     );
@@ -35,38 +38,39 @@ class ETiketScreen extends StatelessWidget {
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0),
         child: Column(
           children: [
-            // Widget untuk menampilkan QR Code
-            QrImageView(
-              data: tiket.kodeBooking, // Data yang di-encode adalah kode booking
-              version: QrVersions.auto,
-              size: 220.0,
-              gapless: false,
-              eyeStyle: const QrEyeStyle(
-                eyeShape: QrEyeShape.square,
-                color: Colors.black,
+            if (tiket.status == "LUNAS") // Hanya tampilkan QR jika status Lunas
+              QrImageView(
+                data: tiket.kodeBooking,
+                version: QrVersions.auto,
+                size: 200.0,
               ),
-              dataModuleStyle: const QrDataModuleStyle(
-                dataModuleShape: QrDataModuleShape.square,
-                color: Colors.black,
+            if (tiket.status != "LUNAS") // Tampilkan info jika belum lunas
+              Container(
+                height: 200,
+                alignment: Alignment.center,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.timer, size: 40, color: Colors.grey),
+                    const SizedBox(height: 8),
+                    Text("Status: ${tiket.status}", style: const TextStyle(fontSize: 18)),
+                  ],
+                ),
               ),
-            ),
             const SizedBox(height: 16),
-            const Text(
-              "Kode Booking",
-              style: TextStyle(color: Colors.grey, fontSize: 14),
-            ),
+            const Text("Kode Pemesanan", style: TextStyle(color: Colors.grey)),
             SelectableText(
               tiket.kodeBooking,
               style: const TextStyle(
-                fontSize: 24,
+                fontSize: 22,
                 fontWeight: FontWeight.bold,
-                letterSpacing: 3, // Memberi jarak antar huruf
+                letterSpacing: 2,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             const Text(
               "Tunjukkan QR Code ini kepada petugas saat proses boarding.",
               textAlign: TextAlign.center,
@@ -78,101 +82,118 @@ class ETiketScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailPerjalananCard(BuildContext context) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text("Detail Perjalanan", style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-            const Divider(height: 24),
-            _buildInfoRow(Icons.train_outlined, "Kereta", "${tiket.namaKereta} • ${tiket.kelas}"),
-            const SizedBox(height: 12),
-            _buildInfoRow(Icons.calendar_today_outlined, "Tanggal", DateFormat('EEEE, dd MMMM yyyy', 'id_ID').format(tiket.tanggalBerangkat.toDate())),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _buildWaktuInfo("Berangkat", tiket.waktuBerangkat, tiket.rute.split('❯')[0].trim()),
-                const Icon(Icons.arrow_forward, color: Colors.grey),
-                _buildWaktuInfo("Tiba", tiket.waktuTiba, tiket.rute.split('❯')[1].trim(),crossAxisAlignment: CrossAxisAlignment.end),
-              ],
-            )
-          ],
-        ),
-      ),
-    );
-  }
+  Widget _buildDetailCard(BuildContext context) {
+    final ruteParts = tiket.rute.split('❯');
+    final stasiunAsal = ruteParts.isNotEmpty ? ruteParts[0].trim() : '';
+    final stasiunTujuan = ruteParts.length > 1 ? ruteParts[1].trim() : '';
 
-  Widget _buildDetailPenumpangCard(BuildContext context) {
     return Card(
-      elevation: 4,
+      margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text("Detail Penumpang", style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-            const Divider(height: 24),
-            // Loop untuk setiap penumpang
-            ...tiket.penumpang.map((p) => Padding(
-              padding: const EdgeInsets.only(bottom: 16.0),
-              child: Row(
-                children: [
-                  const Icon(Icons.person_outline, color: Colors.grey, size: 32),
-                  const SizedBox(width: 12),
-                  Expanded(
+      elevation: 2,
+      child: Column(
+        children: [
+          // Bagian Detail Kereta
+          Container(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                // Kolom Kiri: Waktu
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(tiket.waktuBerangkat, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    Text(
+                      tiket.durasiPerjalanan,
+                      style: const TextStyle(color: Colors.grey, fontSize: 12),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(tiket.waktuTiba, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  ],
+                ),
+                // Kolom Tengah: Garis
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Column(
+                    children: [
+                      const Icon(Icons.radio_button_checked, color: Colors.blue, size: 18),
+                      Container(
+                        height: 40,
+                        width: 2,
+                        color: Colors.grey.shade300,
+                      ),
+                      const Icon(Icons.location_on, color: Colors.orange, size: 18),
+                    ],
+                  ),
+                ),
+                // Kolom Kanan: Rute dan Nama Kereta
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text("Dari: $stasiunAsal"),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.train, color: Colors.grey, size: 28),
+                            const SizedBox(width: 8),
+                            Expanded(child: Text(tiket.namaKereta.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold)))
+                          ],
+                        ),
+                      ),
+                      Text("Tujuan: $stasiunTujuan"),
+                    ],
+                  ),
+                )
+              ],
+            ),
+          ),
+
+          const Divider(height: 1),
+
+          // Bagian Detail Penumpang
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text("Penumpang", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                const Divider(height: 24),
+                ...tiket.penumpang.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final p = entry.value;
+                  final nama = p['nama'] ?? 'N/A';
+                  final nik = p['nomorId'] ?? 'N/A';
+                  final kursi = p['kursi'] ?? 'N/A';
+
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 16.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(p['nama'] ?? 'N/A', style: const TextStyle(fontWeight: FontWeight.bold)),
-                        Text("${p['tipeId']} - ${p['nomorId']}", style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                        Text("Penumpang ${index + 1}", style: const TextStyle(color: Colors.grey)),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(nama, style: const TextStyle(fontWeight: FontWeight.bold)),
+                            const Text("Dewasa", style: TextStyle(color: Colors.grey, fontSize: 12)),
+                          ],
+                        ),
+                        Text("NIK: $nik", style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                        Text("Gerbong / Nomor Kursi: $kursi", style: const TextStyle(color: Colors.grey, fontSize: 12)),
                       ],
                     ),
-                  ),
-                  Text(p['kursi'] ?? 'N/A', style: const TextStyle(fontWeight: FontWeight.bold)),
-                ],
-              ),
-            )).toList(),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(IconData icon, String label, String value) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, color: Colors.grey, size: 20),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label, style: const TextStyle(color: Colors.grey)),
-              const SizedBox(height: 2),
-              Text(value, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 15)),
-            ],
+                  );
+                }).toList(),
+              ],
+            ),
           ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildWaktuInfo(String label, String waktu, String stasiun, {CrossAxisAlignment crossAxisAlignment = CrossAxisAlignment.start}) {
-    return Column(
-      crossAxisAlignment: crossAxisAlignment,
-      children: [
-        Text(label, style: const TextStyle(color: Colors.grey)),
-        const SizedBox(height: 2),
-        Text(waktu, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-        Text(stasiun, style: const TextStyle(fontSize: 12)),
-      ],
+        ],
+      ),
     );
   }
 }

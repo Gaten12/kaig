@@ -1,80 +1,111 @@
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:kaig/models/JadwalModel.dart';
 import 'package:kaig/models/keranjang_model.dart';
 import 'package:kaig/models/transaksi_model.dart';
+
+import '../models/jadwal_kelas_info_model.dart';
 
 class TransaksiService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  // Fungsi ini untuk mengambil data tiket di halaman "Tiket Saya"
   Stream<List<TransaksiModel>> getTiketSaya(String userId) {
     return _db
         .collection('transaksi')
         .where('userId', isEqualTo: userId)
         .orderBy('tanggalTransaksi', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-        .map((doc) => TransaksiModel.fromFirestore(doc))
-        .toList());
+        .map((snapshot) =>
+        snapshot.docs.map((doc) => TransaksiModel.fromFirestore(doc)).toList());
   }
 
-  // Fungsi ini untuk membuat transaksi dari alur pemesanan tunggal
+  // --- FUNGSI UTAMA YANG DIPERBARUI TOTAL ---
   Future<void> buatTransaksi({
     required TransaksiModel transaksi,
+    required JadwalKelasInfoModel kelasDipilih,
     required String jadwalId,
-    required List<String> kursiTerpilih
+    required List<String> kursiTerpilih,
   }) async {
-    final WriteBatch batch = _db.batch();
-    final transaksiDocRef = _db.collection('transaksi').doc();
-    batch.set(transaksiDocRef, transaksi.toFirestore());
+    final jadwalRef = _db.collection('jadwal').doc(jadwalId);
+    final transaksiRef = _db.collection('transaksi').doc(transaksi.kodeBooking);
 
-    final kursiQuerySnapshot = await _db
-        .collection('jadwal')
-        .doc(jadwalId)
-        .collection('kursi')
-        .get();
+    // 1. Baca semua data kursi untuk jadwal ini di luar transaction (lebih efisien)
+    final kursiQuerySnapshot = await jadwalRef.collection('kursi').get();
 
-    final Map<String, String> mapKursiKeDocId = {
-      for (var doc in kursiQuerySnapshot.docs)
-        "Gerbong ${doc.data()['nomor_gerbong']} - Kursi ${doc.data()['nomor_kursi']}": doc.id
-    };
+    // 2. Buat Peta untuk Status dan Referensi Dokumen Kursi
+    final Map<String, String> mapStatusKursi = {};
+    final Map<String, DocumentReference> mapRefKursi = {};
 
+    for (var doc in kursiQuerySnapshot.docs) {
+      // Pastikan casting tipe data dilakukan dengan aman
+      final data = doc.data() as Map<String, dynamic>;
+      final key = "Gerbong ${data['nomor_gerbong']} - Kursi ${data['nomor_kursi']}";
+      mapStatusKursi[key] = data['status'];
+      mapRefKursi[key] = doc.reference;
+    }
+
+    // 3. Periksa Ketersediaan Kursi SEBELUM memulai transaction
     for (final kursiString in kursiTerpilih) {
-      final docId = mapKursiKeDocId[kursiString];
-      if (docId != null) {
-        final kursiDocRef = _db.collection('jadwal').doc(jadwalId).collection('kursi').doc(docId);
-        batch.update(kursiDocRef, {'status': 'terisi'});
+      if (mapStatusKursi[kursiString] == null) {
+        throw Exception("Kursi $kursiString tidak ada dalam data sistem.");
+      }
+      if (mapStatusKursi[kursiString] == 'terisi') {
+        throw Exception("Kursi $kursiString sudah dipesan oleh orang lain. Silakan pilih kursi lain.");
       }
     }
-    await batch.commit();
+
+    // 4. Jalankan Transaction HANYA untuk operasi tulis
+    return _db.runTransaction((transaction) async {
+      final jadwalSnapshot = await transaction.get(jadwalRef);
+      if (!jadwalSnapshot.exists) {
+        throw Exception("Jadwal tidak ditemukan!");
+      }
+      final jadwalData = JadwalModel.fromFirestore(jadwalSnapshot);
+
+      // Periksa ulang kuota kelas di dalam transaction
+      final kelasUntukDiupdate = jadwalData.daftarKelasHarga.firstWhere(
+            (k) => k.namaKelas == kelasDipilih.namaKelas && k.subKelas == kelasDipilih.subKelas,
+        orElse: () => throw Exception("Sub-kelas ${kelasDipilih.subKelas} tidak ditemukan."),
+      );
+
+      if (kelasUntukDiupdate.kuota < transaksi.penumpang.length) {
+        throw Exception("Sisa kuota untuk kelas ${transaksi.kelas} tidak mencukupi.");
+      }
+
+      // Siapkan update kuota
+      final newListKelasHarga = jadwalData.daftarKelasHarga.map((k) {
+        if (k.namaKelas == kelasDipilih.namaKelas && k.subKelas == kelasDipilih.subKelas) {
+          return k.copyWith(kuota: k.kuota - transaksi.penumpang.length);
+        }
+        return k;
+      }).toList();
+
+      // Tambahkan semua operasi tulis ke transaction
+      // A. Update Kuota Jadwal
+      transaction.update(jadwalRef, {'daftar_kelas_harga': newListKelasHarga.map((k) => k.toMap()).toList()});
+
+      // B. Update Status Kursi
+      for (final kursiString in kursiTerpilih) {
+        final kursiRef = mapRefKursi[kursiString];
+        if (kursiRef != null) {
+          transaction.update(kursiRef, {'status': 'terisi'});
+        }
+      }
+
+      // C. Buat Dokumen Transaksi Baru
+      transaction.set(transaksiRef, transaksi.toFirestore());
+    });
   }
 
-  // Fungsi ini untuk checkout dari keranjang
+  // Fungsi checkout keranjang sekarang lebih sederhana karena hanya memanggil fungsi di atas
   Future<List<String>> buatTransaksiDariKeranjang({
     required String userId,
     required List<KeranjangModel> items,
     required String metodePembayaran,
   }) async {
-    final WriteBatch batch = _db.batch();
-    final List<String> kodeBookings = [];
-    final List<String> itemKeranjangIds = [];
-
-    final Map<String, QuerySnapshot<Map<String, dynamic>>> kursiSnapshots = {};
-    for (final item in items) {
-      if (item.jadwalDipesan.id.isEmpty) {
-        throw Exception("Data keranjang tidak valid (ID Jadwal kosong). Harap hapus item ini dari keranjang.");
-      }
-      if (!kursiSnapshots.containsKey(item.jadwalDipesan.id)) {
-        kursiSnapshots[item.jadwalDipesan.id] = await _db.collection('jadwal').doc(item.jadwalDipesan.id).collection('kursi').get();
-      }
-    }
-
+    List<String> kodeBookings = [];
     for (final item in items) {
       final kodeBooking = _generateKodeBooking();
-      kodeBookings.add(kodeBooking);
-      itemKeranjangIds.add(item.id!);
-
-      final transaksiDocRef = _db.collection('transaksi').doc();
       final transaksi = TransaksiModel(
         userId: userId,
         kodeBooking: kodeBooking,
@@ -86,37 +117,26 @@ class TransaksiService {
         waktuBerangkat: item.jadwalDipesan.jamBerangkatFormatted,
         waktuTiba: item.jadwalDipesan.jamTibaFormatted,
         penumpang: item.penumpang,
-        jumlahBayi: item.jumlahBayi, // <-- PERBAIKAN DI SINI
+        jumlahBayi: item.jumlahBayi,
         metodePembayaran: metodePembayaran,
         totalBayar: item.totalBayar,
         tanggalTransaksi: Timestamp.now(),
       );
-      batch.set(transaksiDocRef, transaksi.toFirestore());
 
-      final kursiSnapshot = kursiSnapshots[item.jadwalDipesan.id]!;
-      final Map<String, String> mapKursiKeDocId = {
-        for (var doc in kursiSnapshot.docs)
-          "Gerbong ${doc.data()['nomor_gerbong']} - Kursi ${doc.data()['nomor_kursi']}": doc.id
-      };
+      final kursiTerpilih = item.penumpang.map((p) => p['kursi']!).toList();
 
-      for (final p in item.penumpang) {
-        final kursiString = p['kursi'];
-        if (kursiString == null) continue;
-        final docId = mapKursiKeDocId[kursiString];
-        if (docId != null) {
-          final kursiDocRef = _db.collection('jadwal').doc(item.jadwalDipesan.id).collection('kursi').doc(docId);
-          batch.update(kursiDocRef, {'status': 'terisi'});
-        }
-      }
+      // Panggil fungsi utama yang sudah aman dan efisien
+      await buatTransaksi(
+        transaksi: transaksi,
+        kelasDipilih: item.kelasDipilih,
+        jadwalId: item.jadwalDipesan.id,
+        kursiTerpilih: kursiTerpilih,
+      );
+
+      kodeBookings.add(kodeBooking);
+      // Hapus item dari keranjang setelah transaksi berhasil
+      await _db.collection('users').doc(userId).collection('keranjang').doc(item.id).delete();
     }
-
-    final keranjangCollection = _db.collection('users').doc(userId).collection('keranjang');
-    for (final itemId in itemKeranjangIds) {
-      batch.delete(keranjangCollection.doc(itemId));
-    }
-
-    await batch.commit();
-
     return kodeBookings;
   }
 
