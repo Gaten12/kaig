@@ -2,22 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:kaig/screens/customer/utama/keranjang_screen.dart';
 import 'package:kaig/screens/customer/utama/promo_screen.dart';
-import 'package:kaig/screens/customer/utama/promo_screen_beranda.dart';
 import 'package:kaig/screens/customer/utama/tiket_saya_screen.dart';
 import '../../../models/passenger_model.dart';
 import '../../../services/auth_service.dart';
 import 'PesanTiketScreen.dart';
 import 'account_screen.dart';
-import 'package:get/get.dart';
 
 class BerandaContent extends StatelessWidget {
-  const BerandaContent({super.key});
+  final Function(int) onNavigateToTab; // Tambahkan callback function
+
+  const BerandaContent({super.key, required this.onNavigateToTab});
 
   Widget _buildMenuItem(BuildContext context,
       {required IconData iconData,
-        required String label,
-        required VoidCallback onTap,
-        required bool isPrimary}) {
+      required String label,
+      required VoidCallback onTap,
+      required bool isPrimary}) {
     return Container(
       height: 140,
       child: Material(
@@ -28,23 +28,23 @@ class BerandaContent extends StatelessWidget {
           borderRadius: BorderRadius.circular(24.0),
           child: Container(
             decoration: BoxDecoration(
-              gradient: isPrimary 
-                ? const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Color(0xFF2196F3),
-                      Color(0xFF1976D2),
-                    ],
-                  )
-                : LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Colors.grey[100]!,
-                      Colors.grey[50]!,
-                    ],
-                  ),
+              gradient: isPrimary
+                  ? const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Color(0xFF2196F3),
+                        Color(0xFF1976D2),
+                      ],
+                    )
+                  : LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Colors.grey[100]!,
+                        Colors.grey[50]!,
+                      ],
+                    ),
               borderRadius: BorderRadius.circular(24.0),
               border: Border.all(
                 color: isPrimary ? Colors.transparent : Colors.grey[200]!,
@@ -52,9 +52,9 @@ class BerandaContent extends StatelessWidget {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: isPrimary 
-                    ? const Color(0xFF2196F3).withOpacity(0.25)
-                    : Colors.grey.withOpacity(0.15),
+                  color: isPrimary
+                      ? const Color(0xFF2196F3).withOpacity(0.25)
+                      : Colors.grey.withOpacity(0.15),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                   spreadRadius: 0,
@@ -67,20 +67,20 @@ class BerandaContent extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: isPrimary 
-                      ? Colors.white.withOpacity(0.2)
-                      : const Color(0xFF2196F3).withOpacity(0.1),
+                    color: isPrimary
+                        ? Colors.white.withOpacity(0.2)
+                        : const Color(0xFF2196F3).withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
-                    iconData, 
-                    size: 32, 
+                    iconData,
+                    size: 32,
                     color: isPrimary ? Colors.white : const Color(0xFF2196F3),
                   ),
                 ),
                 const SizedBox(height: 16.0),
                 Text(
-                  label, 
+                  label,
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
@@ -322,32 +322,27 @@ class BerandaContent extends StatelessWidget {
         padding: const EdgeInsets.all(20.0),
         children: <Widget>[
           _buildWelcomeCard(context),
-          
           Text(
             'Layanan Utama',
             style: TextStyle(
-              fontSize: 22, 
+              fontSize: 22,
               fontWeight: FontWeight.bold,
               color: Colors.grey[800],
               letterSpacing: 0.5,
             ),
           ),
           const SizedBox(height: 20.0),
-          
           Row(
             children: <Widget>[
               Expanded(
                 child: _buildMenuItem(
                   context,
-                  iconData: Icons.confirmation_number_rounded,
+                  iconData: Icons.train_outlined,
                   label: 'Pesan Tiket',
                   isPrimary: true,
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const PesanTiketScreen()),
-                    );
+                    // Gunakan callback untuk navigasi ke tab index 1 (PesanTiketScreen)
+                    onNavigateToTab(1);
                   },
                 ),
               ),
@@ -361,7 +356,8 @@ class BerandaContent extends StatelessWidget {
                   onTap: () {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: const Text('Fitur Commuter Line sedang dalam pengembangan'),
+                        content: const Text(
+                            'Fitur Commuter Line sedang dalam pengembangan'),
                         backgroundColor: Colors.grey[700],
                         behavior: SnackBarBehavior.floating,
                         shape: RoundedRectangleBorder(
@@ -375,7 +371,6 @@ class BerandaContent extends StatelessWidget {
               ),
             ],
           ),
-          
           const SizedBox(height: 32.0),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -383,7 +378,7 @@ class BerandaContent extends StatelessWidget {
               Text(
                 'Promo Terbaru',
                 style: TextStyle(
-                  fontSize: 22, 
+                  fontSize: 22,
                   fontWeight: FontWeight.bold,
                   color: Colors.grey[800],
                   letterSpacing: 0.5,
@@ -401,10 +396,12 @@ class BerandaContent extends StatelessWidget {
                   child: InkWell(
                     borderRadius: BorderRadius.circular(20),
                     onTap: () {
-                      Get.to(() => PromoScreenBeranda());
+                      // Gunakan callback untuk navigasi ke tab index 3 (PromoScreen)
+                      onNavigateToTab(3);
                     },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: const [
@@ -432,7 +429,6 @@ class BerandaContent extends StatelessWidget {
           ),
           const SizedBox(height: 20.0),
           _buildPromoCard(),
-          
           const SizedBox(height: 24),
         ],
       ),
@@ -453,13 +449,15 @@ class _HomeScreenState extends State<HomeScreen> {
   final AuthService _authService = AuthService();
   String _userName = "Pengguna";
 
-  static const List<Widget> _widgetOptions = <Widget>[
-    BerandaContent(),
-    PesanTiketScreen(),
-    TiketSayaScreen(),
-    PromoScreen(),
-    AccountScreen(),
-  ];
+  // Update widget options untuk menggunakan callback
+  List<Widget> get _widgetOptions => <Widget>[
+        BerandaContent(
+            onNavigateToTab: _onItemTapped), // Pass callback function
+        const PesanTiketScreen(),
+        const TiketSayaScreen(),
+        const PromoScreen(),
+        const AccountScreen(),
+      ];
 
   @override
   void initState() {
@@ -471,12 +469,14 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadCurrentUserName() async {
     final firebaseUser = _authService.currentUser;
     if (firebaseUser != null) {
-      PassengerModel? primaryPassenger = await _authService.getPrimaryPassenger(firebaseUser.uid);
+      PassengerModel? primaryPassenger =
+          await _authService.getPrimaryPassenger(firebaseUser.uid);
       String displayName = "Pengguna";
 
       if (primaryPassenger != null && primaryPassenger.namaLengkap.isNotEmpty) {
         displayName = primaryPassenger.namaLengkap;
-      } else if (firebaseUser.displayName != null && firebaseUser.displayName!.isNotEmpty) {
+      } else if (firebaseUser.displayName != null &&
+          firebaseUser.displayName!.isNotEmpty) {
         displayName = firebaseUser.displayName!;
       } else if (firebaseUser.email != null && firebaseUser.email!.isNotEmpty) {
         displayName = firebaseUser.email!.split('@')[0];
@@ -504,7 +504,9 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          _selectedIndex == 0 ? 'Halo, $_userName!' : _getAppBarTitle(_selectedIndex),
+          _selectedIndex == 0
+              ? 'Halo, $_userName!'
+              : _getAppBarTitle(_selectedIndex),
           style: TextStyle(
             fontWeight: FontWeight.bold,
             color: Colors.grey[800],
@@ -537,11 +539,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 border: Border.all(color: Colors.grey[200]!, width: 1),
               ),
               child: IconButton(
-                icon: Icon(Icons.shopping_cart_outlined, color: Colors.grey[700]),
+                icon:
+                    Icon(Icons.shopping_cart_outlined, color: Colors.grey[700]),
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const KeranjangScreen()),
+                    MaterialPageRoute(
+                        builder: (context) => const KeranjangScreen()),
                   );
                 },
               ),
