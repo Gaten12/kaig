@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:kaig/models/JadwalModel.dart';
 import 'package:kaig/models/jadwal_kelas_info_model.dart';
 import 'package:kaig/models/keranjang_model.dart';
+import 'package:kaig/models/metode_pembayaran_model.dart';
 import 'package:kaig/screens/customer/utama/DataPenumpangScreen.dart';
 import 'package:kaig/screens/customer/utama/home_screen.dart';
 import 'package:kaig/screens/customer/utama/konfirmasi_pembayaran_screen.dart';
@@ -30,10 +31,10 @@ class PembayaranScreen extends StatefulWidget {
 }
 
 class _PembayaranScreenState extends State<PembayaranScreen> {
-  // --- PINDAHKAN LOGIKA DAN STATE KE SINI ---
   final KeranjangService _keranjangService = KeranjangService();
   bool _setujuSyaratDanKetentuan = false;
-  String? _metodePembayaranTerpilih;
+  // State untuk menyimpan metode pembayaran yang dipilih dari `PilihMetodePembayaranScreen`
+  MetodePembayaranModel? _metodePembayaranTerpilih;
 
   Future<void> _tambahKeKeranjang() async {
     final user = FirebaseAuth.instance.currentUser;
@@ -52,17 +53,14 @@ class _PembayaranScreenState extends State<PembayaranScreen> {
       });
     });
 
-    final jadwalUntukKeranjang = widget.jadwalDipesan;
-    final kelasUntukKeranjang = widget.kelasDipilih;
-
     final itemKeranjang = KeranjangModel(
       userId: user.uid,
-      jadwalDipesan: jadwalUntukKeranjang,
-      kelasDipilih: kelasUntukKeranjang,
+      jadwalDipesan: widget.jadwalDipesan,
+      kelasDipilih: widget.kelasDipilih,
       penumpang: penumpangData,
       totalBayar: totalHarga,
       waktuDitambahkan: Timestamp.now(),
-      batasWaktuPembayaran: Timestamp.fromDate(DateTime.now().add(const Duration(hours: 1))), // Batas waktu 1 jam
+      batasWaktuPembayaran: Timestamp.fromDate(DateTime.now().add(const Duration(hours: 1))),
     );
 
     try {
@@ -71,7 +69,6 @@ class _PembayaranScreenState extends State<PembayaranScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Pesanan berhasil ditambahkan ke keranjang.")),
         );
-        // Kembali ke home screen setelah berhasil
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => const HomeScreen()),
               (route) => false,
@@ -85,7 +82,6 @@ class _PembayaranScreenState extends State<PembayaranScreen> {
       }
     }
   }
-  // --- AKHIR DARI LOGIKA YANG DIPINDAHKAN ---
 
   @override
   Widget build(BuildContext context) {
@@ -99,7 +95,7 @@ class _PembayaranScreenState extends State<PembayaranScreen> {
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(4.0),
           child: LinearProgressIndicator(
-            value: 1.0, // Step 3 dari 3
+            value: 1.0,
             backgroundColor: Colors.grey[300],
             valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).primaryColor),
           ),
@@ -191,10 +187,10 @@ class _PembayaranScreenState extends State<PembayaranScreen> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: Colors.grey.shade300)),
       leading: const Icon(Icons.payment),
       title: const Text("Metode Pembayaran"),
-      subtitle: Text(_metodePembayaranTerpilih ?? "Pilih metode pembayaran"),
+      subtitle: Text(_metodePembayaranTerpilih?.namaMetode ?? "Pilih metode pembayaran"),
       trailing: const Icon(Icons.arrow_forward_ios),
       onTap: () async {
-        final result = await Navigator.push<String>(
+        final result = await Navigator.push<MetodePembayaranModel>(
           context,
           MaterialPageRoute(builder: (context) => const PilihMetodePembayaranScreen()),
         );
@@ -238,7 +234,6 @@ class _PembayaranScreenState extends State<PembayaranScreen> {
                       TextSpan(
                         text: "Syarat dan Ketentuan pembelian tiket.",
                         style: TextStyle(color: Colors.blue),
-                        // recognizer: TapGestureRecognizer()..onTap = () { ... },
                       ),
                     ],
                   ),
@@ -263,7 +258,7 @@ class _PembayaranScreenState extends State<PembayaranScreen> {
                   kelasDipilih: widget.kelasDipilih,
                   dataPenumpangList: widget.dataPenumpangList,
                   kursiTerpilih: widget.kursiTerpilih,
-                  metodePembayaran: _metodePembayaranTerpilih!,
+                  metodePembayaran: _metodePembayaranTerpilih!.namaMetode,
                   totalBayar: totalHarga,
                 )),
               );
@@ -277,7 +272,7 @@ class _PembayaranScreenState extends State<PembayaranScreen> {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
               side: BorderSide(color: Theme.of(context).primaryColor),
             ),
-            onPressed: _tambahKeKeranjang, // Panggil fungsi yang sudah dipindahkan
+            onPressed: _tambahKeKeranjang,
             child: const Text("TAMBAH KE KERANJANG"),
           ),
         ],

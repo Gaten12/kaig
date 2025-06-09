@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:kaig/models/keranjang_model.dart';
+import 'package:kaig/models/metode_pembayaran_model.dart';
 import 'package:kaig/screens/customer/utama/keranjang_konfirmasi_pembayaran_screen.dart';
 import 'package:kaig/screens/customer/utama/pilih_metode_pembayaran_screen.dart';
 
@@ -14,7 +15,7 @@ class KeranjangPembayaranScreen extends StatefulWidget {
 }
 
 class _KeranjangPembayaranScreenState extends State<KeranjangPembayaranScreen> {
-  String? _metodePembayaranTerpilih;
+  MetodePembayaranModel? _metodePembayaranTerpilih;
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +29,6 @@ class _KeranjangPembayaranScreenState extends State<KeranjangPembayaranScreen> {
         children: [
           Text("Pesanan yang akan dibayar (${widget.itemsToCheckout.length} item)", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
-          // Widget untuk menampilkan ringkasan setiap item
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
@@ -38,7 +38,7 @@ class _KeranjangPembayaranScreenState extends State<KeranjangPembayaranScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          _buildPilihMetodePembayaran(), // Panggil widget yang sudah diperbaiki
+          _buildPilihMetodePembayaran(),
         ],
       ),
       bottomNavigationBar: _buildBottomBar(totalPembayaran, currencyFormatter),
@@ -63,7 +63,6 @@ class _KeranjangPembayaranScreenState extends State<KeranjangPembayaranScreen> {
     );
   }
 
-  // --- IMPLEMENTASI YANG HILANG ADA DI SINI ---
   Widget _buildPilihMetodePembayaran() {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -72,10 +71,10 @@ class _KeranjangPembayaranScreenState extends State<KeranjangPembayaranScreen> {
           side: BorderSide(color: Colors.grey.shade300)),
       leading: const Icon(Icons.payment),
       title: const Text("Metode Pembayaran"),
-      subtitle: Text(_metodePembayaranTerpilih ?? "Pilih metode pembayaran"),
+      subtitle: Text(_metodePembayaranTerpilih?.namaMetode ?? "Pilih metode pembayaran"),
       trailing: const Icon(Icons.arrow_forward_ios),
       onTap: () async {
-        final result = await Navigator.push<String>(
+        final result = await Navigator.push<MetodePembayaranModel>(
           context,
           MaterialPageRoute(builder: (context) => const PilihMetodePembayaranScreen()),
         );
@@ -87,7 +86,6 @@ class _KeranjangPembayaranScreenState extends State<KeranjangPembayaranScreen> {
       },
     );
   }
-  // --- AKHIR DARI PERBAIKAN ---
 
   Widget _buildBottomBar(int totalHarga, NumberFormat formatter) {
     return Container(
@@ -118,7 +116,7 @@ class _KeranjangPembayaranScreenState extends State<KeranjangPembayaranScreen> {
             onPressed: _metodePembayaranTerpilih != null ? () {
               Navigator.push(context, MaterialPageRoute(builder: (context) => KeranjangKonfirmasiPembayaranScreen(
                 itemsToCheckout: widget.itemsToCheckout,
-                metodePembayaran: _metodePembayaranTerpilih!,
+                metodePembayaran: _metodePembayaranTerpilih!.namaMetode,
                 totalBayar: totalHarga,
               )));
             } : null,
