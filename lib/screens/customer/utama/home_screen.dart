@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:kaig/screens/customer/utama/keranjang_screen.dart';
 import 'package:kaig/screens/customer/utama/promo_screen.dart';
+import 'package:kaig/screens/customer/utama/promo_screen_beranda.dart';
 import 'package:kaig/screens/customer/utama/tiket_saya_screen.dart';
 import '../../../models/passenger_model.dart';
 import '../../../services/auth_service.dart';
@@ -400,7 +401,7 @@ class BerandaContent extends StatelessWidget {
                   child: InkWell(
                     borderRadius: BorderRadius.circular(20),
                     onTap: () {
-                      Get.to(() => PromoScreen());
+                      Get.to(() => PromoScreenBeranda());
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
