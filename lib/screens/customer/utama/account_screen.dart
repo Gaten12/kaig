@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-// import 'package:kaig/screens/customer/utama/informasi_data_diri.dart';
 import 'package:kaig/screens/customer/utama/tentang_aplikasi.dart';
 import 'package:flutter/cupertino.dart';
 import '../../../models/passenger_model.dart';
 import '../../../services/auth_service.dart'; // Pastikan path ini benar
 import '../../../screens/login/login_screen.dart'; // Halaman login
-import 'list_penumpang_screen.dart'; // Halaman daftar penumpang
+import 'ganti_kata_sandi_screen.dart';
+import 'list_penumpang_screen.dart';
+import 'metode_pembayaran_screen.dart'; // Halaman daftar penumpang
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -120,8 +121,9 @@ class _AccountScreenState extends State<AccountScreen> {
             icon: Icons.lock_outline,
             title: "Ganti Kata Sandi",
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Fitur Ganti Kata Sandi belum tersedia.')),
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const GantiKataSandiScreen()),
               );
             },
           ),
@@ -151,8 +153,9 @@ class _AccountScreenState extends State<AccountScreen> {
             icon: Icons.payment_outlined,
             title: "Metode Pembayaran Saya",
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Fitur Metode Pembayaran belum tersedia.')),
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const MetodePembayaranScreen()),
               );
             },
           ),

@@ -19,12 +19,7 @@ class UserDataDaftar {
     required this.jenisKelamin,
   });
 
-  // Anda mungkin ingin menambahkan method toMap() jika diperlukan di tempat lain,
-  // tapi untuk kasus ini, AuthService akan memetakan field-field ini secara individual
-  // ke UserModel dan PassengerModel.
 
-  // Contoh bagaimana Anda akan mengonversi DateTime ke Timestamp untuk Firestore
-  // Ini lebih relevan di dalam AuthService saat menyimpan data.
   Map<String, dynamic> toPassengerFirestoreMap() {
     return {
       'nama_lengkap': namaLengkap,

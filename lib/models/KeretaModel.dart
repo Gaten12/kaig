@@ -1,17 +1,18 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'kereta_rute_template_model.dart';
+import 'rangkaian_gerbong_model.dart';
 
 class KeretaModel {
   final String id;
   final String nama;
-  final List<String> idRangkaianGerbong;
+  final List<RangkaianGerbongModel> rangkaian;
   final List<KeretaRuteTemplateModel> templateRute;
   final int totalKursi;
 
   KeretaModel({
     required this.id,
     required this.nama,
-    this.idRangkaianGerbong = const [],
+    this.rangkaian = const [],
     this.templateRute = const [],
     this.totalKursi = 0,
   });
@@ -27,11 +28,16 @@ class KeretaModel {
           .toList();
       rute.sort((a,b) => a.urutan.compareTo(b.urutan));
     }
-
+    List<RangkaianGerbongModel> rangkaianList = [];
+    if (data['rangkaian'] != null && data['rangkaian'] is List) {
+      rangkaianList = (data['rangkaian'] as List)
+          .map((item) => RangkaianGerbongModel.fromMap(item as Map<String, dynamic>))
+          .toList();
+    }
     return KeretaModel(
       id: snapshot.id,
       nama: data['nama'] ?? '',
-      idRangkaianGerbong: List<String>.from(data['idRangkaianGerbong'] ?? []),
+      rangkaian: rangkaianList,
       templateRute: rute,
       totalKursi: data['totalKursi'] as int? ?? 0,
     );
@@ -40,7 +46,7 @@ class KeretaModel {
   Map<String, dynamic> toFirestore() {
     return {
       'nama': nama,
-      'idRangkaianGerbong': idRangkaianGerbong,
+      'rangkaian': rangkaian.map((item) => item.toMap()).toList(),
       'templateRute': templateRute.map((item) => item.toMap()).toList(),
       'totalKursi': totalKursi,
     };

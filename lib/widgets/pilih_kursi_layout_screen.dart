@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import '../../../models/jadwal_kelas_info_model.dart';
+import '../models/gerbong_tipe_model.dart';
+import '../models/kursi_model.dart';
+import '../screens/admin/services/admin_firestore_service.dart';
 import '../screens/customer/utama/DataPenumpangScreen.dart';
 
 class PilihKursiLayoutScreen extends StatefulWidget {
   final String jadwalId;
   final JadwalKelasInfoModel kelasInfo;
   final PenumpangInputData penumpangSaatIni;
-  final List<String> kursiYangSudahDipilihGrup; // Kursi yang dipilih penumpang lain di grup pemesanan ini
+  final List<String> kursiYangSudahDipilihGrup;
+  final GerbongTipeModel gerbong;
+  final int nomorGerbong;
 
   const PilihKursiLayoutScreen({
     super.key,
@@ -14,6 +19,8 @@ class PilihKursiLayoutScreen extends StatefulWidget {
     required this.kelasInfo,
     required this.penumpangSaatIni,
     required this.kursiYangSudahDipilihGrup,
+    required this.gerbong,
+    required this.nomorGerbong,
   });
 
   @override
@@ -21,62 +28,30 @@ class PilihKursiLayoutScreen extends StatefulWidget {
 }
 
 class _PilihKursiLayoutScreenState extends State<PilihKursiLayoutScreen> {
-  // Simulasi data kursi dan statusnya. Idealnya ini dari Firestore.
-  // Kunci adalah nomor kursi ("1A"), value adalah status ("tersedia", "terisi").
-  Map<String, String> _statusKursiSemua = {};
+  final AdminFirestoreService _firestoreService = AdminFirestoreService();
   String? _kursiDipilihSaatIni;
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadStatusKursi();
-  }
-
-  Future<void> _loadStatusKursi() async {
-    setState(() => _isLoading = true);
-    // TODO: Implementasi pengambilan data kursi dari Firestore
-    // Stream<List<KursiModel>> stream = _firestoreService.getKursiList(widget.jadwalId, widget.kelasInfo.idGerbong);
-    // Untuk sekarang, kita gunakan data dummy
-    await Future.delayed(const Duration(milliseconds: 500)); // Simulasi loading
-
-    // Contoh denah eksekutif (11 baris, ABCD)
-    final dummyStatus = <String, String>{};
-    for (var row in List.generate(11, (i) => i + 1)) {
-      for (var col in ['A', 'B', 'C', 'D']) {
-        final seatNumber = "$row$col";
-        // Simulasi beberapa kursi terisi
-        if ((row == 2 && col == 'B') || (row == 5 && col == 'C') || (row == 8 && col == 'A')) {
-          dummyStatus[seatNumber] = "terisi";
-        } else {
-          dummyStatus[seatNumber] = "tersedia";
-        }
-      }
-    }
-
-    if (mounted) {
-      setState(() {
-        _statusKursiSemua = dummyStatus;
-        _isLoading = false;
-      });
-    }
-  }
 
   void _onKursiTap(String nomorKursi, String status) {
-    if (status != "tersedia") {
+    final fullSeatId = "Gerbong ${widget.nomorGerbong} - Kursi $nomorKursi";
+    if (status == "terisi" || widget.kursiYangSudahDipilihGrup.contains(fullSeatId)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Kursi $nomorKursi tidak tersedia.')),
       );
       return;
     }
     setState(() {
-      _kursiDipilihSaatIni = nomorKursi;
+      if (_kursiDipilihSaatIni == nomorKursi) {
+        _kursiDipilihSaatIni = null;
+      } else {
+        _kursiDipilihSaatIni = nomorKursi;
+      }
     });
   }
 
   void _simpanPilihan() {
     if (_kursiDipilihSaatIni != null) {
-      Navigator.pop(context, _kursiDipilihSaatIni);
+      final kursiTerpilihLengkap = "Gerbong ${widget.nomorGerbong} - Kursi ${_kursiDipilihSaatIni}";
+      Navigator.pop(context, kursiTerpilihLengkap);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Silakan pilih satu kursi.')),
@@ -93,23 +68,44 @@ class _PilihKursiLayoutScreenState extends State<PilihKursiLayoutScreen> {
           children: [
             const Text("Pilih Kursi", style: TextStyle(fontSize: 18)),
             Text(
-              "${widget.kelasInfo.displayKelasLengkap}",
+              "${widget.gerbong.namaTipeLengkap} - Gerbong ${widget.nomorGerbong}",
               style: const TextStyle(fontSize: 14, fontWeight: FontWeight.normal),
             ),
           ],
         ),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
+      body: Column(
         children: [
           _buildPassengerHeader(),
           _buildLegendaKursi(),
-          Expanded(child: _buildSeatLayout()),
+          Expanded(
+            child: StreamBuilder<List<KursiModel>>(
+              stream: _firestoreService.getKursiListForJadwal(widget.jadwalId, widget.nomorGerbong),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  return Center(child: Text("Error memuat data kursi: ${snapshot.error}"));
+                }
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(child: Text("Denah kursi tidak tersedia untuk gerbong ini."));
+                }
+
+                final statusKursiSemua = { for (var k in snapshot.data!) k.nomorKursi : k.status };
+
+                return _buildSeatLayout(statusKursiSemua);
+              },
+            ),
+          ),
         ],
       ),
-      bottomNavigationBar: Padding(
+      bottomNavigationBar: Container(
         padding: const EdgeInsets.all(16.0),
+        decoration: BoxDecoration(
+          color: Theme.of(context).canvasColor,
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), spreadRadius: 1, blurRadius: 5)],
+        ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -127,9 +123,9 @@ class _PilihKursiLayoutScreenState extends State<PilihKursiLayoutScreen> {
             ElevatedButton(
               onPressed: _simpanPilihan,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                  backgroundColor: Colors.blue, foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))
               ),
               child: const Text("Simpan"),
             ),
@@ -139,9 +135,10 @@ class _PilihKursiLayoutScreenState extends State<PilihKursiLayoutScreen> {
     );
   }
 
+  // --- IMPLEMENTASI METODE HELPER YANG HILANG ---
   Widget _buildPassengerHeader() {
     return Container(
-      margin: const EdgeInsets.all(16.0),
+      margin: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
       padding: const EdgeInsets.all(12.0),
       decoration: BoxDecoration(
         border: Border.all(color: Theme.of(context).primaryColor),
@@ -150,9 +147,12 @@ class _PilihKursiLayoutScreenState extends State<PilihKursiLayoutScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            widget.penumpangSaatIni.namaLengkap,
-            style: const TextStyle(fontWeight: FontWeight.bold),
+          Expanded(
+            child: Text(
+              widget.penumpangSaatIni.namaLengkap,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
           const Text("Nomor Kursi", style: TextStyle(color: Colors.grey)),
         ],
@@ -163,11 +163,14 @@ class _PilihKursiLayoutScreenState extends State<PilihKursiLayoutScreen> {
   Widget _buildLegendaKursi() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      child: Wrap(
+        alignment: WrapAlignment.center,
+        spacing: 16.0,
+        runSpacing: 8.0,
         children: [
           _legendaItem(Colors.grey.shade200, "Tersedia"),
           _legendaItem(Theme.of(context).primaryColor, "Dipilih"),
+          _legendaItem(Colors.orange.shade300, "Pilihan Anda"),
           _legendaItem(Colors.grey.shade500, "Terisi"),
         ],
       ),
@@ -176,73 +179,107 @@ class _PilihKursiLayoutScreenState extends State<PilihKursiLayoutScreen> {
 
   Widget _legendaItem(Color color, String label) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Container(width: 18, height: 18, color: color),
-        const SizedBox(width: 8),
-        Text(label),
+        Container(
+          width: 16, height: 16,
+          decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(4)
+          ),
+        ),
+        const SizedBox(width: 6),
+        Text(label, style: const TextStyle(fontSize: 12)),
       ],
     );
   }
 
-  Widget _buildSeatLayout() {
-    // Denah dummy sederhana 2-2 (ABCD)
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildSeatColumn(['A', 'B']),
-          const SizedBox(width: 24), // Gang
-          _buildSeatColumn(['C', 'D']),
-        ],
+  Widget _buildSeatLayout(Map<String, String> statusKursi) {
+    List<String> kolomKiri = [];
+    List<String> kolomKanan = [];
+    int totalBaris = 0;
+
+    switch(widget.gerbong.tipeLayout) {
+      case TipeLayoutGerbong.layout_2_2:
+        kolomKiri = ['A', 'B'];
+        kolomKanan = ['C', 'D'];
+        totalBaris = (widget.gerbong.jumlahKursi / 4).ceil();
+        break;
+      case TipeLayoutGerbong.layout_3_2:
+        kolomKiri = ['A', 'B', 'C'];
+        kolomKanan = ['D', 'E'];
+        totalBaris = (widget.gerbong.jumlahKursi / 5).ceil();
+        break;
+      case TipeLayoutGerbong.layout_2_1:
+        kolomKiri = ['A', 'B'];
+        kolomKanan = ['C'];
+        totalBaris = (widget.gerbong.jumlahKursi / 3).ceil();
+        break;
+      case TipeLayoutGerbong.layout_1_1:
+        kolomKiri = ['A'];
+        kolomKanan = ['B'];
+        totalBaris = (widget.gerbong.jumlahKursi / 2).ceil();
+        break;
+      default:
+        return const Center(child: Text("Layout kursi tidak dikenali."));
+    }
+
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildSeatColumn(kolomKiri, totalBaris, statusKursi),
+            _buildSeatColumn(kolomKanan, totalBaris, statusKursi),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildSeatColumn(List<String> columns) {
+  Widget _buildSeatColumn(List<String> columns, int totalRows, Map<String, String> statusKursi) {
     return Column(
-      children: List.generate(11, (rowIndex) { // 11 baris kursi
+      children: List.generate(totalRows, (rowIndex) {
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 4.0),
           child: Row(
             children: columns.map((col) {
               final seatNumber = "${rowIndex + 1}$col";
-              final status = _statusKursiSemua[seatNumber] ?? "terisi";
-              bool isSelectedByMe = _kursiDipilihSaatIni == seatNumber;
-              bool isSelectedByGroup = !isSelectedByMe && widget.kursiYangSudahDipilihGrup.contains(seatNumber);
+              if (!statusKursi.containsKey(seatNumber)) {
+                return Container(margin: const EdgeInsets.symmetric(horizontal: 4.0), width: 40, height: 40);
+              }
 
-              Color seatColor = Colors.grey.shade200; // Tersedia
+              final status = statusKursi[seatNumber]!;
+              final fullSeatId = "Gerbong ${widget.nomorGerbong} - Kursi $seatNumber";
+              bool isSelectedByMe = _kursiDipilihSaatIni == seatNumber;
+              bool isSelectedByGroup = !isSelectedByMe && widget.kursiYangSudahDipilihGrup.contains(fullSeatId);
+
+              Color seatColor = Colors.grey.shade200;
               Color borderColor = Colors.grey.shade400;
+              Color textColor = Colors.black87;
 
               if (status == 'terisi') {
-                seatColor = Colors.grey.shade500;
+                seatColor = Colors.grey.shade500; textColor = Colors.white70;
               } else if (isSelectedByGroup) {
-                seatColor = Colors.orange.shade300; // Contoh warna untuk pilihan teman
+                seatColor = Colors.orange.shade300;
               } else if (isSelectedByMe) {
                 seatColor = Theme.of(context).primaryColor;
                 borderColor = Theme.of(context).primaryColorDark;
+                textColor = Colors.white;
               }
 
               return GestureDetector(
                 onTap: () => _onKursiTap(seatNumber, status),
                 child: Container(
                   margin: const EdgeInsets.symmetric(horizontal: 4.0),
-                  width: 40,
-                  height: 40,
+                  width: 40, height: 40,
                   decoration: BoxDecoration(
-                    color: seatColor,
-                    borderRadius: BorderRadius.circular(8),
+                    color: seatColor, borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: borderColor, width: 1.5),
                   ),
-                  child: Center(
-                    child: Text(
-                      seatNumber,
-                      style: TextStyle(
-                        color: isSelectedByMe ? Colors.white : Colors.black87,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
+                  child: Center(child: Text(seatNumber, style: TextStyle(color: textColor, fontWeight: FontWeight.bold))),
                 ),
               );
             }).toList(),

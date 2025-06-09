@@ -7,6 +7,7 @@ import '../../../models/KeretaModel.dart';
 import '../../../models/jadwal_kelas_info_model.dart';
 import '../../../models/gerbong_tipe_model.dart';
 import '../../../models/jadwal_perhentian_model.dart';
+import '../../../models/rangkaian_gerbong_model.dart';
 import '../services/admin_firestore_service.dart';
 
 
@@ -58,7 +59,6 @@ class _FormJadwalScreenState extends State<FormJadwalScreen> {
       _keretaList = results[0] as List<KeretaModel>;
       _semuaTipeGerbong = results[1] as List<GerbongTipeModel>;
 
-      // Logika untuk mode edit
       if (_isEditing) {
         _initializeForEditMode();
       }
@@ -72,21 +72,18 @@ class _FormJadwalScreenState extends State<FormJadwalScreen> {
 
   void _initializeForEditMode() {
     final jadwal = widget.jadwalToEdit!;
-    // Set kereta yang dipilih
     try {
       _selectedKereta = _keretaList.firstWhere((k) => k.id == jadwal.idKereta);
     } catch (e) {
       print("Gagal menemukan kereta yang akan di-edit: $e");
     }
 
-    // Set tanggal yang dipilih (mode edit hanya untuk 1 tanggal)
     _selectedDates = [jadwal.tanggalBerangkatUtama.toDate()];
 
-    // Inisialisasi map harga dan isi dengan data yang ada
     _hargaPerKelas.clear();
-    final kelasDiRangkaian = _getKelasFromRangkaian(_selectedKereta?.idRangkaianGerbong ?? []);
+    final kelasDiRangkaian = _getKelasFromRangkaian(_selectedKereta?.rangkaian ?? []);
     for (var kelas in kelasDiRangkaian) {
-      _hargaPerKelas[kelas.name] = []; // Buat list kosong dulu
+      _hargaPerKelas[kelas.name] = [];
     }
     for (var hargaInfo in jadwal.daftarKelasHarga) {
       _hargaPerKelas[hargaInfo.namaKelas]?.add(
@@ -105,28 +102,27 @@ class _FormJadwalScreenState extends State<FormJadwalScreen> {
       _selectedKereta = kereta;
       _hargaPerKelas.clear();
 
-      final kelasDiRangkaian = _getKelasFromRangkaian(kereta.idRangkaianGerbong);
+      final kelasDiRangkaian = _getKelasFromRangkaian(kereta.rangkaian);
       for (var kelas in kelasDiRangkaian) {
         _hargaPerKelas[kelas.name] = [KelasHargaInput()];
       }
     });
   }
 
-  Set<KelasUtama> _getKelasFromRangkaian(List<String> idGerbongList) {
+  Set<KelasUtama> _getKelasFromRangkaian(List<RangkaianGerbongModel> rangkaian) {
     Set<KelasUtama> kelasSet = {};
-    for (var idGerbong in idGerbongList) {
+    for (var rg in rangkaian) {
       try {
-        final gerbong = _semuaTipeGerbong.firstWhere((g) => g.id == idGerbong);
+        final gerbong = _semuaTipeGerbong.firstWhere((g) => g.id == rg.idTipeGerbong);
         kelasSet.add(gerbong.kelas);
       } catch (e) {
-        print("Gerbong dengan ID $idGerbong tidak ditemukan di master data.");
+        print("Gerbong dengan ID ${rg.idTipeGerbong} tidak ditemukan di master data.");
       }
     }
     return kelasSet;
   }
 
   void _showMultiDatePicker() async {
-    // Mode edit tidak mengizinkan perubahan tanggal untuk simplisitas
     if (_isEditing) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Tanggal tidak dapat diubah pada mode edit.")));
       return;
@@ -171,12 +167,8 @@ class _FormJadwalScreenState extends State<FormJadwalScreen> {
   Future<void> _submitForm() async {
     if (_isLoading || _isSubmitting) return;
     if (!_formKey.currentState!.validate()) return;
-    if (_selectedKereta == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Harap pilih kereta.")));
-      return;
-    }
-    if (_selectedDates.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Harap pilih minimal satu tanggal keberangkatan.")));
+    if (_selectedKereta == null || _selectedDates.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Harap pilih kereta dan minimal satu tanggal.")));
       return;
     }
 
@@ -189,7 +181,7 @@ class _FormJadwalScreenState extends State<FormJadwalScreen> {
         int totalKuotaSubKelas = 0;
         for (var input in inputs) {
           if (input.subKelasController.text.isEmpty || input.hargaController.text.isEmpty || input.kuotaController.text.isEmpty) {
-            throw Exception("Harap lengkapi semua field (Sub-Kelas, Harga, Kuota) untuk kelas $namaKelas.");
+            throw Exception("Lengkapi semua field (Sub-Kelas, Harga, Kuota) untuk kelas $namaKelas.");
           }
           final harga = int.tryParse(input.hargaController.text);
           final kuota = int.tryParse(input.kuotaController.text);
@@ -205,9 +197,9 @@ class _FormJadwalScreenState extends State<FormJadwalScreen> {
           ));
         }
 
-        int totalKursiFisikKelasIni = _selectedKereta!.idRangkaianGerbong
-            .map((idGerbong) {
-          try { return _semuaTipeGerbong.firstWhere((g) => g.id == idGerbong); }
+        int totalKursiFisikKelasIni = _selectedKereta!.rangkaian
+            .map((rg) {
+          try { return _semuaTipeGerbong.firstWhere((g) => g.id == rg.idTipeGerbong); }
           catch(e) { return null; }
         })
             .whereType<GerbongTipeModel>()
@@ -227,16 +219,26 @@ class _FormJadwalScreenState extends State<FormJadwalScreen> {
 
     try {
       int jadwalBerhasil = 0;
-      for (final tanggal in _selectedDates) {
-        List<JadwalPerhentianModel> detailPerhentianUntukJadwal = _selectedKereta!.templateRute.map((template) {
-          DateTime hariBerangkat = tanggal;
-          DateTime hariTiba = tanggal;
+      final rangkaianGerbongTipe = _selectedKereta!.rangkaian
+          .map((rg) {
+        try { return _semuaTipeGerbong.firstWhere((g) => g.id == rg.idTipeGerbong); }
+        catch(e) { return null; }
+      }).whereType<GerbongTipeModel>().toList();
 
-          if (template.urutan > 0) {
-            final perhentianSebelumnya = _selectedKereta!.templateRute[template.urutan - 1];
+      for (final tanggal in _selectedDates) {
+        List<JadwalPerhentianModel> detailPerhentianUntukJadwal = [];
+        DateTime hariTerakhir = tanggal;
+
+        for (int i = 0; i < _selectedKereta!.templateRute.length; i++) {
+          final template = _selectedKereta!.templateRute[i];
+          DateTime hariBerangkat = hariTerakhir;
+          DateTime hariTiba = hariTerakhir;
+
+          if (i > 0) {
+            final perhentianSebelumnya = _selectedKereta!.templateRute[i - 1];
             if (template.jamTiba != null && perhentianSebelumnya.jamBerangkat != null) {
               if (template.jamTiba!.hour < perhentianSebelumnya.jamBerangkat!.hour) {
-                hariTiba = tanggal.add(const Duration(days: 1));
+                hariTiba = hariTerakhir.add(const Duration(days: 1));
               }
             }
           }
@@ -248,6 +250,8 @@ class _FormJadwalScreenState extends State<FormJadwalScreen> {
             }
           }
 
+          hariTerakhir = hariBerangkat;
+
           Timestamp? waktuTibaTimestamp = (template.jamTiba != null)
               ? Timestamp.fromDate(DateTime(hariTiba.year, hariTiba.month, hariTiba.day, template.jamTiba!.hour, template.jamTiba!.minute))
               : null;
@@ -255,14 +259,14 @@ class _FormJadwalScreenState extends State<FormJadwalScreen> {
               ? Timestamp.fromDate(DateTime(hariBerangkat.year, hariBerangkat.month, hariBerangkat.day, template.jamBerangkat!.hour, template.jamBerangkat!.minute))
               : null;
 
-          return JadwalPerhentianModel(
+          detailPerhentianUntukJadwal.add(JadwalPerhentianModel(
             idStasiun: template.stasiunId,
             namaStasiun: template.namaStasiun,
             waktuTiba: waktuTibaTimestamp,
             waktuBerangkat: waktuBerangkatTimestamp,
             urutan: template.urutan,
-          );
-        }).toList();
+          ));
+        }
 
         final jadwalData = JadwalModel(
           id: _isEditing ? widget.jadwalToEdit!.id : '',
@@ -276,10 +280,7 @@ class _FormJadwalScreenState extends State<FormJadwalScreen> {
           await _adminService.updateJadwal(jadwalData);
         } else {
           final docRef = await _adminService.addJadwal(jadwalData);
-          final rangkaianGerbong = _selectedKereta!.idRangkaianGerbong
-              .map((id) => _semuaTipeGerbong.firstWhere((g) => g.id == id))
-              .toList();
-          await _adminService.generateKursiUntukJadwal(docRef.id, rangkaianGerbong);
+          await _adminService.generateKursiUntukJadwal(docRef.id, rangkaianGerbongTipe);
         }
         jadwalBerhasil++;
       }
@@ -298,107 +299,83 @@ class _FormJadwalScreenState extends State<FormJadwalScreen> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        toolbarHeight: 80,
-        backgroundColor: Colors.blueGrey,
-        title: Text(_isEditing ? "Edit Jadwal" : "Buat Jadwal Baru",
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 24,
-            fontWeight: FontWeight.w200,
-          ),
-        ),
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
+      appBar: AppBar(title: Text(_isEditing ? "Edit Jadwal" : "Buat Jadwal Baru")),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView( // Ditambahkan agar Card bisa di-scroll jika kontennya panjang
+          : Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Card( // <--- WIDGET CARD DITAMBAHKAN DI SINI
-          elevation: 4,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Form(
-              key: _formKey,
-              child: Column( // Menggunakan Column karena ListView di dalam Card tidak ideal
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  DropdownButtonFormField<KeretaModel>(
-                    value: _selectedKereta,
-                    items: _keretaList.map((kereta) => DropdownMenuItem(value: kereta, child: Text(kereta.nama))).toList(),
-                    onChanged: _isEditing ? null : _onKeretaSelected,
-                    decoration: InputDecoration(
-                      labelText: 'Pilih Kereta',
-                      border: const OutlineInputBorder(),
-                      filled: _isEditing,
-                      fillColor: Colors.grey[200],
-                    ),
-                    validator: (value) => value == null ? 'Kereta harus dipilih' : null,
-                  ),
-
-                  if (_selectedKereta != null) ...[
-                    const SizedBox(height: 24),
-                    _buildInfoKeretaTerpilih(),
-                    const SizedBox(height: 24),
-
-                    const Text("Tanggal Keberangkatan", style: TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
-                    InkWell(
-                      onTap: _showMultiDatePicker,
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: _isEditing ? Colors.grey : Colors.grey.shade300),
-                          borderRadius: BorderRadius.circular(4),
-                          color: _isEditing ? Colors.grey[200] : null,
-                        ),
-                        child: Row(children: [
-                          Icon(Icons.calendar_month, color: _isEditing ? Colors.grey.shade700 : Colors.grey),
-                          const SizedBox(width: 12),
-                          Expanded(child: Text(_selectedDates.isEmpty ? "Pilih satu atau beberapa tanggal" : "${_selectedDates.length} tanggal dipilih")),
-                        ]),
-                      ),
-                    ),
-                    if (_isEditing)
-                      const Padding(
-                        padding: EdgeInsets.only(top: 4.0),
-                        child: Text(
-                          'Tanggal tidak dapat diubah pada mode edit. Buat jadwal baru untuk tanggal lain.',
-                          style: TextStyle(fontSize: 12, color: Colors.grey),
-                        ),
-                      ),
-                    const SizedBox(height: 24),
-
-                    ..._hargaPerKelas.entries.map((entry) {
-                      return _buildHargaKelasSection(entry.key, entry.value);
-                    }).toList(),
-
-                    const SizedBox(height: 32),
-                    ElevatedButton.icon(
-                      icon: const Icon(Icons.save_alt_outlined),
-                      label: Text(_isEditing ? 'Simpan Perubahan Harga' : 'Simpan & Generate Jadwal'),
-                      onPressed: _isLoading || _isSubmitting ? null : _submitForm,
-                      style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 50),
-                      backgroundColor: Colors.blueGrey,
-                      ),
-                    ),
-                    if (_isSubmitting) ...[
-                      const SizedBox(height: 16),
-                      const Center(child: CircularProgressIndicator()),
-                      const SizedBox(height: 8),
-                      const Center(child: Text("Menyimpan jadwal dan men-generate kursi...", textAlign: TextAlign.center)),
-                    ],
-                  ],
-                ],
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            children: [
+              DropdownButtonFormField<KeretaModel>(
+                value: _selectedKereta,
+                items: _keretaList.map((kereta) => DropdownMenuItem(value: kereta, child: Text(kereta.nama))).toList(),
+                onChanged: _isEditing ? null : _onKeretaSelected,
+                decoration: InputDecoration(
+                  labelText: 'Pilih Kereta',
+                  border: const OutlineInputBorder(),
+                  filled: _isEditing,
+                  fillColor: Colors.grey[200],
+                ),
+                validator: (value) => value == null ? 'Kereta harus dipilih' : null,
               ),
-            ),
+
+              if (_selectedKereta != null) ...[
+                const SizedBox(height: 24),
+                _buildInfoKeretaTerpilih(),
+                const SizedBox(height: 24),
+
+                const Text("Tanggal Keberangkatan", style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                InkWell(
+                  onTap: _isEditing ? null : _showMultiDatePicker,
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade400),
+                      borderRadius: BorderRadius.circular(4),
+                      color: _isEditing ? Colors.grey[200] : null,
+                    ),
+                    child: Row(children: [
+                      Icon(Icons.calendar_month, color: Colors.grey.shade700),
+                      const SizedBox(width: 12),
+                      Expanded(child: Text(_selectedDates.isEmpty ? "Pilih satu atau beberapa tanggal" : "${_selectedDates.length} tanggal dipilih")),
+                    ]),
+                  ),
+                ),
+                if (_isEditing)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 4.0),
+                    child: Text(
+                      'Tanggal tidak dapat diubah pada mode edit.',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                  ),
+                const SizedBox(height: 24),
+
+                ..._hargaPerKelas.entries.map((entry) {
+                  return _buildHargaKelasSection(entry.key, entry.value);
+                }).toList(),
+
+                const SizedBox(height: 32),
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.save_alt_outlined),
+                  label: Text(_isEditing ? 'Simpan Perubahan Harga' : 'Simpan & Generate Jadwal'),
+                  onPressed: _isLoading || _isSubmitting ? null : _submitForm,
+                  style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 50)),
+                ),
+                if (_isSubmitting) ...[
+                  const SizedBox(height: 16),
+                  const Center(child: CircularProgressIndicator()),
+                  const SizedBox(height: 8),
+                  const Center(child: Text("Menyimpan jadwal dan men-generate kursi...", textAlign: TextAlign.center)),
+                ],
+              ],
+            ],
           ),
         ),
       ),
@@ -407,12 +384,9 @@ class _FormJadwalScreenState extends State<FormJadwalScreen> {
 
   Widget _buildInfoKeretaTerpilih() {
     if (_selectedKereta == null) return const SizedBox.shrink();
-    // Diubah menjadi Container karena sudah di dalam Card utama
-    return Container(
-      decoration: BoxDecoration(
-          color: Colors.grey[100],
-          borderRadius: BorderRadius.circular(8)
-      ),
+    return Card(
+      elevation: 0,
+      color: Colors.grey[100],
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Column(
@@ -422,7 +396,7 @@ class _FormJadwalScreenState extends State<FormJadwalScreen> {
             const Divider(),
             if (_selectedKereta!.templateRute.isNotEmpty)
               Text("Rute: ${_selectedKereta!.templateRute.first.namaStasiun} ❯ ${_selectedKereta!.templateRute.last.namaStasiun}"),
-            Text("Rangkaian: ${_selectedKereta!.idRangkaianGerbong.length} gerbong"),
+            Text("Rangkaian: ${_selectedKereta!.rangkaian.length} gerbong"),
           ],
         ),
       ),
@@ -430,9 +404,9 @@ class _FormJadwalScreenState extends State<FormJadwalScreen> {
   }
 
   Widget _buildHargaKelasSection(String namaKelas, List<KelasHargaInput> inputs) {
-    int totalKursiFisik = _selectedKereta!.idRangkaianGerbong
-        .map((idGerbong) {
-      try { return _semuaTipeGerbong.firstWhere((g) => g.id == idGerbong); }
+    int totalKursiFisik = _selectedKereta!.rangkaian
+        .map((rg) {
+      try { return _semuaTipeGerbong.firstWhere((g) => g.id == rg.idTipeGerbong); }
       catch (e) { return null; }
     })
         .whereType<GerbongTipeModel>()
@@ -450,7 +424,6 @@ class _FormJadwalScreenState extends State<FormJadwalScreen> {
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 4.0),
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
                     flex: 3,
