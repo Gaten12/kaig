@@ -148,30 +148,35 @@ class _LoginPasswordScreenState extends State<LoginPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+  return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Masukkan Kata Sandi'),
+        // Tombol kembali diatur di sini
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: const Text(
+          'Masukkan Kata Sandi',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: const Color(0xFFB71C1C), // Warna merah gelap
+        elevation: 0,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
         child: Form(
           key: _formKey,
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Text(
-                'Email: ${widget.email}',
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 10),
+              // Teks instruksi sesuai gambar
               const Text(
-                'Masukkan kata sandi Anda.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16),
+                'Buat kamu yang sudah pernah bergabung, silahkan gunakan akun lamamu. Demi keamanan, jangan pernah bagikan kata sandimu ke siapapun ya!',
+                style: TextStyle(fontSize: 14, color: Colors.black54),
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 24),
+              // Form field untuk password
               TextFormField(
                 controller: _passwordController,
                 decoration: InputDecoration(
@@ -180,7 +185,7 @@ class _LoginPasswordScreenState extends State<LoginPasswordScreen> {
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8.0),
                   ),
-                  prefixIcon: const Icon(Icons.lock_outline),
+                  // Menghilangkan prefixIcon
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscureText ? Icons.visibility_off : Icons.visibility,
@@ -203,29 +208,52 @@ class _LoginPasswordScreenState extends State<LoginPasswordScreen> {
                   return null;
                 },
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
+              // Tombol "Lupa Kata Sandi?"
               Align(
-                alignment: Alignment.centerRight,
+                alignment: Alignment.centerLeft, // Diubah ke kiri
                 child: TextButton(
                   onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => ForgotPasswordScreen(initialEmail: widget.email)));
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Fitur Lupa Kata Sandi belum diimplementasikan.')),
-                    );
+                     // Navigasi ke LupaPasswordScreen dengan membawa email
+                     Navigator.push(
+                       context,
+                       MaterialPageRoute(
+                         builder: (context) => ForgotPasswordScreen(initialEmail: widget.email),
+                       ),
+                     );
                   },
-                  child: const Text('Lupa Kata Sandi?'),
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero, // Menghilangkan padding default
+                    alignment: Alignment.centerLeft,
+                  ),
+                  child: const Text(
+                    'Lupa Kata Sandi?',
+                    style: TextStyle (color: Color(0xFF304FFE),), // Warna biru seperti di gambar
+                  ),
                 ),
               ),
-              const SizedBox(height: 20),
+              const Spacer(), // Mendorong tombol ke bawah
+              // Tombol Lanjutkan
               _isLoading
                   ? const Center(child: CircularProgressIndicator())
-                  : ElevatedButton(
-                onPressed: _loginUserAndNavigate,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 15),
-                ),
-                child: const Text('LOGIN'),
-              ),
+                  : SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _loginUserAndNavigate,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF304FFE), // Warna biru
+                          foregroundColor: Colors.white, // Warna teks putih
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                        ),
+                        child: const Text(
+                          'LANJUTKAN',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
             ],
           ),
         ),

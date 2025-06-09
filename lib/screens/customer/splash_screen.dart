@@ -84,23 +84,31 @@ class _SplashScreenState extends State<SplashScreen> {
   Widget build(BuildContext context) {
     // UI Splash Screen Anda
     return Scaffold(
+      backgroundColor: const Color(0xFFC50000),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            // Ganti dengan logo aplikasi Anda
-            // Image.asset('assets/logo.png', height: 120),
-            const Icon(Icons.train_rounded, size: 100, color: Colors.blue),
-            const SizedBox(height: 20),
-            const Text(
-              'Aplikasi Tiket Kereta', // Nama aplikasi Anda
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-            const CircularProgressIndicator(),
-          ],
+        child: Image.asset(
+          'images/logo.png',
+        width: 250,
+        height: 250,
         ),
       ),
+      // body: Center(
+      //   child: Column(
+      //     mainAxisAlignment: MainAxisAlignment.center,
+      //     children: <Widget>[
+      //       // Ganti dengan logo aplikasi Anda
+      //       // Image.asset('assets/logo.png', height: 120),
+      //       const Icon(Icons.train_rounded, size: 100, color: Colors.blue),
+      //       const SizedBox(height: 20),
+      //       const Text(
+      //         'Aplikasi Tiket Kereta', // Nama aplikasi Anda
+      //         style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+      //       ),
+      //       const SizedBox(height: 20),
+      //       const CircularProgressIndicator(),
+      //     ],
+      //   ),
+      // ),
     );
   }
 }
