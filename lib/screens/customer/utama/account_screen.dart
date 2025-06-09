@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kaig/screens/customer/utama/riwayat_transaksi_screen.dart';
 import 'package:kaig/screens/customer/utama/tentang_aplikasi.dart';
 import 'package:flutter/cupertino.dart';
 import '../../../models/passenger_model.dart';
@@ -107,11 +108,11 @@ class _AccountScreenState extends State<AccountScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: AppBar(
-      //   // title: const Text("Akun Saya"),
-      //   // automaticallyImplyLeading: false,
-      //   // elevation: 1.0,
-      // ),
+       appBar: AppBar(
+          title: const Text("Akun Saya"),
+          automaticallyImplyLeading: false,
+          elevation: 1.0,
+       ),
       body: ListView(
         children: <Widget>[
           _buildProfileHeader(context),
@@ -132,8 +133,9 @@ class _AccountScreenState extends State<AccountScreen> {
             icon: Icons.receipt_long_outlined,
             title: "Riwayat Transaksi",
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Fitur Riwayat Transaksi belum tersedia.')),
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const RiwayatTransaksiScreen()),
               );
             },
           ),

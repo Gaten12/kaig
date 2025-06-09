@@ -1,22 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:kaig/models/JadwalModel.dart';
+import 'package:kaig/models/jadwal_kelas_info_model.dart';
+import 'package:kaig/screens/customer/utama/DataPenumpangScreen.dart';
 import 'package:kaig/screens/customer/utama/pembayaran_screen.dart';
-import '../../../models/JadwalModel.dart';
-import '../../../models/jadwal_kelas_info_model.dart';
-import '../../../widgets/pilih_kursi_layout_screen.dart';
-import 'DataPenumpangScreen.dart';
-import 'pilih_gerbong_screen.dart';
+import 'package:kaig/screens/customer/utama/pilih_gerbong_screen.dart';
 
 class PilihKursiStepScreen extends StatefulWidget {
   final JadwalModel jadwalDipesan;
   final JadwalKelasInfoModel kelasDipilih;
   final List<PenumpangInputData> dataPenumpangList;
+  final int jumlahBayi; // Parameter yang ditambahkan
 
   const PilihKursiStepScreen({
     super.key,
     required this.jadwalDipesan,
     required this.kelasDipilih,
     required this.dataPenumpangList,
+    required this.jumlahBayi, // Ditambahkan di constructor
   });
 
   @override
@@ -35,7 +36,7 @@ class _PilihKursiStepScreenState extends State<PilihKursiStepScreen> {
   }
 
   void _pilihKursiUntukPenumpang(int indexPenumpang) async {
-    // Navigasi ke PilihGerbongScreen, bukan langsung ke PilihKursiLayoutScreen
+    // Navigasi ke PilihGerbongScreen
     final String? hasilPilihKursi = await Navigator.push<String>(
       context,
       MaterialPageRoute(
@@ -57,6 +58,7 @@ class _PilihKursiStepScreenState extends State<PilihKursiStepScreen> {
   }
 
   void _lanjutkanKePembayaran() {
+    // Validasi: pastikan semua penumpang sudah memilih kursi
     if (_kursiTerpilih.length < widget.dataPenumpangList.length) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Harap pilih kursi untuk semua penumpang.')),
@@ -64,7 +66,7 @@ class _PilihKursiStepScreenState extends State<PilihKursiStepScreen> {
       return;
     }
 
-    // Navigasi ke halaman pembayaran baru (buat file ini)
+    // Navigasi ke halaman pembayaran dengan membawa semua data yang diperlukan
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -73,6 +75,7 @@ class _PilihKursiStepScreenState extends State<PilihKursiStepScreen> {
           kelasDipilih: widget.kelasDipilih,
           dataPenumpangList: widget.dataPenumpangList,
           kursiTerpilih: _kursiTerpilih,
+          jumlahBayi: widget.jumlahBayi, // Teruskan nilai jumlahBayi
         ),
       ),
     );

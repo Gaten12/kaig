@@ -11,29 +11,37 @@ class KeranjangPembayaranScreen extends StatefulWidget {
   const KeranjangPembayaranScreen({super.key, required this.itemsToCheckout});
 
   @override
-  State<KeranjangPembayaranScreen> createState() => _KeranjangPembayaranScreenState();
+  State<KeranjangPembayaranScreen> createState() =>
+      _KeranjangPembayaranScreenState();
 }
 
 class _KeranjangPembayaranScreenState extends State<KeranjangPembayaranScreen> {
+  // State untuk menyimpan objek metode pembayaran yang dipilih
   MetodePembayaranModel? _metodePembayaranTerpilih;
 
   @override
   Widget build(BuildContext context) {
-    final int totalPembayaran = widget.itemsToCheckout.fold(0, (sum, item) => sum + item.totalBayar);
-    final currencyFormatter = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+    final int totalPembayaran =
+    widget.itemsToCheckout.fold(0, (sum, item) => sum + item.totalBayar);
+    final currencyFormatter =
+    NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
 
     return Scaffold(
       appBar: AppBar(title: const Text("Ringkasan Checkout")),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text("Pesanan yang akan dibayar (${widget.itemsToCheckout.length} item)", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          Text("Pesanan yang akan dibayar (${widget.itemsToCheckout.length} item)",
+              style:
+              const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
-                children: widget.itemsToCheckout.map((item) => _buildItemRingkasan(item, currencyFormatter)).toList(),
+                children: widget.itemsToCheckout
+                    .map((item) => _buildItemRingkasan(item, currencyFormatter))
+                    .toList(),
               ),
             ),
           ),
@@ -76,7 +84,8 @@ class _KeranjangPembayaranScreenState extends State<KeranjangPembayaranScreen> {
       onTap: () async {
         final result = await Navigator.push<MetodePembayaranModel>(
           context,
-          MaterialPageRoute(builder: (context) => const PilihMetodePembayaranScreen()),
+          MaterialPageRoute(
+              builder: (context) => const PilihMetodePembayaranScreen()),
         );
         if (result != null && mounted) {
           setState(() {
@@ -92,7 +101,12 @@ class _KeranjangPembayaranScreenState extends State<KeranjangPembayaranScreen> {
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
         color: Colors.white,
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), spreadRadius: 1, blurRadius: 5)],
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              spreadRadius: 1,
+              blurRadius: 5)
+        ],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -101,25 +115,39 @@ class _KeranjangPembayaranScreenState extends State<KeranjangPembayaranScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text("Total Pembayaran", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              Text(formatter.format(totalHarga), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).primaryColor)),
+              const Text("Total Pembayaran",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              Text(formatter.format(totalHarga),
+                  style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).primaryColor)),
             ],
           ),
           const SizedBox(height: 12),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               minimumSize: const Size(double.infinity, 50),
-              backgroundColor: _metodePembayaranTerpilih != null ? Theme.of(context).primaryColor : Colors.grey,
+              backgroundColor: _metodePembayaranTerpilih != null
+                  ? Theme.of(context).primaryColor
+                  : Colors.grey,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(25)),
             ),
-            onPressed: _metodePembayaranTerpilih != null ? () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => KeranjangKonfirmasiPembayaranScreen(
-                itemsToCheckout: widget.itemsToCheckout,
-                metodePembayaran: _metodePembayaranTerpilih!.namaMetode,
-                totalBayar: totalHarga,
-              )));
-            } : null,
+            onPressed: _metodePembayaranTerpilih != null
+                ? () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          KeranjangKonfirmasiPembayaranScreen(
+                            itemsToCheckout: widget.itemsToCheckout,
+                            metodePembayaran: _metodePembayaranTerpilih!,
+                            totalBayar: totalHarga,
+                          )));
+            }
+                : null,
             child: const Text("LANJUTKAN KE PEMBAYARAN"),
           ),
         ],

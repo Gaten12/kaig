@@ -16,6 +16,7 @@ class PembayaranScreen extends StatefulWidget {
   final JadwalModel jadwalDipesan;
   final JadwalKelasInfoModel kelasDipilih;
   final List<PenumpangInputData> dataPenumpangList;
+  final int jumlahBayi;
   final Map<int, String> kursiTerpilih;
 
   const PembayaranScreen({
@@ -23,6 +24,7 @@ class PembayaranScreen extends StatefulWidget {
     required this.jadwalDipesan,
     required this.kelasDipilih,
     required this.dataPenumpangList,
+    required this.jumlahBayi, // 2. Tambahkan di constructor
     required this.kursiTerpilih,
   });
 
@@ -33,7 +35,6 @@ class PembayaranScreen extends StatefulWidget {
 class _PembayaranScreenState extends State<PembayaranScreen> {
   final KeranjangService _keranjangService = KeranjangService();
   bool _setujuSyaratDanKetentuan = false;
-  // State untuk menyimpan metode pembayaran yang dipilih dari `PilihMetodePembayaranScreen`
   MetodePembayaranModel? _metodePembayaranTerpilih;
 
   Future<void> _tambahKeKeranjang() async {
@@ -47,8 +48,11 @@ class _PembayaranScreenState extends State<PembayaranScreen> {
     final totalHarga = widget.kelasDipilih.harga * widget.dataPenumpangList.length;
     final List<Map<String, String>> penumpangData = [];
     widget.kursiTerpilih.forEach((index, kursi) {
+      final dataInput = widget.dataPenumpangList[index];
       penumpangData.add({
-        'nama': widget.dataPenumpangList[index].namaLengkap,
+        'nama': dataInput.namaLengkap,
+        'tipeId': dataInput.tipeId,
+        'nomorId': dataInput.nomorId,
         'kursi': kursi,
       });
     });
@@ -58,6 +62,7 @@ class _PembayaranScreenState extends State<PembayaranScreen> {
       jadwalDipesan: widget.jadwalDipesan,
       kelasDipilih: widget.kelasDipilih,
       penumpang: penumpangData,
+      jumlahBayi: widget.jumlahBayi,
       totalBayar: totalHarga,
       waktuDitambahkan: Timestamp.now(),
       batasWaktuPembayaran: Timestamp.fromDate(DateTime.now().add(const Duration(hours: 1))),
@@ -257,8 +262,9 @@ class _PembayaranScreenState extends State<PembayaranScreen> {
                   jadwalDipesan: widget.jadwalDipesan,
                   kelasDipilih: widget.kelasDipilih,
                   dataPenumpangList: widget.dataPenumpangList,
+                  jumlahBayi: widget.jumlahBayi, // 4. Kirim parameter ini
                   kursiTerpilih: widget.kursiTerpilih,
-                  metodePembayaran: _metodePembayaranTerpilih!.namaMetode,
+                  metodePembayaran: _metodePembayaranTerpilih!,
                   totalBayar: totalHarga,
                 )),
               );

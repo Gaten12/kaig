@@ -5,17 +5,19 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:kaig/models/JadwalModel.dart';
 import 'package:kaig/models/jadwal_kelas_info_model.dart';
+import 'package:kaig/models/metode_pembayaran_model.dart';
 import 'package:kaig/models/transaksi_model.dart';
 import 'package:kaig/screens/customer/utama/DataPenumpangScreen.dart';
 import 'package:kaig/services/transaksi_service.dart';
-import 'home_screen.dart'; // Untuk navigasi setelah berhasil
+import 'home_screen.dart';
 
 class KonfirmasiPembayaranScreen extends StatefulWidget {
   final JadwalModel jadwalDipesan;
   final JadwalKelasInfoModel kelasDipilih;
   final List<PenumpangInputData> dataPenumpangList;
+  final int jumlahBayi;
   final Map<int, String> kursiTerpilih;
-  final String metodePembayaran;
+  final MetodePembayaranModel metodePembayaran;
   final int totalBayar;
 
   const KonfirmasiPembayaranScreen({
@@ -23,6 +25,7 @@ class KonfirmasiPembayaranScreen extends StatefulWidget {
     required this.jadwalDipesan,
     required this.kelasDipilih,
     required this.dataPenumpangList,
+    required this.jumlahBayi,
     required this.kursiTerpilih,
     required this.metodePembayaran,
     required this.totalBayar,
@@ -39,7 +42,7 @@ class _KonfirmasiPembayaranScreenState extends State<KonfirmasiPembayaranScreen>
   Future<void> _prosesKonfirmasi() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Error: Pengguna tidak ditemukan.")));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Error: Pengguna tidak ditemukan.")));
       return;
     }
 
@@ -47,10 +50,15 @@ class _KonfirmasiPembayaranScreenState extends State<KonfirmasiPembayaranScreen>
 
     try {
       final kodeBooking = _generateKodeBooking();
+
+      // Siapkan data penumpang yang lebih lengkap
       final List<Map<String, String>> penumpangData = [];
       widget.kursiTerpilih.forEach((index, kursi) {
+        final dataInput = widget.dataPenumpangList[index];
         penumpangData.add({
-          'nama': widget.dataPenumpangList[index].namaLengkap,
+          'nama': dataInput.namaLengkap,
+          'tipeId': dataInput.tipeId,
+          'nomorId': dataInput.nomorId,
           'kursi': kursi,
         });
       });
@@ -58,15 +66,16 @@ class _KonfirmasiPembayaranScreenState extends State<KonfirmasiPembayaranScreen>
       final transaksi = TransaksiModel(
         userId: user.uid,
         kodeBooking: kodeBooking,
-        namaKereta: widget.jadwalDipesan.namaKereta,
         idJadwal: widget.jadwalDipesan.id,
+        namaKereta: widget.jadwalDipesan.namaKereta,
         rute: "${widget.jadwalDipesan.idStasiunAsal} ❯ ${widget.jadwalDipesan.idStasiunTujuan}",
         kelas: widget.kelasDipilih.displayKelasLengkap,
         tanggalBerangkat: widget.jadwalDipesan.tanggalBerangkatUtama,
         waktuBerangkat: widget.jadwalDipesan.jamBerangkatFormatted,
         waktuTiba: widget.jadwalDipesan.jamTibaFormatted,
         penumpang: penumpangData,
-        metodePembayaran: widget.metodePembayaran,
+        jumlahBayi: widget.jumlahBayi,
+        metodePembayaran: widget.metodePembayaran.namaMetode,
         totalBayar: widget.totalBayar,
         tanggalTransaksi: Timestamp.now(),
       );
@@ -88,10 +97,9 @@ class _KonfirmasiPembayaranScreenState extends State<KonfirmasiPembayaranScreen>
               TextButton(
                 child: const Text("OK"),
                 onPressed: () {
-                  Navigator.of(ctx).pop(); // Tutup dialog
-                  // Kembali ke home screen
+                  Navigator.of(ctx).pop();
                   Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (context) => const HomeScreen(initialIndex: 2)), // Langsung ke tab Tiket Saya
+                    MaterialPageRoute(builder: (context) => const HomeScreen(initialIndex: 2)),
                         (Route<dynamic> route) => false,
                   );
                 },
@@ -122,6 +130,18 @@ class _KonfirmasiPembayaranScreenState extends State<KonfirmasiPembayaranScreen>
   Widget build(BuildContext context) {
     final currencyFormatter = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
 
+    String infoJudul;
+    String infoNomor;
+
+    if (widget.metodePembayaran.tipe == TipeMetodePembayaran.ewallet) {
+      infoJudul = "Nomor E-Wallet (${widget.metodePembayaran.namaMetode})";
+      infoNomor = widget.metodePembayaran.nomor;
+    } else { // Asumsi sisanya adalah Kartu Debit atau metode bank lain
+      infoJudul = "Nomor Kartu (${widget.metodePembayaran.namaMetode})";
+      infoNomor = "**** **** **** ${widget.metodePembayaran.nomor.substring(widget.metodePembayaran.nomor.length - 4)}";
+    }
+
+
     return Scaffold(
       appBar: AppBar(title: const Text("Konfirmasi Pembayaran")),
       body: _isLoading
@@ -137,13 +157,15 @@ class _KonfirmasiPembayaranScreenState extends State<KonfirmasiPembayaranScreen>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("Metode Pembayaran: ${widget.metodePembayaran}", style: const TextStyle(fontWeight: FontWeight.bold)),
+                  Text("Metode Pembayaran: ${widget.metodePembayaran.namaMetode}", style: const TextStyle(fontWeight: FontWeight.bold)),
                   const Divider(height: 20),
-                  const Text("Nomor Rekening Tujuan (Simulasi)"),
+
+                  Text(infoJudul),
                   SelectableText(
-                    "1234567890",
+                    infoNomor,
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                   ),
+
                   const SizedBox(height: 16),
                   const Text("Total Pembayaran"),
                   Text(
@@ -168,7 +190,6 @@ class _KonfirmasiPembayaranScreenState extends State<KonfirmasiPembayaranScreen>
   }
 
   Widget _buildInfoKeretaCard() {
-    // ... (Sama seperti di `pembayaran_screen.dart`)
     return Card(
       elevation: 2.0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

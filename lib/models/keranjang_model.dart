@@ -8,6 +8,7 @@ class KeranjangModel {
   final JadwalModel jadwalDipesan;
   final JadwalKelasInfoModel kelasDipilih;
   final List<Map<String, String>> penumpang;
+  final int jumlahBayi; // <-- 1. FIELD BARU DITAMBAHKAN
   final int totalBayar;
   final Timestamp waktuDitambahkan;
   final Timestamp batasWaktuPembayaran;
@@ -18,6 +19,7 @@ class KeranjangModel {
     required this.jadwalDipesan,
     required this.kelasDipilih,
     required this.penumpang,
+    required this.jumlahBayi, // <-- 2. TAMBAHKAN DI CONSTRUCTOR
     required this.totalBayar,
     required this.waktuDitambahkan,
     required this.batasWaktuPembayaran,
@@ -28,11 +30,10 @@ class KeranjangModel {
     return KeranjangModel(
       id: snapshot.id,
       userId: data['userId'],
-      // --- PERBAIKAN DI SINI ---
-      // Panggil JadwalModel.fromMap, bukan fromFirestore
       jadwalDipesan: JadwalModel.fromMap(data['jadwalDipesan']),
       kelasDipilih: JadwalKelasInfoModel.fromMap(data['kelasDipilih']),
       penumpang: List<Map<String, String>>.from((data['penumpang'] as List).map((p) => Map<String, String>.from(p))),
+      jumlahBayi: data['jumlahBayi'] ?? 0, // <-- 3. AMBIL DATA DARI FIRESTORE
       totalBayar: data['totalBayar'],
       waktuDitambahkan: data['waktuDitambahkan'],
       batasWaktuPembayaran: data['batasWaktuPembayaran'],
@@ -45,6 +46,7 @@ class KeranjangModel {
       'jadwalDipesan': jadwalDipesan.toFirestore(),
       'kelasDipilih': kelasDipilih.toMap(),
       'penumpang': penumpang,
+      'jumlahBayi': jumlahBayi, // <-- 4. SIMPAN DATA KE FIRESTORE
       'totalBayar': totalBayar,
       'waktuDitambahkan': waktuDitambahkan,
       'batasWaktuPembayaran': batasWaktuPembayaran,

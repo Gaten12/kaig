@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:kaig/models/keranjang_model.dart';
+import 'package:kaig/models/metode_pembayaran_model.dart';
 import 'package:kaig/services/transaksi_service.dart';
 import 'package:kaig/screens/customer/utama/home_screen.dart';
 
 class KeranjangKonfirmasiPembayaranScreen extends StatefulWidget {
   final List<KeranjangModel> itemsToCheckout;
-  final String metodePembayaran;
+  final MetodePembayaranModel metodePembayaran;
   final int totalBayar;
 
   const KeranjangKonfirmasiPembayaranScreen({
@@ -18,16 +19,24 @@ class KeranjangKonfirmasiPembayaranScreen extends StatefulWidget {
   });
 
   @override
-  State<KeranjangKonfirmasiPembayaranScreen> createState() => _KeranjangKonfirmasiPembayaranScreenState();
+  State<KeranjangKonfirmasiPembayaranScreen> createState() =>
+      _KeranjangKonfirmasiPembayaranScreenState();
 }
 
-class _KeranjangKonfirmasiPembayaranScreenState extends State<KeranjangKonfirmasiPembayaranScreen> {
+class _KeranjangKonfirmasiPembayaranScreenState
+    extends State<KeranjangKonfirmasiPembayaranScreen> {
   final TransaksiService _transaksiService = TransaksiService();
   bool _isLoading = false;
 
   Future<void> _prosesKonfirmasi() async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
+    if (user == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Error: Pengguna tidak ditemukan.")));
+      }
+      return;
+    }
 
     setState(() => _isLoading = true);
 
@@ -35,23 +44,25 @@ class _KeranjangKonfirmasiPembayaranScreenState extends State<KeranjangKonfirmas
       final kodeBookings = await _transaksiService.buatTransaksiDariKeranjang(
         userId: user.uid,
         items: widget.itemsToCheckout,
-        metodePembayaran: widget.metodePembayaran,
+        metodePembayaran: widget.metodePembayaran.namaMetode,
       );
 
-      if(mounted) {
+      if (mounted) {
         showDialog(
           context: context,
           barrierDismissible: false,
           builder: (ctx) => AlertDialog(
             title: const Text("Pembayaran Berhasil!"),
-            content: Text("${kodeBookings.length} tiket telah berhasil diterbitkan. Anda dapat melihatnya di halaman 'Tiket Saya'."),
+            content: Text(
+                "${kodeBookings.length} tiket telah berhasil diterbitkan. Anda dapat melihatnya di halaman 'Tiket Saya'."),
             actions: [
               TextButton(
                 child: const Text("OK"),
                 onPressed: () {
                   Navigator.of(ctx).pop();
                   Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (context) => const HomeScreen(initialIndex: 2)),
+                    MaterialPageRoute(
+                        builder: (context) => const HomeScreen(initialIndex: 2)),
                         (Route<dynamic> route) => false,
                   );
                 },
@@ -62,17 +73,33 @@ class _KeranjangKonfirmasiPembayaranScreenState extends State<KeranjangKonfirmas
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Gagal memproses transaksi: $e")));
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Gagal memproses transaksi: $e")));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
-    final currencyFormatter = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+    final currencyFormatter =
+    NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+
+    // Logika untuk menampilkan detail pembayaran yang benar
+    String infoJudul;
+    String infoNomor;
+
+    if (widget.metodePembayaran.tipe == TipeMetodePembayaran.ewallet) {
+      infoJudul = "Nomor E-Wallet (${widget.metodePembayaran.namaMetode})";
+      infoNomor = widget.metodePembayaran.nomor;
+    } else {
+      // Asumsi selain e-wallet adalah kartu debit/bank
+      infoJudul = "Nomor Kartu (${widget.metodePembayaran.namaMetode})";
+      // Samarkan nomor kartu untuk keamanan
+      infoNomor =
+      "**** **** **** ${widget.metodePembayaran.nomor.substring(widget.metodePembayaran.nomor.length - 4)}";
+    }
 
     return Scaffold(
       appBar: AppBar(title: const Text("Konfirmasi Pembayaran")),
@@ -87,15 +114,30 @@ class _KeranjangKonfirmasiPembayaranScreenState extends State<KeranjangKonfirmas
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("Metode Pembayaran: ${widget.metodePembayaran}", style: const TextStyle(fontWeight: FontWeight.bold)),
+                  Text(
+                      "Metode Pembayaran: ${widget.metodePembayaran.namaMetode}",
+                      style:
+                      const TextStyle(fontWeight: FontWeight.bold)),
                   const Divider(height: 20),
-                  const Text("Nomor Rekening Tujuan (Simulasi)"),
-                  SelectableText("1234567890", style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                  // Gunakan variabel dinamis yang sudah disiapkan
+                  Text(infoJudul),
+                  SelectableText(
+                    infoNomor,
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleLarge
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
                   const SizedBox(height: 16),
                   const Text("Total Pembayaran"),
                   Text(
                     currencyFormatter.format(widget.totalBayar),
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: Colors.orange),
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleLarge
+                        ?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.orange),
                   ),
                 ],
               ),
@@ -107,7 +149,8 @@ class _KeranjangKonfirmasiPembayaranScreenState extends State<KeranjangKonfirmas
         padding: const EdgeInsets.all(16.0),
         child: ElevatedButton(
           onPressed: _isLoading ? null : _prosesKonfirmasi,
-          style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 50)),
+          style: ElevatedButton.styleFrom(
+              minimumSize: const Size(double.infinity, 50)),
           child: const Text("KONFIRMASI PEMBAYARAN"),
         ),
       ),

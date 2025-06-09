@@ -1,19 +1,14 @@
-// --- File Utama: data_penumpang_screen.dart (Revisi Besar) ---
-// Path: lib/src/pembelian_tiket/screens/data_penumpang_screen.dart
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../../models/JadwalModel.dart';
-import '../../../models/jadwal_kelas_info_model.dart';
-import '../../../models/user_model.dart';
-import '../../../models/passenger_model.dart';
-import '../../../services/auth_service.dart';
-// Impor widget bottom sheet dari file terpisah
-import '../../../widgets/pilih_penumpang_bottom_sheet.dart';
-// Impor layar selanjutnya
+import 'package:kaig/models/JadwalModel.dart';
+import 'package:kaig/models/jadwal_kelas_info_model.dart';
+import 'package:kaig/models/user_model.dart';
+import 'package:kaig/models/passenger_model.dart';
+import 'package:kaig/services/auth_service.dart';
+import 'package:kaig/widgets/pilih_penumpang_bottom_sheet.dart';
 import 'pilih_kursi_step_screen.dart';
 
+// Kelas PenumpangInputData tidak berubah
 class PenumpangInputData {
   PassengerModel? passenger;
 
@@ -82,24 +77,16 @@ class _DataPenumpangScreenState extends State<DataPenumpangScreen> {
 
       if (!mounted) return;
 
-      // Isi Detail Pemesan
       _emailPemesanController.text = firebaseUser.email ?? '';
       _teleponPemesanController.text = userModel?.noTelepon ?? '';
-      // PERBAIKAN: Nama pemesan diambil dari primaryPassenger, dengan fallback ke display name
-      // Tidak lagi menggunakan userModel.namaLengkap
       _namaPemesanController.text = primaryPassenger?.namaLengkap ?? firebaseUser.displayName ?? (firebaseUser.email?.split('@')[0] ?? '');
-
-      // Simpan data penumpang utama untuk pengisian otomatis
       _primaryPassenger = primaryPassenger;
 
-      // Isi penumpang pertama jika switch aktif
       if (_pemesanSebagaiPenumpang) {
         _updatePenumpangPertamaDenganDataPrimaryPassenger();
       }
     } catch (e) {
-      print("Error memuat data awal: $e");
       if(mounted) {
-        // Fallback jika terjadi error saat pengambilan data
         _emailPemesanController.text = firebaseUser.email ?? '';
         _namaPemesanController.text = firebaseUser.displayName ?? '';
       }
@@ -170,17 +157,13 @@ class _DataPenumpangScreenState extends State<DataPenumpangScreen> {
         _dataPenumpangList[indexPenumpangForm] = PenumpangInputData(passenger: selectedPassenger);
 
         if (indexPenumpangForm == 0) {
-          if (selectedPassenger.id != _primaryPassenger?.id) {
-            _pemesanSebagaiPenumpang = false;
-          } else {
-            _pemesanSebagaiPenumpang = true;
-          }
+          _pemesanSebagaiPenumpang = selectedPassenger.id == _primaryPassenger?.id;
         }
       });
     }
   }
 
-
+  // --- FUNGSI YANG DIPERBARUI ---
   void _lanjutkan() {
     if (!(_formKeyPemesanan.currentState?.validate() ?? false)) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -198,8 +181,6 @@ class _DataPenumpangScreenState extends State<DataPenumpangScreen> {
       }
     }
 
-    print("VALIDASI BERHASIL, LANJUT KE PILIH KURSI");
-
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -207,10 +188,12 @@ class _DataPenumpangScreenState extends State<DataPenumpangScreen> {
           jadwalDipesan: widget.jadwalDipesan,
           kelasDipilih: widget.kelasDipilih,
           dataPenumpangList: _dataPenumpangList,
+          jumlahBayi: widget.jumlahBayi, // Mengirimkan data jumlahBayi
         ),
       ),
     );
   }
+  // --- AKHIR PERUBAHAN ---
 
   @override
   Widget build(BuildContext context) {
@@ -319,16 +302,11 @@ class _DataPenumpangScreenState extends State<DataPenumpangScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text("Detail Penumpang",
-                style: Theme.of(context)
-                    .textTheme
-                    .titleMedium
-                    ?.copyWith(fontWeight: FontWeight.bold)),
-          ],
-        ),
+        Text("Detail Penumpang",
+            style: Theme.of(context)
+                .textTheme
+                .titleMedium
+                ?.copyWith(fontWeight: FontWeight.bold)),
         const SizedBox(height: 8.0),
         ListView.builder(
           shrinkWrap: true,

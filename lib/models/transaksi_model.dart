@@ -9,13 +9,16 @@ class TransaksiModel {
   final String rute; // Contoh: "GMR > YK"
   final String kelas; // Contoh: "Eksekutif (A)"
   final Timestamp tanggalBerangkat;
-  final String waktuBerangkat; // Contoh: "08:00"
-  final String waktuTiba; // Contoh: "15:30"
-  final List<Map<String, String>> penumpang; // e.g., [{'nama': 'Budi', 'kursi': 'EKS-1 5A'}]
+  final String waktuBerangkat;
+  final String waktuTiba;
+  // --- PERUBAHAN DI SINI ---
+  // Menyimpan detail penumpang lebih lengkap
+  final List<Map<String, String>> penumpang;
+  final int jumlahBayi; // Menambahkan jumlah bayi
   final String metodePembayaran;
   final int totalBayar;
   final Timestamp tanggalTransaksi;
-  final String status; // Contoh: "LUNAS", "BATAL"
+  final String status;
 
   TransaksiModel({
     this.id,
@@ -29,13 +32,13 @@ class TransaksiModel {
     required this.waktuBerangkat,
     required this.waktuTiba,
     required this.penumpang,
+    required this.jumlahBayi, // Tambahkan di constructor
     required this.metodePembayaran,
     required this.totalBayar,
     required this.tanggalTransaksi,
     this.status = "LUNAS",
   });
 
-  // Factory untuk membuat instance dari Firestore
   factory TransaksiModel.fromFirestore(DocumentSnapshot<Map<String, dynamic>> snapshot) {
     final data = snapshot.data()!;
     return TransaksiModel(
@@ -51,6 +54,7 @@ class TransaksiModel {
       waktuTiba: data['waktuTiba'],
       penumpang: List<Map<String, String>>.from(
           (data['penumpang'] as List).map((p) => Map<String, String>.from(p))),
+      jumlahBayi: data['jumlahBayi'] ?? 0, // Ambil data jumlah bayi
       metodePembayaran: data['metodePembayaran'],
       totalBayar: data['totalBayar'],
       tanggalTransaksi: data['tanggalTransaksi'],
@@ -58,7 +62,6 @@ class TransaksiModel {
     );
   }
 
-  // Method untuk mengubah instance menjadi Map untuk Firestore
   Map<String, dynamic> toFirestore() {
     return {
       'userId': userId,
@@ -71,6 +74,7 @@ class TransaksiModel {
       'waktuBerangkat': waktuBerangkat,
       'waktuTiba': waktuTiba,
       'penumpang': penumpang,
+      'jumlahBayi': jumlahBayi, // Simpan jumlah bayi
       'metodePembayaran': metodePembayaran,
       'totalBayar': totalBayar,
       'tanggalTransaksi': tanggalTransaksi,
