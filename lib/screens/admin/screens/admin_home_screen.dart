@@ -140,13 +140,13 @@ class AdminHomeScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
-              Icon(icon, size: 48, color: Theme.of(context).primaryColor), // Ukuran ikon disesuaikan
+              Icon(icon, size: 60, color: Theme.of(context).primaryColor), // Ukuran ikon disesuaikan
               const SizedBox(height: 12.0),
               Text(
                 title,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                  fontSize: 16, // Ukuran font disesuaikan
+                  fontSize: 25, // Ukuran font disesuaikan
                   fontWeight: FontWeight.w600, // Sedikit lebih tebal
                 ),
                 overflow: TextOverflow.ellipsis,
