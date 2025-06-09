@@ -6,6 +6,7 @@ import '../../../models/passenger_model.dart';
 import '../../../services/auth_service.dart'; // Pastikan path ini benar
 import '../../../screens/login/login_screen.dart'; // Halaman login
 import 'ganti_kata_sandi_screen.dart';
+import 'informasi_data_diri_screen.dart';
 import 'list_penumpang_screen.dart';
 import 'metode_pembayaran_screen.dart'; // Halaman daftar penumpang
 
@@ -222,13 +223,11 @@ class _AccountScreenState extends State<AccountScreen> {
             icon: const Icon(Icons.edit_outlined, size: 16),
             label: const Text("Kelola Profile"),
             onPressed: () {
-              // ScaffoldMessenger.of(context).showSnackBar(
-              //   const SnackBar(content: Text('Fitur Kelola Profile belum tersedia.')),
-              // );
-            //  Navigator.push(
-                // context,
-                // MaterialPageRoute(builder: (context) => const InformasiDataDiriScreen()),
-              // );
+              // GANTI ISI onPressed INI
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const InformasiDataDiriScreen()),
+              );
             },
             style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
