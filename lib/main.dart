@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'screens/customer/splash_screen.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:get/get.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,7 +21,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       title: 'Aplikasi KAI Clone', // Ganti judul
       theme: ThemeData( // Tema yang sudah ada
         primarySwatch: Colors.orange,
