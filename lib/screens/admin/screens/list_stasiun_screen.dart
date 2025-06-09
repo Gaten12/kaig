@@ -62,6 +62,7 @@ class _ListStasiunScreenState extends State<ListStasiunScreen> {
             fontWeight: FontWeight.w200,
           ),
         ),
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: Column(
         children: [
