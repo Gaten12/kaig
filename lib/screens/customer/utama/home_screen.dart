@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kaig/screens/customer/utama/keranjang_screen.dart'; // Import halaman keranjang
 import 'package:kaig/screens/customer/utama/tiket_saya_screen.dart';
 import '../../../models/passenger_model.dart';
 import '../../../services/auth_service.dart';
@@ -108,10 +109,7 @@ class BerandaContent extends StatelessWidget {
 
 
 class HomeScreen extends StatefulWidget {
-  // 1. Tambahkan parameter initialIndex di sini
   final int initialIndex;
-
-  // 2. Perbarui constructor untuk menerima parameter
   const HomeScreen({super.key, this.initialIndex = 0});
 
   @override
@@ -119,7 +117,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  // Hapus inisialisasi di sini
   late int _selectedIndex;
   final AuthService _authService = AuthService();
   String _userName = "Pengguna";
@@ -127,7 +124,6 @@ class _HomeScreenState extends State<HomeScreen> {
   static const List<Widget> _widgetOptions = <Widget>[
     BerandaContent(),
     PesanTiketScreen(),
-    // Ganti widget placeholder dengan halaman TiketSayaScreen yang sebenarnya
     TiketSayaScreen(),
     Center(child: Text('Halaman Promo (Segera Hadir)')),
     AccountScreen(),
@@ -136,7 +132,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // 3. Gunakan nilai dari widget untuk inisialisasi state
     _selectedIndex = widget.initialIndex;
     _loadCurrentUserName();
   }
@@ -144,9 +139,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadCurrentUserName() async {
     final firebaseUser = _authService.currentUser;
     if (firebaseUser != null) {
-      // Ambil nama dari data penumpang utama (primary passenger)
       PassengerModel? primaryPassenger = await _authService.getPrimaryPassenger(firebaseUser.uid);
-      String displayName = "Pengguna"; // Default
+      String displayName = "Pengguna";
 
       if (primaryPassenger != null && primaryPassenger.namaLengkap.isNotEmpty) {
         displayName = primaryPassenger.namaLengkap;
@@ -183,9 +177,12 @@ class _HomeScreenState extends State<HomeScreen> {
           if (_selectedIndex == 0)
             IconButton(
               icon: const Icon(Icons.shopping_cart_outlined),
+              // --- PERBAIKAN DI SINI ---
               onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Fitur Keranjang belum tersedia.')),
+                // Arahkan ke halaman keranjang
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const KeranjangScreen()),
                 );
               },
             ),

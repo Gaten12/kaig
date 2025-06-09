@@ -1,10 +1,15 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:kaig/models/JadwalModel.dart';
 import 'package:kaig/models/jadwal_kelas_info_model.dart';
+import 'package:kaig/models/keranjang_model.dart';
 import 'package:kaig/screens/customer/utama/DataPenumpangScreen.dart';
+import 'package:kaig/screens/customer/utama/home_screen.dart';
 import 'package:kaig/screens/customer/utama/konfirmasi_pembayaran_screen.dart';
 import 'package:kaig/screens/customer/utama/pilih_metode_pembayaran_screen.dart';
+import 'package:kaig/services/keranjang_service.dart';
 
 class PembayaranScreen extends StatefulWidget {
   final JadwalModel jadwalDipesan;
@@ -25,8 +30,62 @@ class PembayaranScreen extends StatefulWidget {
 }
 
 class _PembayaranScreenState extends State<PembayaranScreen> {
+  // --- PINDAHKAN LOGIKA DAN STATE KE SINI ---
+  final KeranjangService _keranjangService = KeranjangService();
   bool _setujuSyaratDanKetentuan = false;
   String? _metodePembayaranTerpilih;
+
+  Future<void> _tambahKeKeranjang() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Anda harus login untuk menggunakan keranjang.")));
+      return;
+    }
+
+    final totalHarga = widget.kelasDipilih.harga * widget.dataPenumpangList.length;
+    final List<Map<String, String>> penumpangData = [];
+    widget.kursiTerpilih.forEach((index, kursi) {
+      penumpangData.add({
+        'nama': widget.dataPenumpangList[index].namaLengkap,
+        'kursi': kursi,
+      });
+    });
+
+    final jadwalUntukKeranjang = widget.jadwalDipesan;
+    final kelasUntukKeranjang = widget.kelasDipilih;
+
+    final itemKeranjang = KeranjangModel(
+      userId: user.uid,
+      jadwalDipesan: jadwalUntukKeranjang,
+      kelasDipilih: kelasUntukKeranjang,
+      penumpang: penumpangData,
+      totalBayar: totalHarga,
+      waktuDitambahkan: Timestamp.now(),
+      batasWaktuPembayaran: Timestamp.fromDate(DateTime.now().add(const Duration(hours: 1))), // Batas waktu 1 jam
+    );
+
+    try {
+      await _keranjangService.tambahKeKeranjang(itemKeranjang);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Pesanan berhasil ditambahkan ke keranjang.")),
+        );
+        // Kembali ke home screen setelah berhasil
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+              (route) => false,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Gagal menambahkan ke keranjang: $e")),
+        );
+      }
+    }
+  }
+  // --- AKHIR DARI LOGIKA YANG DIPINDAHKAN ---
 
   @override
   Widget build(BuildContext context) {
@@ -63,7 +122,6 @@ class _PembayaranScreenState extends State<PembayaranScreen> {
   }
 
   Widget _buildInfoKeretaCard() {
-    // ... (Sama seperti di `pilih_kursi_step_screen.dart`)
     return Card(
       elevation: 2.0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -211,6 +269,16 @@ class _PembayaranScreenState extends State<PembayaranScreen> {
               );
             } : null,
             child: const Text("BAYAR SEKARANG", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          ),
+          const SizedBox(height: 8),
+          OutlinedButton(
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size(double.infinity, 50),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+              side: BorderSide(color: Theme.of(context).primaryColor),
+            ),
+            onPressed: _tambahKeKeranjang, // Panggil fungsi yang sudah dipindahkan
+            child: const Text("TAMBAH KE KERANJANG"),
           ),
         ],
       ),
