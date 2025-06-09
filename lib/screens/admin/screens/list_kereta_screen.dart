@@ -42,7 +42,16 @@ class _ListKeretaScreenState extends State<ListKeretaScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Daftar Kereta"),
+        toolbarHeight: 80,
+        backgroundColor: Colors.blueGrey,
+        title: const Text("Daftar Kereta",
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 24,
+            fontWeight: FontWeight.w200,
+          ),
+        ),
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: Column(
         children: [
