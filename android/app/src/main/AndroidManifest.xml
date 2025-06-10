@@ -1,4 +1,5 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.CPD.kaig">
     <application
         android:label="kaig"
         android:name="${applicationName}"

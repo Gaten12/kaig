@@ -10,7 +10,7 @@ class PilihTautkanPembayaranScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Tautkan Pembayaran"),
-        backgroundColor: Colors.red.shade800,
+        backgroundColor: const Color(0xFFC50000),
         foregroundColor: Colors.white,
       ),
       body: Padding(

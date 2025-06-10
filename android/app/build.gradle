@@ -22,10 +22,10 @@ android {
     defaultConfig {
         applicationId = "com.CPD.kaig"
         minSdkVersion 23
+        targetSdkVersion flutter.targetSdkVersion // <--- INI YANG BENAR
+        versionCode flutter.versionCode
+        versionName flutter.versionName
         multiDexEnabled true
-        targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
     }
 
     buildTypes {
@@ -44,3 +44,4 @@ dependencies {
 flutter {
     source = "../.."
 }
+apply plugin: 'com.google.gms.google-services'

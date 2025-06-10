@@ -73,7 +73,7 @@ class _GantiInformasiPribadiScreenState extends State<GantiInformasiPribadiScree
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Informasi Diri"), backgroundColor: Colors.red.shade800, foregroundColor: Colors.white),
+      appBar: AppBar(title: const Text("Informasi Diri"), backgroundColor: const Color(0xFFC50000), foregroundColor: Colors.white),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -114,7 +114,9 @@ class _GantiInformasiPribadiScreenState extends State<GantiInformasiPribadiScree
                 ? const Center(child: CircularProgressIndicator())
                 : ElevatedButton(
               onPressed: _simpan,
-              style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 50)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF304FFE),
+                minimumSize: const Size(double.infinity, 50)),
               child: const Text("SIMPAN"),
             )
           ],

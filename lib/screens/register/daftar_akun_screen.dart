@@ -98,8 +98,14 @@ class _DaftarAkunScreenState extends State<DaftarAkunScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Daftar Akun'),
+        backgroundColor: const Color(0xFFC50000), // Warna latar belakang AppBar (Merah Maroon)
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white), // Ikon kembali berwarna putih
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: const Text('Daftar Akun', style: TextStyle(color: Colors.white)), // Teks AppBar berwarna putih
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -109,8 +115,9 @@ class _DaftarAkunScreenState extends State<DaftarAkunScreen> {
             children: <Widget>[
               Text(
                 'Daftar akun TrainOrder sekarang untuk mulai menjelajahi berbagai layanan dan fitur unggulan yang telah kami siapkan untukmu.',
-                style: Theme.of(context).textTheme.titleMedium,
-                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: Colors.black87, // Sesuaikan warna teks jika perlu
+                    ),
               ),
               const SizedBox(height: 24.0),
 
@@ -200,7 +207,7 @@ class _DaftarAkunScreenState extends State<DaftarAkunScreen> {
                         });
                       },
                       validator: (value) =>
-                      value == null ? 'Pilih tipe ID' : null,
+                          value == null ? 'Pilih tipe ID' : null,
                     ),
                   ),
                   const SizedBox(width: 8.0),
@@ -286,8 +293,8 @@ class _DaftarAkunScreenState extends State<DaftarAkunScreen> {
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(double.infinity, 50),
-                  // backgroundColor: Theme.of(context).primaryColor,
-                  // foregroundColor: Colors.white,
+                  backgroundColor: const Color(0xFF304FFE), // Warna tombol "LANJUTKAN" (Biru)
+                  foregroundColor: Colors.white, // Warna teks tombol "LANJUTKAN"
                 ),
                 onPressed: _submitForm,
                 child: const Text('LANJUTKAN'),

@@ -39,7 +39,7 @@ class _TambahEwalletScreenState extends State<TambahEwalletScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text("Tambah ${widget.namaEwallet}"),
-        backgroundColor: Colors.red.shade800,
+        backgroundColor: const Color(0xFFC50000),
         foregroundColor: Colors.white,
       ),
       body: Form(
@@ -60,7 +60,7 @@ class _TambahEwalletScreenState extends State<TambahEwalletScreen> {
               onPressed: _simpan,
               style: ElevatedButton.styleFrom(
                   minimumSize: const Size(double.infinity, 50),
-                  backgroundColor: Colors.blue
+                  backgroundColor: const Color(0xFF0000CD)
               ),
               child: const Text("Tambah E-Wallet", style: TextStyle(color: Colors.white)),
             )

@@ -29,7 +29,7 @@ class _MetodePembayaranScreenState extends State<MetodePembayaranScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Metode Pembayaran"),
-        backgroundColor: Colors.red.shade800,
+        backgroundColor: const Color(0xFFC50000),
         foregroundColor: Colors.white,
       ),
       body: StreamBuilder<List<MetodePembayaranModel>>(
@@ -57,7 +57,7 @@ class _MetodePembayaranScreenState extends State<MetodePembayaranScreen> {
                 onPressed: _tambahMetode,
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(double.infinity, 50),
-                  backgroundColor: Colors.blue,
+                  backgroundColor: const Color(0xFF0000CD),
                   foregroundColor: Colors.white,
                 ),
               )
@@ -75,8 +75,7 @@ class _MetodePembayaranScreenState extends State<MetodePembayaranScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.payment, size: 80, color: Colors.blue.shade300),
-            const SizedBox(height: 16),
+            Icon(Icons.wallet, size: 100, color: Color(0xFF0000CD)),
             const Text("Metode Pembayaran Belum Tersedia",
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
@@ -89,7 +88,7 @@ class _MetodePembayaranScreenState extends State<MetodePembayaranScreen> {
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: _tambahMetode,
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.blue, foregroundColor: Colors.white),
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0000CD), foregroundColor: Colors.white),
               child: const Text("Tambah metode pembayaran"),
             ),
           ],
@@ -112,7 +111,7 @@ class _MetodePembayaranScreenState extends State<MetodePembayaranScreen> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.red.shade700,
+          color: const Color.fromARGB(255, 157, 4, 4),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(

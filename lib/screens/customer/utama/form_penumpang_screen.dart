@@ -164,7 +164,15 @@ class _FormPenumpangScreenState extends State<FormPenumpangScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEditing ? "Ubah Penumpang" : "Tambah Penumpang Baru"),
+        backgroundColor: const Color(0xFFC50000),
+        iconTheme: const IconThemeData(
+          color: Colors.white,
+        ),
+        title: Text(
+          _isEditing ? "Ubah Penumpang" : "Tambah Penumpang Baru",
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+        
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -255,7 +263,11 @@ class _FormPenumpangScreenState extends State<FormPenumpangScreen> {
               const SizedBox(height: 32.0),
               ElevatedButton(
                 onPressed: _submitForm,
-                style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 50)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF304FFE),
+                  minimumSize: const Size(double.infinity, 50)
+                  ),
+                
                 child: Text(_isEditing ? "SIMPAN PERUBAHAN" : "SIMPAN PENUMPANG"),
               ),
               if (_isEditing) ...[
