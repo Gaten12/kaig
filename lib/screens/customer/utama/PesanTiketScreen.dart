@@ -23,6 +23,17 @@ class _PesanTiketScreenState extends State<PesanTiketScreen> {
   int _jumlahBayi = 0;
   bool _isPulangPergi = false;
 
+  // Enhanced color scheme
+  static const Color primaryRed = Color(0xFFC50000);
+  static const Color darkRed = Color(0xFF8B0000);
+  static const Color accentBlue = Color(0xFF1976D2);
+  static const Color lightBlue = Color(0xFF42A5F5);
+  static const Color backgroundGrey = Color(0xFFF8F9FA);
+  static const Color cardColor = Colors.white;
+  static const Color textPrimary = Color(0xFF212121);
+  static const Color textSecondary = Color(0xFF757575);
+  static const Color dividerColor = Color(0xFFE0E0E0);
+
   Future<void> _pilihStasiunUntuk(bool isAsal) async {
     final StasiunModel? stasiunTerpilih = await Navigator.push(
       context,
@@ -59,6 +70,19 @@ class _PesanTiketScreenState extends State<PesanTiketScreen> {
       helpText: 'Pilih Tanggal Keberangkatan',
       cancelText: 'Batal',
       confirmText: 'Pilih',
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: primaryRed,
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: textPrimary,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
     if (picked != null && picked != _selectedTanggalPergi && mounted) {
       setState(() {
@@ -71,21 +95,26 @@ class _PesanTiketScreenState extends State<PesanTiketScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20.0))),
+      backgroundColor: Colors.transparent,
       builder: (context) {
-        return PassengerSelectionWidget(
-          initialDewasa: _jumlahDewasa,
-          initialBayi: _jumlahBayi,
-          onSelesai: (int dewasa, int bayi) {
-            if (mounted) {
-              setState(() {
-                _jumlahDewasa = dewasa;
-                _jumlahBayi = bayi;
-              });
-            }
-            Navigator.pop(context); // Tutup bottom sheet
-          },
+        return Container(
+          decoration: const BoxDecoration(
+            color: cardColor,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24.0)),
+          ),
+          child: PassengerSelectionWidget(
+            initialDewasa: _jumlahDewasa,
+            initialBayi: _jumlahBayi,
+            onSelesai: (int dewasa, int bayi) {
+              if (mounted) {
+                setState(() {
+                  _jumlahDewasa = dewasa;
+                  _jumlahBayi = bayi;
+                });
+              }
+              Navigator.pop(context);
+            },
+          ),
         );
       },
     );
@@ -94,51 +123,40 @@ class _PesanTiketScreenState extends State<PesanTiketScreen> {
   void _cariTiket() {
     if (_formKey.currentState!.validate()) {
       if (_stasiunAsal == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Silakan pilih stasiun keberangkatan.')),
-        );
+        _showErrorSnackBar('Silakan pilih stasiun keberangkatan.');
         return;
       }
       if (_stasiunTujuan == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Silakan pilih stasiun tujuan.')),
-        );
+        _showErrorSnackBar('Silakan pilih stasiun tujuan.');
         return;
       }
       if (_selectedTanggalPergi == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Silakan pilih tanggal keberangkatan.')),
-        );
+        _showErrorSnackBar('Silakan pilih tanggal keberangkatan.');
         return;
       }
       if (_stasiunAsal!.id == _stasiunTujuan!.id) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Stasiun asal dan tujuan tidak boleh sama.')),
-        );
+        _showErrorSnackBar('Stasiun asal dan tujuan tidak boleh sama.');
         return;
       }
       if ((_jumlahDewasa + _jumlahBayi) == 0) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Jumlah penumpang minimal 1 orang.')),
-        );
+        _showErrorSnackBar('Jumlah penumpang minimal 1 orang.');
         return;
       }
       if (_jumlahBayi > 0 && _jumlahDewasa == 0) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Bayi harus didampingi penumpang dewasa.')),
-        );
+        _showErrorSnackBar('Bayi harus didampingi penumpang dewasa.');
         return;
       }
       if (_jumlahBayi > _jumlahDewasa) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Jumlah bayi tidak boleh melebihi jumlah penumpang dewasa.')),
-        );
+        _showErrorSnackBar(
+            'Jumlah bayi tidak boleh melebihi jumlah penumpang dewasa.');
         return;
       }
 
       print("--- Memulai Navigasi ke PilihJadwalScreen ---");
-      print("Stasiun Asal: ${_stasiunAsal?.displayName} (ID: ${_stasiunAsal?.id})");
-      print("Stasiun Tujuan: ${_stasiunTujuan?.displayName} (ID: ${_stasiunTujuan?.id})");
+      print(
+          "Stasiun Asal: ${_stasiunAsal?.displayName} (ID: ${_stasiunAsal?.id})");
+      print(
+          "Stasiun Tujuan: ${_stasiunTujuan?.displayName} (ID: ${_stasiunTujuan?.id})");
       print("Tanggal Pergi: $_selectedTanggalPergi");
       print("Jumlah Dewasa: $_jumlahDewasa");
       print("Jumlah Bayi: $_jumlahBayi");
@@ -159,43 +177,103 @@ class _PesanTiketScreenState extends State<PesanTiketScreen> {
     }
   }
 
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.error_outline, color: Colors.white, size: 20),
+            const SizedBox(width: 8),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor: primaryRed,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(16),
+      ),
+    );
+  }
+
   Widget _buildStasiunField({
     required String label,
     required StasiunModel? stasiun,
     required IconData icon,
     required VoidCallback onTap,
+    bool isDestination = false,
   }) {
     return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 4.0),
+        child: Row(
           children: [
-            Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                Icon(icon, color: Colors.grey.shade700, size: 20),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: isDestination
+                    ? lightBlue.withOpacity(0.1)
+                    : primaryRed.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                icon,
+                color: isDestination ? accentBlue : primaryRed,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: textSecondary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
                     stasiun?.displayName ?? 'Pilih stasiun',
                     style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: stasiun != null
-                            ? Theme.of(context).textTheme.bodyLarge?.color
-                            : Colors.grey.shade600),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: stasiun != null ? textPrimary : textSecondary,
+                    ),
                     overflow: TextOverflow.ellipsis,
                   ),
-                ),
-                const Icon(Icons.keyboard_arrow_right, color: Colors.grey),
-              ],
+                ],
+              ),
+            ),
+            Icon(
+              Icons.keyboard_arrow_right,
+              color: textSecondary,
+              size: 20,
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildEnhancedCard({required Widget child}) {
+    return Container(
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: child,
     );
   }
 
@@ -207,153 +285,379 @@ class _PesanTiketScreenState extends State<PesanTiketScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Kereta Antar Kota'),
-        elevation: 1.0,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: <Widget>[
-              Card(
-                elevation: 1.5,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          children: [
-                            _buildStasiunField(
-                              label: 'Dari',
-                              stasiun: _stasiunAsal,
-                              icon: Icons.train_outlined,
-                              onTap: () => _pilihStasiunUntuk(true),
-                            ),
-                            const Divider(height: 20, thickness: 1),
-                            _buildStasiunField(
-                              label: 'Ke',
-                              stasiun: _stasiunTujuan,
-                              icon: Icons.train_outlined,
-                              onTap: () => _pilihStasiunUntuk(false),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 8.0),
-                        child: IconButton(
-                          icon: const Icon(Icons.swap_vert_circle_outlined, color: Colors.blue, size: 36),
-                          onPressed: _swapLokasi,
-                        ),
-                      ),
-                    ],
-                  ),
+      backgroundColor: backgroundGrey,
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 120,
+            floating: false,
+            pinned: true,
+            elevation: 0,
+            backgroundColor: primaryRed,
+            foregroundColor: Colors.white,
+            flexibleSpace: FlexibleSpaceBar(
+              title: const Text(
+                'Kereta Antar Kota',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 18,
                 ),
               ),
-              const SizedBox(height: 16.0),
-              Card(
-                elevation: 1.5,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-                  child: Row(
+              background: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [primaryRed, darkRed],
+                  ),
+                ),
+                child: Stack(
+                  children: [
+                    Positioned(
+                      right: -20,
+                      top: 20,
+                      child: Icon(
+                        Icons.train,
+                        size: 100,
+                        color: Colors.white.withOpacity(0.1),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.all(16.0),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const Icon(Icons.calendar_month_outlined, color: Colors.grey),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: InkWell(
-                          onTap: () => _pilihTanggal(context),
+                      // Station Selection Card
+                      _buildEnhancedCard(
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Text('Tanggal pergi', style: TextStyle(fontSize: 12, color: Colors.grey)),
-                              Text(
-                                _selectedTanggalPergi == null
-                                    ? 'Pilih tanggal'
-                                    : DateFormat('EEE, dd MMM yy', 'id_ID').format(_selectedTanggalPergi!), // Format EEE, dd MMM yyyy
-                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(12.0),
+                                    decoration: BoxDecoration(
+                                      color: textSecondary.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: const Icon(
+                                      Icons.location_on,
+                                      color: textSecondary,
+                                      size: 16,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  const Text(
+                                    'Pilih Rute Perjalanan',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: textPrimary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 20),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      children: [
+                                        _buildStasiunField(
+                                          label: 'Stasiun Keberangkatan',
+                                          stasiun: _stasiunAsal,
+                                          icon: Icons.radio_button_checked,
+                                          onTap: () => _pilihStasiunUntuk(true),
+                                        ),
+                                        Container(
+                                          margin: const EdgeInsets.symmetric(
+                                              vertical: 8),
+                                          height: 1,
+                                          color: dividerColor,
+                                        ),
+                                        _buildStasiunField(
+                                          label: 'Stasiun Tujuan',
+                                          stasiun: _stasiunTujuan,
+                                          icon: Icons.location_on,
+                                          onTap: () =>
+                                              _pilihStasiunUntuk(false),
+                                          isDestination: true,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      color: accentBlue.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: IconButton(
+                                      icon: const Icon(
+                                        Icons.swap_vert,
+                                        color: accentBlue,
+                                        size: 24,
+                                      ),
+                                      onPressed: _swapLokasi,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
                         ),
                       ),
-                      Column(
-                        children: [
-                          const Text('Pulang Pergi', style: TextStyle(fontSize: 11)),
-                          Switch(
-                            value: _isPulangPergi,
-                            onChanged: (value) {
-                              setState(() {
-                                _isPulangPergi = value;
-                                if (_isPulangPergi) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('Fitur Pulang Pergi belum diimplementasikan sepenuhnya.')));
-                                }
-                              });
-                            },
+                      const SizedBox(height: 16.0),
+
+                      // Date Selection Card
+                      _buildEnhancedCard(
+                        child: InkWell(
+                          onTap: () => _pilihTanggal(context),
+                          borderRadius: BorderRadius.circular(16),
+                          child: Padding(
+                            padding: const EdgeInsets.all(20.0),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: primaryRed.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Icon(
+                                    Icons.calendar_month,
+                                    color: primaryRed,
+                                    size: 24,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'Tanggal Keberangkatan',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: textSecondary,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        _selectedTanggalPergi == null
+                                            ? 'Pilih tanggal perjalanan'
+                                            : DateFormat('EEEE, dd MMMM yyyy',
+                                                    'id_ID')
+                                                .format(_selectedTanggalPergi!),
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                          color: textPrimary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Column(
+                                  children: [
+                                    const Text(
+                                      'Pulang Pergi',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: textSecondary,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Switch(
+                                      value: _isPulangPergi,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          _isPulangPergi = value;
+                                          if (_isPulangPergi) {
+                                            _showErrorSnackBar(
+                                                'Fitur Pulang Pergi belum diimplementasikan sepenuhnya.');
+                                          }
+                                        });
+                                      },
+                                      activeColor: accentBlue,
+                                      materialTapTargetSize:
+                                          MaterialTapTargetSize.shrinkWrap,
+                                    ),
+                                  ],
+                                )
+                              ],
+                            ),
                           ),
-                        ],
-                      )
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16.0),
-              Card(
-                elevation: 1.5,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                child: InkWell(
-                  onTap: _showPassengerSelectionBottomSheet,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 16.0),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.person_outline, color: Colors.grey),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                        ),
+                      ),
+                      const SizedBox(height: 16.0),
+
+                      // Passenger Selection Card
+                      _buildEnhancedCard(
+                        child: InkWell(
+                          onTap: _showPassengerSelectionBottomSheet,
+                          borderRadius: BorderRadius.circular(16),
+                          child: Padding(
+                            padding: const EdgeInsets.all(20.0),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: accentBlue.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Icon(
+                                    Icons.people,
+                                    color: accentBlue,
+                                    size: 24,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'Jumlah Penumpang',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: textSecondary,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        penumpangDisplay,
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                          color: textPrimary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const Icon(
+                                  Icons.keyboard_arrow_down,
+                                  color: textSecondary,
+                                  size: 20,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      if (_jumlahBayi > 0) ...[
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: Colors.orange.withOpacity(0.3),
+                              width: 1,
+                            ),
+                          ),
+                          child: const Row(
                             children: [
-                              const Text('Penumpang', style: TextStyle(fontSize: 12, color: Colors.grey)),
-                              Text(penumpangDisplay,
-                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                              Icon(
+                                Icons.info_outline,
+                                color: Colors.orange,
+                                size: 16,
+                              ),
+                              SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Penumpang bayi tidak mendapatkan kursi sendiri.',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.orange,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                         ),
-                        const Icon(Icons.keyboard_arrow_down, color: Colors.grey),
                       ],
-                    ),
+
+                      const SizedBox(height: 32.0),
+
+                      // Search Button
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [accentBlue, lightBlue],
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: accentBlue.withOpacity(0.3),
+                              blurRadius: 12,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            minimumSize: const Size(double.infinity, 56),
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          onPressed: _cariTiket,
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.search,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                              SizedBox(width: 8),
+                              Text(
+                                'CARI TIKET KERETA',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
                   ),
                 ),
-              ),
-              if (_jumlahBayi > 0)
-                const Padding(
-                  padding: EdgeInsets.only(top: 8.0, left: 4.0),
-                  child: Text(
-                    'Penumpang bayi tidak mendapatkan kursi sendiri.',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                ),
-              const SizedBox(height: 32.0),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 50),
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-                ),
-                onPressed: _cariTiket,
-                child: const Text('CARI TIKET ANTAR KOTA',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              ),
-            ],
+              ]),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
