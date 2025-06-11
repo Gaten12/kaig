@@ -96,6 +96,8 @@ class _PembayaranScreenState extends State<PembayaranScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: const Color(0xFFC50000),
+        foregroundColor: Colors.white,
         title: const Text("Pesan Tiket"),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(4.0),
@@ -109,7 +111,21 @@ class _PembayaranScreenState extends State<PembayaranScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
-          const Text("3. Pembayaran Tiket", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+           Container(
+              padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 16.0),
+              decoration: BoxDecoration(
+                color: Colors.deepOrange,
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              child: const Text(
+                "3. Pembayaran Tiket",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
           const SizedBox(height: 16),
           _buildInfoKeretaCard(),
           const SizedBox(height: 16),
@@ -224,6 +240,7 @@ class _PembayaranScreenState extends State<PembayaranScreen> {
             children: [
               Checkbox(
                 value: _setujuSyaratDanKetentuan,
+                activeColor: const Color(0xFF0000CD),
                 onChanged: (value) {
                   setState(() {
                     _setujuSyaratDanKetentuan = value!;
@@ -250,7 +267,7 @@ class _PembayaranScreenState extends State<PembayaranScreen> {
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               minimumSize: const Size(double.infinity, 50),
-              backgroundColor: _setujuSyaratDanKetentuan && _metodePembayaranTerpilih != null ? Theme.of(context).primaryColor : Colors.grey,
+              backgroundColor: _setujuSyaratDanKetentuan && _metodePembayaranTerpilih != null ? const Color(0xFF0000CD) : Colors.grey,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
             ),
@@ -269,14 +286,16 @@ class _PembayaranScreenState extends State<PembayaranScreen> {
                 )),
               );
             } : null,
-            child: const Text("BAYAR SEKARANG", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            child: const Text(
+              "BAYAR SEKARANG", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)
+              ),
           ),
           const SizedBox(height: 8),
           OutlinedButton(
             style: OutlinedButton.styleFrom(
               minimumSize: const Size(double.infinity, 50),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-              side: BorderSide(color: Theme.of(context).primaryColor),
+              side: const BorderSide(color: Color(0xFF0000CD)),
+              foregroundColor: const Color(0xFF0000CD),
             ),
             onPressed: _tambahKeKeranjang,
             child: const Text("TAMBAH KE KERANJANG"),

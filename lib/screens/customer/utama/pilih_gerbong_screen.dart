@@ -96,7 +96,11 @@ class _PilihGerbongScreenState extends State<PilihGerbongScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Pilih Gerbong - ${widget.kelasDipilih.namaKelas}")),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFFC50000),
+        foregroundColor: Colors.white,
+        title: Text("Pilih Gerbong - ${widget.kelasDipilih.namaKelas}")
+        ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _gerbongTersediaUntukKelasIni.isEmpty

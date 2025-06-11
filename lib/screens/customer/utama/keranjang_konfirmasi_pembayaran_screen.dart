@@ -102,7 +102,11 @@ class _KeranjangKonfirmasiPembayaranScreenState
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Konfirmasi Pembayaran")),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFFC50000),
+        foregroundColor: Colors.white,
+        title: const Text("Konfirmasi Pembayaran")
+        ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
@@ -137,7 +141,8 @@ class _KeranjangKonfirmasiPembayaranScreenState
                         .titleLarge
                         ?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: Colors.orange),
+                        color:Color(0xFF0000CD)
+                        ),
                   ),
                 ],
               ),
@@ -150,6 +155,8 @@ class _KeranjangKonfirmasiPembayaranScreenState
         child: ElevatedButton(
           onPressed: _isLoading ? null : _prosesKonfirmasi,
           style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF0000CD), 
+              foregroundColor: Colors.white,
               minimumSize: const Size(double.infinity, 50)),
           child: const Text("KONFIRMASI PEMBAYARAN"),
         ),

@@ -27,7 +27,11 @@ class _KeranjangPembayaranScreenState extends State<KeranjangPembayaranScreen> {
     NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Ringkasan Checkout")),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFFC50000),
+        foregroundColor: Colors.white,
+        title: const Text("Ringkasan Checkout")
+        ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -121,7 +125,7 @@ class _KeranjangPembayaranScreenState extends State<KeranjangPembayaranScreen> {
                   style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Theme.of(context).primaryColor)),
+                      color: Color(0xFF0000CD))),
             ],
           ),
           const SizedBox(height: 12),
@@ -129,7 +133,7 @@ class _KeranjangPembayaranScreenState extends State<KeranjangPembayaranScreen> {
             style: ElevatedButton.styleFrom(
               minimumSize: const Size(double.infinity, 50),
               backgroundColor: _metodePembayaranTerpilih != null
-                  ? Theme.of(context).primaryColor
+                  ? const Color(0xFF0000CD) 
                   : Colors.grey,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(

@@ -28,6 +28,8 @@ class _PilihMetodePembayaranScreenState extends State<PilihMetodePembayaranScree
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: const Color(0xFFC50000),
+        foregroundColor: Colors.white,
         title: const Text("Pilih Metode Pembayaran"),
       ),
       body: StreamBuilder<List<MetodePembayaranModel>>(
@@ -75,8 +77,22 @@ class _PilihMetodePembayaranScreenState extends State<PilihMetodePembayaranScree
     }
 
     return Card(
+      // 1. Mengubah warna latar belakang Card menjadi merah tua
+      color: const Color.fromARGB(255, 157, 4, 4),
+      
+      // Opsional: Menambahkan bayangan agar lebih menonjol
+      elevation: 3,
+
       child: ListTile(
-        leading: Icon(iconData, color: Theme.of(context).primaryColor),
+        // 2. Mengubah warna ikon menjadi putih
+        iconColor: Colors.white,
+        
+        // 3. Mengubah warna teks (title dan subtitle) menjadi putih
+        textColor: Colors.white,
+
+        // Pastikan tidak ada warna yang di-set manual di dalam Icon lagi
+        leading: Icon(iconData), 
+        
         title: Text(metode.namaMetode),
         subtitle: Text("$subtitle • $nomorTersamar"),
         onTap: () {
@@ -88,16 +104,39 @@ class _PilihMetodePembayaranScreenState extends State<PilihMetodePembayaranScree
   }
 
   Widget _buildTambahMetodeButton() {
-    return ListTile(
-      leading: const Icon(Icons.add_circle_outline, color: Colors.blue),
-      title: const Text("Tambah metode pembayaran", style: TextStyle(color: Colors.blue)),
-      onTap: () async {
-        // Arahkan ke alur penambahan metode pembayaran
-        await Navigator.push(context, MaterialPageRoute(builder: (context) => const PilihTautkanPembayaranScreen()));
-        // Ketika kembali dari alur penambahan, state akan otomatis diperbarui oleh StreamBuilder
-      },
-    );
-  }
+  return Padding(
+    // Memberi sedikit jarak dari tepi layar
+    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+    child: SizedBox(
+      width: double.infinity, // Membuat tombol membentang selebar mungkin
+      child: ElevatedButton.icon(
+        icon: const Icon(Icons.add, color: Colors.white), // Ikon plus putih
+        label: const Text(
+          "Tambah metode pembayaran",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        onPressed: () async {
+          // Arahkan ke alur penambahan metode pembayaran
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const PilihTautkanPembayaranScreen(),
+            ),
+          );
+          // State akan otomatis diperbarui oleh StreamBuilder setelah kembali
+        },
+        style: ElevatedButton.styleFrom(
+          // Warna latar tombol biru solid seperti di gambar
+          backgroundColor: const Color(0xFF0A2AFF),
+          // Bentuk tombol menjadi kapsul (sudut sangat bulat)
+          shape: const StadiumBorder(),
+          // Padding di dalam tombol untuk membuatnya lebih tinggi
+          padding: const EdgeInsets.symmetric(vertical: 16),
+        ),
+      ),
+    ),
+  );
+}
 
   Widget _buildEmptyState() {
     return Center(

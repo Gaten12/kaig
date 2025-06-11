@@ -199,6 +199,8 @@ class _DataPenumpangScreenState extends State<DataPenumpangScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: const Color(0xFFC50000),
+        foregroundColor: Colors.white,
         title: const Text("Pesan Tiket"),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(4.0),
@@ -214,7 +216,21 @@ class _DataPenumpangScreenState extends State<DataPenumpangScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16.0),
           children: [
-            const Text("1. Data Penumpang", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 16.0),
+              decoration: BoxDecoration(
+                color: Colors.deepOrange,
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              child: const Text(
+                "1. Data Penumpang",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
             const SizedBox(height: 20.0),
             _buildDetailPemesananSection(),
             const SizedBox(height: 24.0),
@@ -223,7 +239,7 @@ class _DataPenumpangScreenState extends State<DataPenumpangScreen> {
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size(double.infinity, 50),
-                backgroundColor: Colors.blue,
+                backgroundColor: const Color(0xFF0000CD),
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(25)),

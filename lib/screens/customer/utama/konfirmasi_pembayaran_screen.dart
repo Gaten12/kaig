@@ -145,7 +145,11 @@ class _KonfirmasiPembayaranScreenState extends State<KonfirmasiPembayaranScreen>
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Konfirmasi Pembayaran")),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFFC50000),
+        foregroundColor: Colors.white,
+        title: const Text("Konfirmasi Pembayaran")
+        ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation(Colors.orange)))
           : ListView(
@@ -172,7 +176,7 @@ class _KonfirmasiPembayaranScreenState extends State<KonfirmasiPembayaranScreen>
                   const Text("Total Pembayaran"),
                   Text(
                     currencyFormatter.format(widget.totalBayar),
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: Colors.orange),
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: Color(0xFF0000CD)),
                   ),
                 ],
               ),
@@ -184,7 +188,10 @@ class _KonfirmasiPembayaranScreenState extends State<KonfirmasiPembayaranScreen>
         padding: const EdgeInsets.all(16.0),
         child: ElevatedButton(
           onPressed: _isLoading ? null : _prosesKonfirmasi,
-          style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 50)),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF0000CD),
+            minimumSize: const Size(double.infinity, 50)
+            ),
           child: const Text("KONFIRMASI PEMBAYARAN"),
         ),
       ),
