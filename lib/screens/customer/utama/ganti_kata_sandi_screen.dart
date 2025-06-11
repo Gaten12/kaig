@@ -34,7 +34,7 @@ class _GantiKataSandiScreenState extends State<GantiKataSandiScreen> {
 
     if (_kataSandiBaruController.text != _konfirmasiSandiBaruController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Kata sandi baru dan konfirmasi tidak cocok."), backgroundColor: Colors.red),
+        const SnackBar(content: Text("Kata sandi baru dan konfirmasi tidak cocok."), backgroundColor: const Color(0xFFC50000)),
       );
       return;
     }
@@ -98,7 +98,7 @@ class _GantiKataSandiScreenState extends State<GantiKataSandiScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Ganti Kata Sandi"),
-        backgroundColor: Colors.red.shade800,
+        backgroundColor: const Color(0xFFC50000),
         foregroundColor: Colors.white,
       ),
       body: ListView(
@@ -184,7 +184,7 @@ class _GantiKataSandiScreenState extends State<GantiKataSandiScreen> {
                       onPressed: _gantiKataSandi,
                       style: ElevatedButton.styleFrom(
                           minimumSize: const Size(double.infinity, 50),
-                          backgroundColor: Colors.blue,
+                          backgroundColor: const Color(0xFF304FFE),
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
                       ),

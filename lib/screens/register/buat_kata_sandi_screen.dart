@@ -18,6 +18,8 @@ class _BuatKataSandiScreenState extends State<BuatKataSandiScreen> {
   final _ulangiKataSandiController = TextEditingController();
   final AuthService _authService = AuthService(); // Instance dari AuthService
   bool _isLoading = false;
+  bool _isKataSandiVisible = false;
+  bool _isUlangiKataSandiVisible = false;
 
   @override
   void dispose() {
@@ -78,24 +80,58 @@ class _BuatKataSandiScreenState extends State<BuatKataSandiScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Buat Kata Sandi')),
-      body: Padding(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: const Text(
+          'Buat Kata Sandi',
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: const Color(0xFFC50000), // Warna merah gelap seperti di gambar
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKeyKataSandi,
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              Text('Email akan didaftarkan: ${widget.userData.email}', textAlign: TextAlign.center),
-              const SizedBox(height: 20),
+              const Text(
+                'Buat kata sandimu sekarang untuk melindungi akunmu. Untuk keamanan data kamu, jangan bagikan password ini ke siapa pun ya!',
+                textAlign: TextAlign.left,
+                style: TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 8),
+              // Teks email yang didaftarkan tidak dihapus
+              Text(
+                'Email yang akan didaftarkan: ${widget.userData.email}',
+                textAlign: TextAlign.left,
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black54),
+              ),
+              const SizedBox(height: 24),
               TextFormField(
                 controller: _kataSandiController,
-                decoration: const InputDecoration(
-                  labelText: 'Kata Sandi Baru',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.lock_outline),
+                decoration: InputDecoration(
+                  labelText: 'Kata Sandi',
+                  hintText: 'Masukkan Kata Sandi',
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.lock_outline),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _isKataSandiVisible ? Icons.visibility : Icons.visibility_off,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _isKataSandiVisible = !_isKataSandiVisible;
+                      });
+                    },
+                  ),
                 ),
-                obscureText: true,
+                obscureText: !_isKataSandiVisible,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Kata Sandi tidak boleh kosong';
@@ -106,15 +142,26 @@ class _BuatKataSandiScreenState extends State<BuatKataSandiScreen> {
                   return null;
                 },
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _ulangiKataSandiController,
-                decoration: const InputDecoration(
-                  labelText: 'Ulangi Kata Sandi Baru',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.lock_outline),
+                decoration: InputDecoration(
+                  labelText: 'Ulangi Kata Sandi',
+                  hintText: 'Masukkan Ulang Kata Sandi',
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.lock_outline),
+                   suffixIcon: IconButton(
+                    icon: Icon(
+                      _isUlangiKataSandiVisible ? Icons.visibility : Icons.visibility_off,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _isUlangiKataSandiVisible = !_isUlangiKataSandiVisible;
+                      });
+                    },
+                  ),
                 ),
-                obscureText: true,
+                obscureText: !_isUlangiKataSandiVisible,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Ulangi Kata Sandi tidak boleh kosong';
@@ -125,16 +172,21 @@ class _BuatKataSandiScreenState extends State<BuatKataSandiScreen> {
                   return null;
                 },
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 40),
               if (_isLoading)
-                const CircularProgressIndicator()
+                const Center(child: CircularProgressIndicator())
               else
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size(double.infinity, 50),
+                    backgroundColor: const Color(0xFF304FFE), // Warna biru gelap seperti di gambar
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                   onPressed: _daftar,
-                  child: const Text('DAFTAR AKUN'),
+                  child: const Text('Simpan Kata Sandi', style: TextStyle(fontSize: 16)),
                 ),
             ],
           ),

@@ -35,121 +35,202 @@ class _ListPenumpangScreenState extends State<ListPenumpangScreen> {
     }
   }
 
+   void _navigateAndRefresh() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const FormPenumpangScreen()),
+    ).then((result) {
+      if (result == true) {
+        _refreshData();
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white, // Latar belakang putih
       appBar: AppBar(
-        title: Text(widget.isSelectionMode ? "Pilih Penumpang" : "Daftar Penumpang"),
+        backgroundColor: const Color(0xFFC50000), // Warna merah
+        elevation: 0,
+        centerTitle: false,
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: Text(
+          widget.isSelectionMode ? "Pilih Penumpang" : "Daftar Penumpang",
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
       ),
       body: StreamBuilder<List<PassengerModel>>(
         stream: _penumpangStream,
         builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Center(child: Text("Error: ${snapshot.error}"));
-          }
+          //
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
+          if (snapshot.hasError) {
+            return Center(child: Text("Error: ${snapshot.error}"));
+          }
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            // Jika dalam mode pemilihan, tetap tampilkan tombol Tambah Penumpang Baru
-            return _buildEmptyState(context, isSelectionMode: widget.isSelectionMode);
+            return _buildEmptyState(context);
           }
 
           final penumpangList = snapshot.data!;
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(8.0),
-            itemCount: penumpangList.length,
-            itemBuilder: (context, index) {
-              final penumpang = penumpangList[index];
-              return Card(
-                margin: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 8.0),
-                child: ListTile(
-                  leading: CircleAvatar(
-                    child: Text(penumpang.namaLengkap.isNotEmpty ? penumpang.namaLengkap[0].toUpperCase() : "?"),
-                  ),
-                  title: Text(penumpang.namaLengkap, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: Text("${penumpang.tipeId} - ${penumpang.nomorId}\n${penumpang.tipePenumpang}"),
-                  isThreeLine: true,
-                  trailing: widget.isSelectionMode
-                      ? null // Tidak ada trailing jika mode pemilihan
-                      : const Icon(Icons.arrow_forward_ios, size: 16),
-                  onTap: () {
-                    if (widget.isSelectionMode) {
-                      // Jika mode pemilihan, kembalikan data penumpang yang dipilih
-                      Navigator.pop(context, penumpang);
-                    } else {
-                      // Jika mode manajemen, buka form edit
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => FormPenumpangScreen(penumpangToEdit: penumpang),
+          // Tampilan ketika ada daftar penumpang
+          return Column(
+            children: [
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  itemCount: penumpangList.length,
+                  itemBuilder: (context, index) {
+                    final penumpang = penumpangList[index];
+                    return GestureDetector(
+                      onTap: () {
+                        if (widget.isSelectionMode) {
+                          Navigator.pop(context, penumpang);
+                        } else {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => FormPenumpangScreen(penumpangToEdit: penumpang),
+                            ),
+                          ).then((result) {
+                            if (result == true) _refreshData();
+                          });
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 16.0),
+                        decoration: const BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(color: Color(0xFFE0E0E0), width: 1),
+                          ),
                         ),
-                      ).then((result) {
-                        // Refresh data jika ada perubahan (saat kembali dari form)
-                        if (result == true) _refreshData();
-                      });
-                    }
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                                backgroundColor: const Color(0xFFC50000), // Warna merah
+                                foregroundColor: Colors.white,
+                                child: Text(
+                                  // Cek apakah namaLengkap tidak kosong, jika ya, ambil huruf pertama
+                                  // Jika kosong, tampilkan "?" sebagai default
+                                  penumpang.namaLengkap.isNotEmpty
+                                      ? penumpang.namaLengkap[0].toUpperCase()
+                                      : '?',
+                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Dewasa", // Anda bisa mengganti dengan `penumpang.tipePenumpang` jika ada
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                                  Text(
+                                    penumpang.namaLengkap,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+                          ],
+                        ),
+                      ),
+                    );
                   },
                 ),
-              );
-            },
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _navigateAndRefresh,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF0000CD), // Warna biru
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text(
+                      "Tambah Penumpang",
+                      style: TextStyle(fontSize: 16, color: Colors.white),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           );
         },
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const FormPenumpangScreen()),
-          ).then((result) {
-            // Refresh data jika ada perubahan (saat kembali dari form)
-            if (result == true) _refreshData();
-          });
-        },
-        icon: const Icon(Icons.add),
-        label: const Text("Tambah Penumpang"),
-      ),
+    //
     );
   }
 
-  Widget _buildEmptyState(BuildContext context, {bool isSelectionMode = false}) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (!isSelectionMode) ...[ // Tampilkan ikon dan teks hanya jika bukan mode pemilihan
-              Icon(Icons.people_outline, size: 80, color: Colors.grey.shade400),
-              const SizedBox(height: 16),
-              Text(
-                "Belum Ada Penumpang Tersimpan",
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.grey.shade700),
-                textAlign: TextAlign.center,
+  // Widget untuk tampilan saat daftar penumpang kosong
+  Widget _buildEmptyState(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Spacer(),
+          const Icon(
+            Icons.assignment, // Icon sesuai gambar
+            size: 100,
+            color: Color(0xFF0000CD), // Warna biru
+          ),
+          const SizedBox(height: 24),
+          Text(
+            "Belum Ada Penumpang Tersimpan",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey.shade800,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            "Anda dapat menambahkan daftar penumpang untuk mempermudah saat pemesanan tiket",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey.shade600,
+            ),
+          ),
+          const Spacer(),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16.0),
+            child: ElevatedButton(
+              onPressed: _navigateAndRefresh,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF0000CD), // Warna biru
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
-              const SizedBox(height: 8),
-              Text(
-                "Anda dapat menambahkan daftar penumpang untuk mempermudah saat pemesanan tiket.",
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade600),
-                textAlign: TextAlign.center,
+              child: const Text(
+                "Tambah Penumpang",
+                style: TextStyle(fontSize: 16, color: Colors.white),
               ),
-              const SizedBox(height: 24),
-            ] else ...[
-              Text(
-                "Tidak ada penumpang tersimpan.",
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade600),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                "Tekan tombol di bawah untuk menambahkan penumpang baru.",
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey.shade600),
-                textAlign: TextAlign.center,
-              ),
-            ]
-          ],
-        ),
+            ),
+          ),
+        ],
       ),
     );
   }

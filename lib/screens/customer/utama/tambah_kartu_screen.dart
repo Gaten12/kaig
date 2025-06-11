@@ -42,7 +42,7 @@ class _TambahKartuScreenState extends State<TambahKartuScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text("Tambah Kartu ${widget.namaBank}"),
-        backgroundColor: Colors.red.shade800,
+        backgroundColor: const Color(0xFFC50000),
         foregroundColor: Colors.white,
       ),
       body: Form(
@@ -72,7 +72,7 @@ class _TambahKartuScreenState extends State<TambahKartuScreen> {
               onPressed: _simpan,
               style: ElevatedButton.styleFrom(
                   minimumSize: const Size(double.infinity, 50),
-                  backgroundColor: Colors.blue
+                  backgroundColor: const Color(0xFF0000CD)
               ),
               child: const Text("Tambah Kartu Baru", style: TextStyle(color: Colors.white)),
             )

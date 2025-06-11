@@ -103,7 +103,7 @@ class _InformasiDataDiriScreenState extends State<InformasiDataDiriScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Informasi Data Diri"),
-        backgroundColor: Colors.red.shade800,
+        backgroundColor: const Color(0xFFC50000),
         foregroundColor: Colors.white,
       ),
       body: _isLoading

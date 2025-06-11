@@ -44,7 +44,7 @@ class _KonfirmasiPasswordScreenState extends State<KonfirmasiPasswordScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Masukkan Kata Sandi"),
-        backgroundColor: Colors.red.shade800,
+        backgroundColor: const Color(0xFFC50000),
         foregroundColor: Colors.white,
       ),
       body: Padding(
@@ -53,7 +53,10 @@ class _KonfirmasiPasswordScreenState extends State<KonfirmasiPasswordScreen> {
           key: _formKey,
           child: Column(
             children: [
-              const Text("Masukkan kata sandi email lamamu untuk melanjutkan."),
+              const Align(
+                alignment: Alignment.centerLeft, 
+                child: Text("Masukkan kata sandi email lamamu untuk melanjutkan."),
+              ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _passwordController,
@@ -70,7 +73,9 @@ class _KonfirmasiPasswordScreenState extends State<KonfirmasiPasswordScreen> {
                   ? const CircularProgressIndicator()
                   : ElevatedButton(
                 onPressed: _konfirmasi,
-                style: ElevatedButton.styleFrom(minimumSize: const Size(double.infinity, 50)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF304FFE),
+                  minimumSize: const Size(double.infinity, 50)),
                 child: const Text("LANJUTKAN"),
               )
             ],

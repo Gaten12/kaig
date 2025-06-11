@@ -1,4 +1,4 @@
-package com.CPD.kaig.kaig
+package com.CPD.kaig
 
 import io.flutter.embedding.android.FlutterActivity
 
