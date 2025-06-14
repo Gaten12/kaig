@@ -192,6 +192,8 @@ class _DaftarAkunScreenState extends State<DaftarAkunScreen> {
                         labelText: 'Tipe ID',
                         border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.badge_outlined),
+                        // PERBAIKAN: Mengurangi padding internal untuk memberi ruang
+                        contentPadding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 8.0),
                       ),
                       value: _selectedTipeId,
                       hint: const Text('Pilih Tipe'),
@@ -207,7 +209,7 @@ class _DaftarAkunScreenState extends State<DaftarAkunScreen> {
                         });
                       },
                       validator: (value) =>
-                          value == null ? 'Pilih tipe ID' : null,
+                      value == null ? 'Pilih tipe ID' : null,
                     ),
                   ),
                   const SizedBox(width: 8.0),
