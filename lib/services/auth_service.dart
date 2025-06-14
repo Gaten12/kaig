@@ -68,6 +68,17 @@ class AuthService {
     }
   }
 
+  Future<bool> cekEmailTerdaftar(String email) async {
+    try {
+      final list = await _firebaseAuth.fetchSignInMethodsForEmail(email);
+
+      return list.isNotEmpty;
+    } catch (e) {
+      print("Error saat cek email: $e");
+      return false;
+    }
+  }
+
   Future<UserCredential> signInWithEmailPassword(String email, String password) async {
     try {
       return await _firebaseAuth.signInWithEmailAndPassword(email: email, password: password);
@@ -155,7 +166,6 @@ class AuthService {
     return _passengersCollection(uid).doc(passengerId).delete();
   }
 
-  // --- FUNGSI-FUNGSI BARU UNTUK KELOLA PROFIL ---
 
   Future<bool> verifikasiPassword(String password) async {
     try {
