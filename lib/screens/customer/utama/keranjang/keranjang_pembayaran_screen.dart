@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:kaig/models/keranjang_model.dart';
 import 'package:kaig/models/metode_pembayaran_model.dart';
-import 'package:kaig/screens/customer/utama/keranjang_konfirmasi_pembayaran_screen.dart';
-import 'package:kaig/screens/customer/utama/pilih_metode_pembayaran_screen.dart';
+
+import '../pembayaran/pilih_metode_pembayaran_screen.dart';
+import 'keranjang_konfirmasi_pembayaran_screen.dart';
 
 class KeranjangPembayaranScreen extends StatefulWidget {
   final List<KeranjangModel> itemsToCheckout;

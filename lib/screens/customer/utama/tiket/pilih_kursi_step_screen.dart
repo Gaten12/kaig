@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:kaig/models/JadwalModel.dart';
 import 'package:kaig/models/jadwal_kelas_info_model.dart';
-import 'package:kaig/screens/customer/utama/DataPenumpangScreen.dart';
-import 'package:kaig/screens/customer/utama/pembayaran_screen.dart';
-import 'package:kaig/screens/customer/utama/pilih_gerbong_screen.dart';
+import 'package:kaig/screens/customer/utama/pembayaran/pembayaran_screen.dart';
+import 'package:kaig/screens/customer/utama/tiket/pilih_gerbong_screen.dart';
+
+import 'DataPenumpangScreen.dart';
+
 
 class PilihKursiStepScreen extends StatefulWidget {
   final JadwalModel jadwalDipesan;

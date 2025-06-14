@@ -3,8 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'package:kaig/models/transaksi_model.dart';
 import 'package:kaig/services/transaksi_service.dart';
+import '../tiket/e_tiket_screen.dart';
 import 'detail_riwayat_screen.dart';
-import 'e_tiket_screen.dart';
 
 class TiketSayaScreen extends StatefulWidget {
   const TiketSayaScreen({super.key});

@@ -7,9 +7,9 @@ import 'package:kaig/models/JadwalModel.dart';
 import 'package:kaig/models/jadwal_kelas_info_model.dart';
 import 'package:kaig/models/metode_pembayaran_model.dart';
 import 'package:kaig/models/transaksi_model.dart';
-import 'package:kaig/screens/customer/utama/DataPenumpangScreen.dart';
 import 'package:kaig/services/transaksi_service.dart';
-import 'home_screen.dart';
+import '../home_screen.dart';
+import '../tiket/DataPenumpangScreen.dart';
 
 class KonfirmasiPembayaranScreen extends StatefulWidget {
   final JadwalModel jadwalDipesan;

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:kaig/screens/customer/utama/pilih_jenis_pembayaran_screen.dart';
+import 'package:kaig/screens/customer/utama/pembayaran/pilih_jenis_pembayaran_screen.dart';
 import 'package:kaig/models/metode_pembayaran_model.dart';
 
 class PilihTautkanPembayaranScreen extends StatelessWidget {

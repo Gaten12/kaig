@@ -3,7 +3,7 @@ import '../../../models/jadwal_kelas_info_model.dart';
 import '../models/gerbong_tipe_model.dart';
 import '../models/kursi_model.dart';
 import '../screens/admin/services/admin_firestore_service.dart';
-import '../screens/customer/utama/DataPenumpangScreen.dart';
+import '../screens/customer/utama/tiket/DataPenumpangScreen.dart';
 
 class PilihKursiLayoutScreen extends StatefulWidget {
   final String jadwalId;

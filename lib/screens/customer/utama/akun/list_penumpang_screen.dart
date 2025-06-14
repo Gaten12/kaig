@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../models/passenger_model.dart'; // Pastikan path ini benar
-import '../../../../services/auth_service.dart'; // Untuk mengambil daftar penumpang
-import '../form_penumpang_screen.dart';
+import '../keranjang/auth_service.dart';
+import '../tiket/form_penumpang_screen.dart'; // Untuk mengambil daftar penumpang
+
 
 class ListPenumpangScreen extends StatefulWidget {
   // Tambahkan parameter untuk membedakan mode manajemen dan mode pemilihan

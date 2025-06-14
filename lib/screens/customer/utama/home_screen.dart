@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:kaig/screens/customer/utama/keranjang_screen.dart';
-import 'package:kaig/screens/customer/utama/promo_screen.dart';
-import 'package:kaig/screens/customer/utama/tiket_saya_screen.dart';
+import 'package:kaig/screens/customer/utama/promo/promo_screen.dart';
+import 'package:kaig/screens/customer/utama/riwayat/tiket_saya_screen.dart';
 import '../../../models/passenger_model.dart';
-import '../../../services/auth_service.dart';
-import 'PesanTiketScreen.dart';
+import 'keranjang/auth_service.dart';
+import 'tiket/PesanTiketScreen.dart';
 import 'akun/account_screen.dart';
+import 'keranjang/keranjang_screen.dart';
 
 class BerandaContent extends StatelessWidget {
   final Function(int) onNavigateToTab; // Tambahkan callback function

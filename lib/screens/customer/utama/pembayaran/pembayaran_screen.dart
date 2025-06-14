@@ -6,11 +6,12 @@ import 'package:kaig/models/JadwalModel.dart';
 import 'package:kaig/models/jadwal_kelas_info_model.dart';
 import 'package:kaig/models/keranjang_model.dart';
 import 'package:kaig/models/metode_pembayaran_model.dart';
-import 'package:kaig/screens/customer/utama/DataPenumpangScreen.dart';
 import 'package:kaig/screens/customer/utama/home_screen.dart';
-import 'package:kaig/screens/customer/utama/konfirmasi_pembayaran_screen.dart';
-import 'package:kaig/screens/customer/utama/pilih_metode_pembayaran_screen.dart';
+import 'package:kaig/screens/customer/utama/pembayaran/konfirmasi_pembayaran_screen.dart';
+import 'package:kaig/screens/customer/utama/pembayaran/pilih_metode_pembayaran_screen.dart';
 import 'package:kaig/services/keranjang_service.dart';
+
+import '../tiket/DataPenumpangScreen.dart';
 
 class PembayaranScreen extends StatefulWidget {
   final JadwalModel jadwalDipesan;

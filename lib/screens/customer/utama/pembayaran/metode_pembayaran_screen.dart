@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:kaig/models/metode_pembayaran_model.dart';
-import 'package:kaig/screens/customer/utama/pilih_tautkan_pembayaran_screen.dart';
+import 'package:kaig/screens/customer/utama/pembayaran/pilih_tautkan_pembayaran_screen.dart';
 import 'package:kaig/services/metode_pembayaran_service.dart';
 
 class MetodePembayaranScreen extends StatefulWidget {

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:kaig/screens/customer/utama/akun/tentang_aplikasi.dart';
-import 'package:kaig/screens/customer/utama/riwayat_transaksi_screen.dart';
+import 'package:kaig/screens/customer/utama/riwayat/riwayat_transaksi_screen.dart';
 import 'package:flutter/cupertino.dart';
 import '../../../../models/passenger_model.dart';
-import '../../../../services/auth_service.dart'; // Pastikan path ini benar
+import '../keranjang/auth_service.dart'; // Pastikan path ini benar
 import '../../../login/login_screen.dart'; // Halaman login
-import '../metode_pembayaran_screen.dart';
+import '../pembayaran/metode_pembayaran_screen.dart';
 import 'ganti_kata_sandi_screen.dart';
 import 'informasi_data_diri_screen.dart';
 import 'list_penumpang_screen.dart'; // Halaman daftar penumpang

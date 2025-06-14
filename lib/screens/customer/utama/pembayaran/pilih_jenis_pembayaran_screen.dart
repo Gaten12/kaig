@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:kaig/models/metode_pembayaran_model.dart';
-import 'package:kaig/screens/customer/utama/tambah_ewallet_screen.dart';
-import 'package:kaig/screens/customer/utama/tambah_kartu_screen.dart';
+import 'package:kaig/screens/customer/utama/pembayaran/tambah_ewallet_screen.dart';
+import 'package:kaig/screens/customer/utama/pembayaran/tambah_kartu_screen.dart';
 
 class PilihJenisPembayaranScreen extends StatelessWidget {
   final TipeMetodePembayaran tipe;

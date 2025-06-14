@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kaig/models/transaksi_model.dart';
-import 'package:kaig/screens/customer/utama/detail_riwayat_screen.dart';
+import 'package:kaig/screens/customer/utama/riwayat/detail_riwayat_screen.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 class ETiketScreen extends StatelessWidget {

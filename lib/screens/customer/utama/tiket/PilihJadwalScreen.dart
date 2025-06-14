@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../../models/JadwalModel.dart';
-import '../../admin/services/admin_firestore_service.dart';
+import '../../../../models/JadwalModel.dart';
+import '../../../admin/services/admin_firestore_service.dart';
 import 'PilihKelasScreen.dart';
 
 class PilihJadwalScreen extends StatefulWidget {
