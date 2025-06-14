@@ -6,7 +6,7 @@ import 'package:kaig/screens/customer/utama/tiket_saya_screen.dart';
 import '../../../models/passenger_model.dart';
 import '../../../services/auth_service.dart';
 import 'PesanTiketScreen.dart';
-import 'account_screen.dart';
+import 'akun/account_screen.dart';
 
 class BerandaContent extends StatelessWidget {
   final Function(int) onNavigateToTab; // Tambahkan callback function

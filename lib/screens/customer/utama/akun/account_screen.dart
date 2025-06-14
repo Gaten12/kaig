@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:kaig/screens/customer/utama/akun/tentang_aplikasi.dart';
 import 'package:kaig/screens/customer/utama/riwayat_transaksi_screen.dart';
-import 'package:kaig/screens/customer/utama/tentang_aplikasi.dart';
 import 'package:flutter/cupertino.dart';
-import '../../../models/passenger_model.dart';
-import '../../../services/auth_service.dart'; // Pastikan path ini benar
-import '../../../screens/login/login_screen.dart'; // Halaman login
+import '../../../../models/passenger_model.dart';
+import '../../../../services/auth_service.dart'; // Pastikan path ini benar
+import '../../../login/login_screen.dart'; // Halaman login
+import '../metode_pembayaran_screen.dart';
 import 'ganti_kata_sandi_screen.dart';
 import 'informasi_data_diri_screen.dart';
-import 'list_penumpang_screen.dart';
-import 'metode_pembayaran_screen.dart'; // Halaman daftar penumpang
+import 'list_penumpang_screen.dart'; // Halaman daftar penumpang
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
