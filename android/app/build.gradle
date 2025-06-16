@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.CPD.kaig" // Pastikan ini unik untuk aplikasimu
+    namespace = "com.CPD.kaig"
     compileSdk 35
     ndkVersion = flutter.ndkVersion
 
@@ -22,7 +22,7 @@ android {
     defaultConfig {
         applicationId = "com.CPD.kaig"
         minSdkVersion 23
-        targetSdkVersion flutter.targetSdkVersion // <--- INI YANG BENAR
+        targetSdkVersion flutter.targetSdkVersion
         versionCode flutter.versionCode
         versionName flutter.versionName
         multiDexEnabled true
