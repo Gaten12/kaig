@@ -1,4 +1,3 @@
-// gaten12/kaig/kaig-604cabb618ed798f94355f460a3f7be65fa71320/lib/screens/admin/screens/sales_statistics_screen.dart
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
