@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:kaig/models/passenger_model.dart';
-import 'package:kaig/screens/customer/utama/keranjang/auth_service.dart';
+import 'package:kaig/services/auth_service.dart';
 
 class GantiInformasiPribadiScreen extends StatefulWidget {
   final PassengerModel passenger;
