@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kaig/models/passenger_model.dart';
-import 'package:kaig/screens/login/auth_service.dart';
+import 'package:kaig/services/auth_service.dart';
 
 class GantiNomorIdentitasScreen extends StatefulWidget {
   final PassengerModel passenger;

@@ -4,7 +4,7 @@ import 'package:kaig/models/JadwalModel.dart';
 import 'package:kaig/models/jadwal_kelas_info_model.dart';
 import 'package:kaig/models/user_model.dart';
 import 'package:kaig/models/passenger_model.dart';
-import 'package:kaig/screens/login/auth_service.dart';
+import 'package:kaig/services/auth_service.dart';
 import 'package:kaig/widgets/pilih_penumpang_bottom_sheet.dart';
 import 'pilih_kursi_step_screen.dart';
 

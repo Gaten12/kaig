@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:kaig/models/user_model.dart';
 import 'package:kaig/models/passenger_model.dart';
-import 'package:kaig/screens/login/auth_service.dart';
+import 'package:kaig/services/auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:kaig/screens/login/login_screen.dart';
 import 'package:intl/intl.dart';

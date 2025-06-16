@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:kaig/screens/login/auth_service.dart';
+import 'package:kaig/services/auth_service.dart';
 
 class KonfirmasiPasswordScreen extends StatefulWidget {
   final Future<void> Function() onPasswordConfirmed;
