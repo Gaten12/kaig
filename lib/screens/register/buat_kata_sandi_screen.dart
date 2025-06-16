@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/user_data_daftar.dart'; // Model untuk data pendaftaran
-import '../customer/utama/keranjang/auth_service.dart';  // Service untuk interaksi dengan Firebase Auth & Firestore
+import '../login/auth_service.dart';  // Service untuk interaksi dengan Firebase Auth & Firestore
 import '../login/login_screen.dart';       // Layar login email untuk navigasi setelah berhasil
 
 class BuatKataSandiScreen extends StatefulWidget {

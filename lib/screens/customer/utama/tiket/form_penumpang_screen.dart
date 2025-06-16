@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart'; // Untuk Timestamp
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../../models/passenger_model.dart';
-import '../keranjang/auth_service.dart';
+import '../../../login/auth_service.dart';
 
 class FormPenumpangScreen extends StatefulWidget {
   final PassengerModel? penumpangToEdit;

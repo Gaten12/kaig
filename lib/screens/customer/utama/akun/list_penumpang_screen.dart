@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../models/passenger_model.dart'; // Pastikan path ini benar
-import '../keranjang/auth_service.dart';
+import '../../../login/auth_service.dart';
 import '../tiket/form_penumpang_screen.dart'; // Untuk mengambil daftar penumpang
 
 
