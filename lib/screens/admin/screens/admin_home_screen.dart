@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../services/auth_service.dart';
+import '../../../../services/auth_service.dart';
 import '../../login/login_screen.dart';
 import 'list_gerbong_screen.dart';
 import 'list_jadwal_screen.dart';
@@ -140,18 +140,20 @@ class AdminHomeScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
-              Icon(icon, size: 60, color: Theme.of(context).primaryColor), // Ukuran ikon disesuaikan
-              const SizedBox(height: 12.0),
+              // MODIFICATION START
+              Icon(icon, size: 40, color: Theme.of(context).primaryColor), // Ukuran ikon disesuaikan
+              const SizedBox(height: 8.0), // Mengurangi tinggi SizedBox
               Text(
                 title,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                  fontSize: 25, // Ukuran font disesuaikan
+                  fontSize: 16, // Ukuran font disesuaikan
                   fontWeight: FontWeight.w600, // Sedikit lebih tebal
                 ),
                 overflow: TextOverflow.ellipsis,
                 maxLines: 2,
               ),
+              // MODIFICATION END
             ],
           ),
         ),
