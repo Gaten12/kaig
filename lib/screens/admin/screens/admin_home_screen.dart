@@ -1,64 +1,94 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../../services/auth_service.dart';
 import '../../login/login_screen.dart';
 import 'list_gerbong_screen.dart';
 import 'list_jadwal_screen.dart';
 import 'list_kereta_screen.dart';
 import 'list_stasiun_screen.dart';
+import 'sales_statistics_screen.dart';
 
-class AdminHomeScreen extends StatelessWidget {
+class AdminHomeScreen extends StatefulWidget {
   const AdminHomeScreen({super.key});
 
   @override
+  State<AdminHomeScreen> createState() => _AdminHomeScreenState();
+}
+
+class _AdminHomeScreenState extends State<AdminHomeScreen> {
+  final AuthService authService = AuthService();
+  String _adminName = "Admin";
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAdminName();
+  }
+
+  void _loadAdminName() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null && user.email != null) {
+      setState(() {
+        _adminName = user.email!.split('@')[0];
+      });
+    }
+  }
+
+  final List<Map<String, dynamic>> menuItems = [
+    {
+      "title": "Kelola Stasiun",
+      "icon": Icons.account_balance_outlined,
+      "onTap": (BuildContext context) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const ListStasiunScreen()),
+        );
+      },
+    },
+    {
+      "title": "Kelola Tipe Gerbong",
+      "icon": Icons.view_comfortable_outlined,
+      "onTap": (BuildContext context) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const ListGerbongScreen()),
+        );
+      },
+    },
+    {
+      "title": "Kelola Kereta",
+      "icon": Icons.train_outlined,
+      "onTap": (BuildContext context) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const ListKeretaScreen()),
+        );
+      },
+    },
+    {
+      "title": "Kelola Jadwal",
+      "icon": Icons.calendar_today_outlined,
+      "onTap": (BuildContext context) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const ListJadwalScreen()),
+        );
+      },
+    },
+    {
+      "title": "Statistik Penjualan",
+      "icon": Icons.analytics_outlined,
+      "onTap": (BuildContext context) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const SalesStatisticsScreen()),
+        );
+      },
+    },
+  ];
+
+  @override
   Widget build(BuildContext context) {
-    final AuthService authService = AuthService();
-
-    // Daftar item menu yang lebih terstruktur
-    final List<Map<String, dynamic>> menuItems = [
-      {
-        "title": "Kelola Stasiun",
-        "icon": Icons.account_balance_outlined,
-        "onTap": () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const ListStasiunScreen()),
-          );
-        },
-      },
-      {
-        "title": "Kelola Tipe Gerbong",
-        "icon": Icons.view_comfortable_outlined,
-        "onTap": () {
-          // Pastikan Anda sudah membuat ListGerbongScreen
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const ListGerbongScreen()),
-          );
-        },
-      },
-      {
-        "title": "Kelola Kereta",
-        "icon": Icons.train_outlined,
-        "onTap": () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const ListKeretaScreen()),
-          );
-        },
-      },
-      {
-        "title": "Kelola Jadwal",
-        "icon": Icons.calendar_today_outlined,
-        "onTap": () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const ListJadwalScreen()),
-          );
-        },
-      },
-      // Tambahkan menu admin lainnya di sini
-    ];
-
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 80,
@@ -71,7 +101,7 @@ class AdminHomeScreen extends StatelessWidget {
             fontWeight: FontWeight.w200,
           ),
         ),
-        iconTheme: const IconThemeData(color: Colors.white), // Untuk tombol back jika ada
+        iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
@@ -100,24 +130,49 @@ class AdminHomeScreen extends StatelessWidget {
           )
         ],
       ),
-      body: GridView.builder(
-        padding: const EdgeInsets.all(16.0),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2, // Menampilkan 2 item per baris
-          crossAxisSpacing: 16.0,
-          mainAxisSpacing: 16.0,
-          childAspectRatio: 1.1, // Rasio aspek item (lebar/tinggi)
-        ),
-        itemCount: menuItems.length,
-        itemBuilder: (context, index) {
-          final item = menuItems[index];
-          return _buildAdminMenuItem(
-            context,
-            title: item["title"],
-            icon: item["icon"],
-            onTap: item["onTap"],
-          );
-        },
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Text(
+              "Selamat Datang, $_adminName!",
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Colors.blueGrey,
+              ),
+            ),
+          ),
+          SizedBox(
+            height: 120,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              itemCount: menuItems.length,
+              itemBuilder: (context, index) {
+                final item = menuItems[index];
+                return Padding(
+                  padding: const EdgeInsets.only(right: 16.0),
+                  child: _buildAdminMenuItem(
+                    context,
+                    title: item["title"],
+                    icon: item["icon"],
+                    onTap: () => item["onTap"](context),
+                  ),
+                );
+              },
+            ),
+          ),
+          const Expanded(
+            child: Center(
+              child: Text(
+                "Area untuk statistik atau ringkasan lainnya",
+                style: TextStyle(fontSize: 16, color: Colors.grey),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -126,33 +181,36 @@ class AdminHomeScreen extends StatelessWidget {
       {required String title,
         required IconData icon,
         required VoidCallback onTap}) {
-    return Card(
-      elevation: 2.0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12.0),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12.0),
-        child: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              Icon(icon, size: 60, color: Theme.of(context).primaryColor), // Ukuran ikon disesuaikan
-              const SizedBox(height: 12.0),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 25, // Ukuran font disesuaikan
-                  fontWeight: FontWeight.w600, // Sedikit lebih tebal
+    return Container(
+      width: 120,
+      child: Card(
+        elevation: 2.0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.0),
+        ),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12.0),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                Icon(icon, size: 32, color: Theme.of(context).primaryColor),
+                const SizedBox(height: 4.0),
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
                 ),
-                overflow: TextOverflow.ellipsis,
-                maxLines: 2,
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
