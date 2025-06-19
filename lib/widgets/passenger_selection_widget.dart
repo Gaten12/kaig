@@ -79,16 +79,7 @@ class _PassengerSelectionWidgetState extends State<PassengerSelectionWidget> {
       canDecrementDewasa = _dewasaCount > 1; // Jika ada bayi, dewasa tidak boleh kurang dari 1
     } else {
       canDecrementDewasa = _dewasaCount > 1; // Jika tidak ada bayi, dewasa minimal 1 (agar tidak 0 total)
-      // Ubah ke _dewasaCount > 0 jika ingin bisa 0 dewasa (jika tidak ada bayi)
-      // Untuk aplikasi tiket, minimal 1 dewasa biasanya jadi aturan.
     }
-    // Jika ingin total penumpang minimal 1, dan dewasa bisa 0 jika ada bayi (tidak logis untuk tiket kereta)
-    // Atau kita set _dewasaCount > 0 (tidak boleh 0)
-    // Sesuai contoh sebelumnya, _dewasaCount tidak boleh kurang dari 1 jika _bayiCount > 0.
-    // Jika _bayiCount == 0, _dewasaCount juga tidak boleh kurang dari 1 (total penumpang tidak boleh 0).
-    // Maka, canDecrementDewasa = _dewasaCount > 1; sudah cukup,
-    // karena kondisi _dewasaCount == 1 dan _bayiCount > 0 akan ditangani oleh validasi tombol Selesai.
-    // Mari kita sederhanakan: dewasa bisa dikurangi hingga 1. Validasi lebih lanjut di tombol Selesai.
     canDecrementDewasa = _dewasaCount > 1; // Minimal dewasa adalah 1.
 
 
