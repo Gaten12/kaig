@@ -21,8 +21,10 @@ class _FormGerbongScreenState extends State<FormGerbongScreen> {
   KelasUtama? _selectedKelas;
   TipeLayoutGerbong? _selectedLayout;
 
-  // Opsi layout manual tidak lagi diperlukan jika menggunakan enum TipeLayoutGerbong
-  // final List<String> _layoutOptions = ['2-2', '3-2', '2-1', '1-1'];
+  // Definisi warna tema
+  static const Color _charcoalGray = Color(0xFF374151);
+  static const Color _pureWhite = Color(0xFFFFFFFF);
+  static const Color _electricBlue = Color(0xFF3B82F6);
 
   bool get _isEditing => widget.gerbongToEdit != null;
 
@@ -39,8 +41,6 @@ class _FormGerbongScreenState extends State<FormGerbongScreen> {
     } else {
       _subTipeController = TextEditingController();
       _jumlahKursiController = TextEditingController();
-      // _selectedKelas = KelasUtama.values.first; // Contoh inisialisasi default jika diperlukan
-      // _selectedLayout = TipeLayoutGerbong.values.first; // Contoh inisialisasi default
     }
   }
 
@@ -57,13 +57,19 @@ class _FormGerbongScreenState extends State<FormGerbongScreen> {
     // Validasi tambahan untuk dropdown jika belum dipilih
     if (_selectedKelas == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Harap pilih kelas utama.")),
+        SnackBar(
+          content: const Text("Harap pilih kelas utama.", style: TextStyle(color: _pureWhite)),
+          backgroundColor: _charcoalGray,
+        ),
       );
       return;
     }
     if (_selectedLayout == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Harap pilih tipe layout kursi.")),
+        SnackBar(
+          content: const Text("Harap pilih tipe layout kursi.", style: TextStyle(color: _pureWhite)),
+          backgroundColor: _charcoalGray,
+        ),
       );
       return;
     }
@@ -87,15 +93,22 @@ class _FormGerbongScreenState extends State<FormGerbongScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text(
-                  'Tipe Gerbong berhasil ${_isEditing ? "diperbarui" : "ditambahkan"}!')),
+            content: Text(
+              'Tipe Gerbong berhasil ${_isEditing ? "diperbarui" : "ditambahkan"}!',
+              style: const TextStyle(color: _pureWhite),
+            ),
+            backgroundColor: _electricBlue,
+          ),
         );
         Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal menyimpan tipe gerbong: $e')),
+          SnackBar(
+            content: Text('Gagal menyimpan tipe gerbong: $e', style: const TextStyle(color: _pureWhite)),
+            backgroundColor: Colors.red.shade600,
+          ),
         );
       }
     }
@@ -103,174 +116,245 @@ class _FormGerbongScreenState extends State<FormGerbongScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Definisikan BorderSide yang akan digunakan berulang kali
-    final BorderSide defaultBorderSide =
-    BorderSide(color: Colors.grey.shade400); // Warna abu-abu muda
-    final BorderSide focusedBorderSide = BorderSide(
-        color: Colors.blueGrey.shade700, width: 2.0); // Warna tema saat fokus
-    const BorderSide errorBorderSide =
-    BorderSide(color: Colors.red, width: 1.0); // Warna merah untuk error
+    // Definisikan BorderSide dengan warna tema baru
+    final BorderSide defaultBorderSide = BorderSide(color: _charcoalGray.withOpacity(0.3));
+    final BorderSide focusedBorderSide = const BorderSide(color: _electricBlue, width: 2.0);
+    const BorderSide errorBorderSide = BorderSide(color: Colors.red, width: 1.0);
 
     // Definisikan InputBorder untuk konsistensi
     final OutlineInputBorder defaultOutlineInputBorder = OutlineInputBorder(
       borderSide: defaultBorderSide,
-      borderRadius: BorderRadius.circular(8.0),
+      borderRadius: BorderRadius.circular(12.0),
     );
 
     final OutlineInputBorder focusedOutlineInputBorder = OutlineInputBorder(
       borderSide: focusedBorderSide,
-      borderRadius: BorderRadius.circular(8.0),
+      borderRadius: BorderRadius.circular(12.0),
     );
 
     final OutlineInputBorder errorOutlineInputBorder = OutlineInputBorder(
       borderSide: errorBorderSide,
-      borderRadius: BorderRadius.circular(8.0),
+      borderRadius: BorderRadius.circular(12.0),
     );
 
     final OutlineInputBorder focusedErrorOutlineInputBorder = OutlineInputBorder(
-      borderSide: errorBorderSide.copyWith(
-          width: 2.0), // Error dan fokus, sedikit lebih tebal
-      borderRadius: BorderRadius.circular(8.0),
+      borderSide: errorBorderSide.copyWith(width: 2.0),
+      borderRadius: BorderRadius.circular(12.0),
     );
 
     return Scaffold(
+      backgroundColor: _pureWhite,
       appBar: AppBar(
         toolbarHeight: 80,
-        backgroundColor: Colors.blueGrey,
+        backgroundColor: _charcoalGray,
+        elevation: 0,
         title: Text(
           _isEditing ? "Edit Tipe Gerbong" : "Tambah Tipe Gerbong Baru",
           style: const TextStyle(
-            color: Colors.white,
+            color: _pureWhite,
             fontSize: 24,
-            fontWeight: FontWeight.w200,
+            fontWeight: FontWeight.w600,
           ),
         ),
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: const IconThemeData(color: _pureWhite),
       ),
-      body: Center(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Card(
-              elevation: 4.0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      DropdownButtonFormField<KelasUtama>(
-                        value: _selectedKelas,
-                        decoration: InputDecoration(
-                          labelText: 'Pilih Kelas Utama',
-                          enabledBorder: defaultOutlineInputBorder,
-                          focusedBorder: focusedOutlineInputBorder,
-                          errorBorder: errorOutlineInputBorder,
-                          focusedErrorBorder: focusedErrorOutlineInputBorder,
-                          prefixIcon: Icon(Icons.star_outline,
-                              color: Colors.blueGrey.shade700),
-                        ),
-                        items: KelasUtama.values.map((KelasUtama kelas) {
-                          return DropdownMenuItem<KelasUtama>(
-                            value: kelas,
-                            child: Text(kelas.name[0].toUpperCase() +
-                                kelas.name.substring(1)),
-                          );
-                        }).toList(),
-                        onChanged: (value) =>
-                            setState(() => _selectedKelas = value),
-                        validator: (value) =>
-                        value == null ? 'Pilih kelas utama' : null,
-                      ),
-                      const SizedBox(height: 16.0),
-                      TextFormField(
-                        controller: _subTipeController,
-                        decoration: InputDecoration(
-                          labelText: 'Nama/Sub-Tipe (mis: New Generation)',
-                          enabledBorder: defaultOutlineInputBorder,
-                          focusedBorder: focusedOutlineInputBorder,
-                          errorBorder: errorOutlineInputBorder,
-                          focusedErrorBorder: focusedErrorOutlineInputBorder,
-                          prefixIcon: Icon(Icons.text_fields_outlined,
-                              color: Colors.blueGrey.shade700),
-                        ),
-                        validator: (value) => (value == null || value.isEmpty)
-                            ? 'Sub-tipe tidak boleh kosong'
-                            : null,
-                      ),
-                      const SizedBox(height: 16.0),
-                      DropdownButtonFormField<TipeLayoutGerbong>(
-                        value: _selectedLayout,
-                        decoration: InputDecoration(
-                          labelText: 'Tipe Layout Kursi',
-                          enabledBorder: defaultOutlineInputBorder,
-                          focusedBorder: focusedOutlineInputBorder,
-                          errorBorder: errorOutlineInputBorder,
-                          focusedErrorBorder: focusedErrorOutlineInputBorder,
-                          prefixIcon: Icon(Icons.grid_view_outlined,
-                              color: Colors.blueGrey.shade700),
-                        ),
-                        items: TipeLayoutGerbong.values
-                            .map((TipeLayoutGerbong layout) {
-                          return DropdownMenuItem<TipeLayoutGerbong>(
-                            value: layout,
-                            child: Text(layout.deskripsi),
-                          );
-                        }).toList(),
-                        onChanged: (value) =>
-                            setState(() => _selectedLayout = value),
-                        validator: (value) =>
-                        value == null ? 'Pilih tipe layout' : null,
-                      ),
-                      const SizedBox(height: 16.0),
-                      TextFormField(
-                        controller: _jumlahKursiController,
-                        decoration: InputDecoration(
-                          labelText: 'Jumlah Kursi',
-                          enabledBorder: defaultOutlineInputBorder,
-                          focusedBorder: focusedOutlineInputBorder,
-                          errorBorder: errorOutlineInputBorder,
-                          focusedErrorBorder: focusedErrorOutlineInputBorder,
-                          prefixIcon: Icon(Icons.event_seat_outlined,
-                              color: Colors.blueGrey.shade700),
-                        ),
-                        keyboardType: TextInputType.number,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly
-                        ],
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Jumlah kursi tidak boleh kosong';
-                          }
-                          if (int.tryParse(value) == null ||
-                              int.parse(value) <= 0) {
-                            return 'Masukkan jumlah kursi yang valid (lebih dari 0)';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 24.0),
-                      ElevatedButton(
-                        onPressed: _submitForm,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blueGrey,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12.0),
-                          minimumSize: const Size(double.infinity, 50),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8.0),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              _charcoalGray.withOpacity(0.05),
+              _pureWhite,
+            ],
+          ),
+        ),
+        child: Center(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Card(
+                elevation: 8.0,
+                shadowColor: _charcoalGray.withOpacity(0.2),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16.0),
+                ),
+                color: _pureWhite,
+                child: Padding(
+                  padding: const EdgeInsets.all(32.0),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        // Header dengan ikon
+                        Container(
+                          padding: const EdgeInsets.all(16.0),
+                          decoration: BoxDecoration(
+                            color: _electricBlue.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12.0),
+                          ),
+                          child: Icon(
+                            Icons.train_outlined,
+                            size: 48,
+                            color: _electricBlue,
                           ),
                         ),
-                        child: Text(
-                          _isEditing ? 'Simpan Perubahan' : 'Tambah Tipe Gerbong',
-                          style: const TextStyle(fontSize: 16),
+                        const SizedBox(height: 24.0),
+                        
+                        DropdownButtonFormField<KelasUtama>(
+                          value: _selectedKelas,
+                          decoration: InputDecoration(
+                            labelText: 'Pilih Kelas Utama',
+                            labelStyle: TextStyle(color: _charcoalGray.withOpacity(0.7)),
+                            enabledBorder: defaultOutlineInputBorder,
+                            focusedBorder: focusedOutlineInputBorder,
+                            errorBorder: errorOutlineInputBorder,
+                            focusedErrorBorder: focusedErrorOutlineInputBorder,
+                            prefixIcon: Icon(Icons.star_outline, color: _electricBlue),
+                            filled: true,
+                            fillColor: _charcoalGray.withOpacity(0.02),
+                          ),
+                          dropdownColor: _pureWhite,
+                          items: KelasUtama.values.map((KelasUtama kelas) {
+                            return DropdownMenuItem<KelasUtama>(
+                              value: kelas,
+                              child: Text(
+                                kelas.name[0].toUpperCase() + kelas.name.substring(1),
+                                style: const TextStyle(color: _charcoalGray),
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: (value) => setState(() => _selectedKelas = value),
+                          validator: (value) => value == null ? 'Pilih kelas utama' : null,
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 20.0),
+                        
+                        TextFormField(
+                          controller: _subTipeController,
+                          style: const TextStyle(color: _charcoalGray),
+                          decoration: InputDecoration(
+                            labelText: 'Nama/Sub-Tipe (mis: New Generation)',
+                            labelStyle: TextStyle(color: _charcoalGray.withOpacity(0.7)),
+                            enabledBorder: defaultOutlineInputBorder,
+                            focusedBorder: focusedOutlineInputBorder,
+                            errorBorder: errorOutlineInputBorder,
+                            focusedErrorBorder: focusedErrorOutlineInputBorder,
+                            prefixIcon: Icon(Icons.text_fields_outlined, color: _electricBlue),
+                            filled: true,
+                            fillColor: _charcoalGray.withOpacity(0.02),
+                          ),
+                          validator: (value) => (value == null || value.isEmpty)
+                              ? 'Sub-tipe tidak boleh kosong'
+                              : null,
+                        ),
+                        const SizedBox(height: 20.0),
+                        
+                        DropdownButtonFormField<TipeLayoutGerbong>(
+                          value: _selectedLayout,
+                          decoration: InputDecoration(
+                            labelText: 'Tipe Layout Kursi',
+                            labelStyle: TextStyle(color: _charcoalGray.withOpacity(0.7)),
+                            enabledBorder: defaultOutlineInputBorder,
+                            focusedBorder: focusedOutlineInputBorder,
+                            errorBorder: errorOutlineInputBorder,
+                            focusedErrorBorder: focusedErrorOutlineInputBorder,
+                            prefixIcon: Icon(Icons.grid_view_outlined, color: _electricBlue),
+                            filled: true,
+                            fillColor: _charcoalGray.withOpacity(0.02),
+                          ),
+                          dropdownColor: _pureWhite,
+                          items: TipeLayoutGerbong.values.map((TipeLayoutGerbong layout) {
+                            return DropdownMenuItem<TipeLayoutGerbong>(
+                              value: layout,
+                              child: Text(
+                                layout.deskripsi,
+                                style: const TextStyle(color: _charcoalGray),
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: (value) => setState(() => _selectedLayout = value),
+                          validator: (value) => value == null ? 'Pilih tipe layout' : null,
+                        ),
+                        const SizedBox(height: 20.0),
+                        
+                        TextFormField(
+                          controller: _jumlahKursiController,
+                          style: const TextStyle(color: _charcoalGray),
+                          decoration: InputDecoration(
+                            labelText: 'Jumlah Kursi',
+                            labelStyle: TextStyle(color: _charcoalGray.withOpacity(0.7)),
+                            enabledBorder: defaultOutlineInputBorder,
+                            focusedBorder: focusedOutlineInputBorder,
+                            errorBorder: errorOutlineInputBorder,
+                            focusedErrorBorder: focusedErrorOutlineInputBorder,
+                            prefixIcon: Icon(Icons.event_seat_outlined, color: _electricBlue),
+                            filled: true,
+                            fillColor: _charcoalGray.withOpacity(0.02),
+                          ),
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Jumlah kursi tidak boleh kosong';
+                            }
+                            if (int.tryParse(value) == null || int.parse(value) <= 0) {
+                              return 'Masukkan jumlah kursi yang valid (lebih dari 0)';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 32.0),
+                        
+                        Container(
+                          width: double.infinity,
+                          height: 56,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [_electricBlue, _electricBlue.withOpacity(0.8)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(12.0),
+                            boxShadow: [
+                              BoxShadow(
+                                color: _electricBlue.withOpacity(0.3),
+                                blurRadius: 8.0,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: ElevatedButton(
+                            onPressed: _submitForm,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              foregroundColor: _pureWhite,
+                              shadowColor: Colors.transparent,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12.0),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  _isEditing ? Icons.edit_outlined : Icons.add_circle_outline,
+                                  color: _pureWhite,
+                                ),
+                                const SizedBox(width: 8.0),
+                                Text(
+                                  _isEditing ? 'Simpan Perubahan' : 'Tambah Tipe Gerbong',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
