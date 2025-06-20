@@ -21,6 +21,11 @@ class _FormStasiunScreenState extends State<FormStasiunScreen> {
 
   bool get _isEditing => widget.stasiunToEdit != null;
 
+  // Color Constants
+  static const Color charcoalGray = Color(0xFF374151);
+  static const Color pureWhite = Color(0xFFFFFFFF);
+  static const Color electricBlue = Color(0xFF3B82F6);
+
   @override
   void initState() {
     super.initState();
@@ -63,15 +68,33 @@ class _FormStasiunScreenState extends State<FormStasiunScreen> {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-                content: Text(
-                    'Stasiun berhasil ${_isEditing ? "diperbarui" : "ditambahkan"}!')),
+              content: Text(
+                'Stasiun berhasil ${_isEditing ? "diperbarui" : "ditambahkan"}!',
+                style: const TextStyle(color: pureWhite),
+              ),
+              backgroundColor: electricBlue,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12.0),
+              ),
+            ),
           );
           Navigator.pop(context);
         }
       } catch (e) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Gagal menyimpan stasiun: $e')),
+            SnackBar(
+              content: Text(
+                'Gagal menyimpan stasiun: $e',
+                style: const TextStyle(color: pureWhite),
+              ),
+              backgroundColor: Colors.red.shade600,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12.0),
+              ),
+            ),
           );
         }
       }
@@ -80,75 +103,156 @@ class _FormStasiunScreenState extends State<FormStasiunScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Definisikan BorderSide yang akan digunakan berulang kali
-    final BorderSide defaultBorderSide =
-    BorderSide(color: Colors.grey.shade400); // Warna abu-abu muda
-    final BorderSide focusedBorderSide =
-    BorderSide(color: Colors.blueGrey.shade700, width: 2.0); // Warna tema saat fokus
-    const BorderSide errorBorderSide =
-    BorderSide(color: Colors.red, width: 1.0); // Warna merah untuk error
+    // Define BorderSide dengan color scheme baru
+    final BorderSide defaultBorderSide = BorderSide(
+      color: charcoalGray.withOpacity(0.3),
+      width: 1.5,
+    );
+    final BorderSide focusedBorderSide = BorderSide(
+      color: electricBlue,
+      width: 2.0,
+    );
+    const BorderSide errorBorderSide = BorderSide(
+      color: Colors.red,
+      width: 1.5,
+    );
 
-    // Definisikan InputBorder untuk konsistensi
+    // Define InputBorder untuk konsistensi
     final OutlineInputBorder defaultOutlineInputBorder = OutlineInputBorder(
       borderSide: defaultBorderSide,
-      borderRadius: BorderRadius.circular(8.0),
+      borderRadius: BorderRadius.circular(12.0),
     );
 
     final OutlineInputBorder focusedOutlineInputBorder = OutlineInputBorder(
       borderSide: focusedBorderSide,
-      borderRadius: BorderRadius.circular(8.0),
+      borderRadius: BorderRadius.circular(12.0),
     );
 
     final OutlineInputBorder errorOutlineInputBorder = OutlineInputBorder(
       borderSide: errorBorderSide,
-      borderRadius: BorderRadius.circular(8.0),
+      borderRadius: BorderRadius.circular(12.0),
     );
 
     final OutlineInputBorder focusedErrorOutlineInputBorder = OutlineInputBorder(
-      borderSide: errorBorderSide.copyWith(width: 2.0), // Error dan fokus, sedikit lebih tebal
-      borderRadius: BorderRadius.circular(8.0),
+      borderSide: errorBorderSide.copyWith(width: 2.0),
+      borderRadius: BorderRadius.circular(12.0),
     );
 
-
     return Scaffold(
+      backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
         toolbarHeight: 80,
-        backgroundColor: Colors.blueGrey,
+        backgroundColor: charcoalGray,
+        elevation: 0,
         title: Text(
           _isEditing ? "Edit Stasiun" : "Tambah Stasiun Baru",
           style: const TextStyle(
-            color: Colors.white,
+            color: pureWhite,
             fontSize: 24,
-            fontWeight: FontWeight.w200,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.5,
           ),
         ),
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: const IconThemeData(color: pureWhite, size: 28),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(20),
+          ),
+        ),
       ),
       body: Center(
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(20.0),
             child: Card(
-              elevation: 4.0,
+              elevation: 8.0,
+              shadowColor: charcoalGray.withOpacity(0.2),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0),
+                borderRadius: BorderRadius.circular(20.0),
               ),
+              color: pureWhite,
               child: Padding(
-                padding: const EdgeInsets.all(24.0),
+                padding: const EdgeInsets.all(32.0),
                 child: Form(
                   key: _formKey,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
+                      // Header Section
+                      Center(
+                        child: Column(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: electricBlue.withOpacity(0.1),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                _isEditing ? Icons.edit : Icons.add_location,
+                                size: 32,
+                                color: electricBlue,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              _isEditing ? 'Edit Data Stasiun' : 'Tambah Stasiun Baru',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w600,
+                                color: charcoalGray,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              _isEditing 
+                                ? 'Perbarui informasi stasiun kereta api'
+                                : 'Masukkan data stasiun kereta api baru',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: charcoalGray.withOpacity(0.7),
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      
+                      // Form Fields
                       TextFormField(
                         controller: _namaController,
+                        style: TextStyle(
+                          color: charcoalGray,
+                          fontSize: 16,
+                        ),
                         decoration: InputDecoration(
                           labelText: 'Nama Stasiun',
+                          labelStyle: TextStyle(
+                            color: charcoalGray.withOpacity(0.7),
+                            fontSize: 16,
+                          ),
+                          hintText: 'Contoh: Stasiun Gambir',
+                          hintStyle: TextStyle(
+                            color: charcoalGray.withOpacity(0.4),
+                          ),
                           enabledBorder: defaultOutlineInputBorder,
                           focusedBorder: focusedOutlineInputBorder,
                           errorBorder: errorOutlineInputBorder,
                           focusedErrorBorder: focusedErrorOutlineInputBorder,
-                          prefixIcon: Icon(Icons.business_outlined, color: Colors.blueGrey.shade700),
+                          prefixIcon: Icon(
+                            Icons.train,
+                            color: electricBlue,
+                            size: 24,
+                          ),
+                          filled: true,
+                          fillColor: Colors.grey.shade50,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 16,
+                          ),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -157,16 +261,41 @@ class _FormStasiunScreenState extends State<FormStasiunScreen> {
                           return null;
                         },
                       ),
-                      const SizedBox(height: 16.0),
+                      const SizedBox(height: 20.0),
+                      
                       TextFormField(
                         controller: _kodeController,
+                        style: TextStyle(
+                          color: charcoalGray,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 1.0,
+                        ),
                         decoration: InputDecoration(
-                          labelText: 'Kode Stasiun (Singkatan)',
+                          labelText: 'Kode Stasiun',
+                          labelStyle: TextStyle(
+                            color: charcoalGray.withOpacity(0.7),
+                            fontSize: 16,
+                          ),
+                          hintText: 'Contoh: GMR',
+                          hintStyle: TextStyle(
+                            color: charcoalGray.withOpacity(0.4),
+                          ),
                           enabledBorder: defaultOutlineInputBorder,
                           focusedBorder: focusedOutlineInputBorder,
                           errorBorder: errorOutlineInputBorder,
                           focusedErrorBorder: focusedErrorOutlineInputBorder,
-                          prefixIcon: Icon(Icons.code_outlined, color: Colors.blueGrey.shade700),
+                          prefixIcon: Icon(
+                            Icons.confirmation_number,
+                            color: electricBlue,
+                            size: 24,
+                          ),
+                          filled: true,
+                          fillColor: Colors.grey.shade50,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 16,
+                          ),
                         ),
                         textCapitalization: TextCapitalization.characters,
                         validator: (value) {
@@ -178,18 +307,40 @@ class _FormStasiunScreenState extends State<FormStasiunScreen> {
                           }
                           return null;
                         },
-                        // readOnly: _isEditing,
                       ),
-                      const SizedBox(height: 16.0),
+                      const SizedBox(height: 20.0),
+                      
                       TextFormField(
                         controller: _kotaController,
+                        style: TextStyle(
+                          color: charcoalGray,
+                          fontSize: 16,
+                        ),
                         decoration: InputDecoration(
                           labelText: 'Kota',
+                          labelStyle: TextStyle(
+                            color: charcoalGray.withOpacity(0.7),
+                            fontSize: 16,
+                          ),
+                          hintText: 'Contoh: Jakarta Pusat',
+                          hintStyle: TextStyle(
+                            color: charcoalGray.withOpacity(0.4),
+                          ),
                           enabledBorder: defaultOutlineInputBorder,
                           focusedBorder: focusedOutlineInputBorder,
                           errorBorder: errorOutlineInputBorder,
                           focusedErrorBorder: focusedErrorOutlineInputBorder,
-                          prefixIcon: Icon(Icons.location_city_outlined, color: Colors.blueGrey.shade700),
+                          prefixIcon: Icon(
+                            Icons.location_city,
+                            color: electricBlue,
+                            size: 24,
+                          ),
+                          filled: true,
+                          fillColor: Colors.grey.shade50,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 16,
+                          ),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -198,21 +349,56 @@ class _FormStasiunScreenState extends State<FormStasiunScreen> {
                           return null;
                         },
                       ),
-                      const SizedBox(height: 24.0),
-                      ElevatedButton(
-                        onPressed: _submitForm,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blueGrey,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12.0),
-                          minimumSize: const Size(double.infinity, 50),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8.0),
+                      const SizedBox(height: 32.0),
+                      
+                      // Submit Button
+                      Container(
+                        width: double.infinity,
+                        height: 56,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [electricBlue, electricBlue.withOpacity(0.8)],
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
                           ),
+                          borderRadius: BorderRadius.circular(12.0),
+                          boxShadow: [
+                            BoxShadow(
+                              color: electricBlue.withOpacity(0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
-                        child: Text(
-                          _isEditing ? 'Simpan Perubahan' : 'Tambah Stasiun',
-                          style: const TextStyle(fontSize: 16),
+                        child: ElevatedButton(
+                          onPressed: _submitForm,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12.0),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                _isEditing ? Icons.save : Icons.add,
+                                color: pureWhite,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                _isEditing ? 'Simpan Perubahan' : 'Tambah Stasiun',
+                                style: const TextStyle(
+                                  color: pureWhite,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ],
