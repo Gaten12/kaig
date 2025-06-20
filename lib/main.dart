@@ -1,18 +1,19 @@
-// lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'screens/customer/splash_screen.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:get/get.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('id_ID', null);
   await Firebase.initializeApp(
-
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  await dotenv.load(fileName: ".env");
   runApp(const MyApp());
 }
 
@@ -22,8 +23,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
-      title: 'Aplikasi KAI Clone', // Ganti judul
-      theme: ThemeData( // Tema yang sudah ada
+      title: 'Simulasi Train Order',
+      theme: ThemeData(
         primarySwatch: Colors.orange,
         inputDecorationTheme: const InputDecorationTheme(
           border: OutlineInputBorder(
@@ -44,8 +45,22 @@ class MyApp extends StatelessWidget {
             ),
           ),
         ),
+
+        colorScheme: ColorScheme.fromSwatch(
+          primarySwatch: Colors.red,
+        ).copyWith(
+          primaryContainer: Colors.blue.shade100,
+          onPrimaryContainer: Colors.blue.shade900,
+          surfaceVariant: Colors.grey.shade200,
+          onSurfaceVariant: Colors.black,
+          errorContainer: Colors.red.shade100,
+          onErrorContainer: Colors.red.shade900,
+          primary: Colors.orange,
+          secondary: Colors.grey,
+        ),
       ),
-      home: const SplashScreen(), // Mulai dari SplashScreen
+      home: const SplashScreen(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
