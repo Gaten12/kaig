@@ -1,33 +1,34 @@
-import 'package:cloud_functions/cloud_functions.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:google_generative_ai/google_generative_ai.dart';
 
-class GeminiCloudFunctionService {
-  final FirebaseFunctions _functions = FirebaseFunctions.instance;
+class GeminiService {
+  late final GenerativeModel _model;
+  late final ChatSession _chat;
+
+  GeminiService() {
+    final apiKey = dotenv.env['GEMINI_API_KEY'];
+    if (apiKey == null) {
+      throw Exception("GEMINI_API_KEY not found in .env file");
+    }
+
+    _model = GenerativeModel(
+      model: 'gemini-1.5-flash', // Anda bisa ganti model jika perlu
+      apiKey: apiKey,
+    );
+    _chat = _model.startChat();
+  }
 
   Future<String> sendMessage(String prompt) async {
     try {
-      final User? user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
-        throw Exception("User not logged in.");
-      }
+      final response = await _chat.sendMessage(Content.text(prompt));
+      final text = response.text;
 
-      final HttpsCallable callable = _functions.httpsCallable('chatWithGemini');
-      final HttpsCallableResult result = await callable.call({
-        'prompt': prompt,
-        'userId': user.uid,
-      });
-
-      if (result.data != null && result.data['text'] != null) {
-        return result.data['text'] as String;
-      } else {
-        throw Exception("Received invalid response from Cloud Function.");
+      if (text == null) {
+        throw Exception("Received null response from Gemini.");
       }
-    } on FirebaseFunctionsException catch (e) {
-      print('Firebase Functions Error: ${e.code} - ${e.message}');
-      // Melempar kembali error untuk ditangani oleh UI
-      throw Exception('Error from AI service: ${e.message}');
+      return text;
     } catch (e) {
-      print("Unexpected error sending message: $e");
+      print("Error sending message: $e");
       rethrow;
     }
   }

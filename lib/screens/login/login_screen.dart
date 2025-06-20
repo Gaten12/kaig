@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'password_screen.dart'; // Akan kita buat
-import '../register/daftar_akun_screen.dart'; // Untuk tombol "Daftar Sekarang"
+import 'password_screen.dart';
+import '../register/daftar_akun_screen.dart';
 
 class LoginEmailScreen extends StatefulWidget {
   @override
@@ -14,7 +14,6 @@ class _LoginEmailScreenState extends State<LoginEmailScreen> {
   void _submitEmail() {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      // Navigasi ke layar input password dengan membawa email
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -23,33 +22,28 @@ class _LoginEmailScreenState extends State<LoginEmailScreen> {
       );
     }
   }
-
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     return Scaffold(
-      // Menggunakan warna merah sebagai background utama
       backgroundColor: const Color(0xFFC50000),
       body: SingleChildScrollView(
         child: Stack(
           children: [
-            // === Bagian Atas (Latar Belakang Merah dengan Logo) ===
             Container(
               height: screenHeight,
               width: double.infinity,
               color: const Color(0xFFC50000),
             ),
             Positioned(
-              top: screenHeight * 0.15, // Posisi logo dari atas
+              top: screenHeight * 0.15,
               left: 0,
               right: 0,
               child: Image.asset(
-                'images/logo.png', // Pastikan path logo benar
-                height: 150, // Sesuaikan ukuran logo jika perlu
+                'images/logo.png',
+                height: 150,
               ),
             ),
-
-            // === Bagian Bawah (Form Putih dengan Sudut Melengkung) ===
             Positioned(
               left: 0,
               right: 0,
@@ -68,7 +62,6 @@ class _LoginEmailScreenState extends State<LoginEmailScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      // --- Judul ---
                       const Text(
                         'Selamat Datang di TrainOrder!',
                         style: TextStyle(
@@ -78,8 +71,6 @@ class _LoginEmailScreenState extends State<LoginEmailScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-
-                      // --- Sub-judul ---
                       RichText(
                         text: TextSpan(
                           style: TextStyle(
@@ -103,8 +94,6 @@ class _LoginEmailScreenState extends State<LoginEmailScreen> {
                         ),
                       ),
                       const SizedBox(height: 24),
-
-                      // --- Input Email ---
                       const Text(
                         'Email',
                         style: TextStyle(
@@ -131,7 +120,7 @@ class _LoginEmailScreenState extends State<LoginEmailScreen> {
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8.0),
                             borderSide: const BorderSide(
-                              color: Colors.blue, // Warna border saat di-fokus
+                              color: Colors.blue,
                             ),
                           ),
                           contentPadding:
@@ -150,15 +139,13 @@ class _LoginEmailScreenState extends State<LoginEmailScreen> {
                         onSaved: (value) => _email = value,
                       ),
                       const SizedBox(height: 24),
-
-                      // --- Tombol Masuk ---
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: _submitEmail,
                           style: ElevatedButton.styleFrom(
                             backgroundColor:
-                            const Color(0xFF304FFE), // Warna biru solid
+                            const Color(0xFF304FFE),
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8.0),
@@ -174,9 +161,7 @@ class _LoginEmailScreenState extends State<LoginEmailScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 40), // Spasi menuju link daftar
-
-                      // --- Link Daftar ---
+                      const SizedBox(height: 40),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [

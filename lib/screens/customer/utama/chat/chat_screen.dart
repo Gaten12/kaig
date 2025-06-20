@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
 import '../../../../models/chat_message.dart';
 import '../../../../services/gemini_cloud_function_service.dart';
 import '../../../../widgets/message_bubble.dart';
@@ -16,7 +15,7 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  final GeminiCloudFunctionService _geminiService = GeminiCloudFunctionService(); // Gunakan service baru
+  final GeminiService _geminiService = GeminiService();
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final List<ChatMessage> _messages = [];
