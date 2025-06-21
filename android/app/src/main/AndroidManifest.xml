@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.new.packagename">
+    package="com.CPD.kaig">
     <application
         android:label="Simulasi Train Order"
         android:name="${applicationName}"
