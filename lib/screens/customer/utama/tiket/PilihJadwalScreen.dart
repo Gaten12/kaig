@@ -211,7 +211,7 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
             gradient: LinearGradient(
               colors: [
                 Colors.transparent,
-                Colors.white.withOpacity(0.3),
+                Colors.white.withAlpha((255 * 0.3).round()),
                 Colors.transparent
               ],
             ),
@@ -228,7 +228,7 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withAlpha((255 * 0.05).round()),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -258,13 +258,13 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
                       border: Border.all(
                         color: isSelected
                             ? accentBlue
-                            : neutralGray.withOpacity(0.3),
+                            : neutralGray.withAlpha((255 * 0.3).round()),
                         width: 1.5,
                       ),
                       boxShadow: isSelected
                           ? [
                               BoxShadow(
-                                color: accentBlue.withOpacity(0.3),
+                                color: accentBlue.withAlpha((255 * 0.3).round()),
                                 blurRadius: 8,
                                 offset: const Offset(0, 2),
                               ),
@@ -321,7 +321,7 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: primaryRed.withOpacity(0.1),
+              color: primaryRed.withAlpha((255 * 0.1).round()),
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(
@@ -417,7 +417,7 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withAlpha((255 * 0.1).round()),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -452,7 +452,7 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: Colors.black.withAlpha((255 * 0.08).round()),
               blurRadius: 15,
               offset: const Offset(0, 5),
             ),
@@ -506,10 +506,10 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.red.withOpacity(0.2)),
+          border: Border.all(color: Colors.red.withAlpha((255 * 0.2).round())),
           boxShadow: [
             BoxShadow(
-              color: Colors.red.withOpacity(0.1),
+              color: Colors.red.withAlpha((255 * 0.1).round()),
               blurRadius: 15,
               offset: const Offset(0, 5),
             ),
@@ -554,7 +554,7 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
         color: Colors.white,
         borderRadius: BorderRadius.circular(16.0),
         elevation: 2,
-        shadowColor: Colors.black.withOpacity(0.1),
+        shadowColor: Colors.black.withAlpha((255 * 0.1).round()),
         child: InkWell(
           onTap: () {
             Navigator.push(
@@ -596,7 +596,7 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
         Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: primaryRed.withOpacity(0.1),
+            color: primaryRed.withAlpha((255 * 0.1).round()),
             borderRadius: BorderRadius.circular(12),
           ),
           child: const Icon(
@@ -683,9 +683,9 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        primaryRed.withOpacity(0.3),
+                        primaryRed.withAlpha((255 * 0.3).round()),
                         primaryRed,
-                        primaryRed.withOpacity(0.3)
+                        primaryRed.withAlpha((255 * 0.3).round())
                       ],
                     ),
                     borderRadius: BorderRadius.circular(1),
@@ -698,7 +698,7 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: primaryRed.withOpacity(0.2)),
+                    border: Border.all(color: primaryRed.withAlpha((255 * 0.2).round())),
                   ),
                   child: Text(
                     jadwal.durasiPerjalananTotal,
@@ -751,7 +751,7 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
           end: Alignment.centerRight,
         ),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: accentBlue.withOpacity(0.2)),
+        border: Border.all(color: accentBlue.withAlpha((255 * 0.2).round())),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -785,7 +785,7 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: accentBlue.withOpacity(0.3),
+                  color: accentBlue.withAlpha((255 * 0.3).round()),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
