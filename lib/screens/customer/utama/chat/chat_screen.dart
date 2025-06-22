@@ -121,7 +121,10 @@ class _ChatScreenState extends State<ChatScreen> {
       //   );
       // }
     })
-        .catchError((error) => print("Failed to add message to Firestore: $error"));
+        .catchError((error) {
+      print("Failed to add message to Firestore: $error");
+      return null; // Explicitly return null to satisfy FutureOr<Null>
+    });
   }
 
   void _scrollDown() {
