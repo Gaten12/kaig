@@ -154,11 +154,6 @@ class _FormStasiunScreenState extends State<FormStasiunScreen> {
           ),
         ),
         iconTheme: const IconThemeData(color: pureWhite, size: 28),
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(20),
-          ),
-        ),
       ),
       body: Center(
         child: SingleChildScrollView(
