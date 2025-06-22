@@ -96,7 +96,7 @@ class _PromoScreenState extends State<PromoScreen> {
                           Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
+                              color: Colors.white.withAlpha((255 * 0.2).round()),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Icon(
@@ -108,7 +108,7 @@ class _PromoScreenState extends State<PromoScreen> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.9),
+                              color: Colors.white.withAlpha((255 * 0.9).round()),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
@@ -137,7 +137,7 @@ class _PromoScreenState extends State<PromoScreen> {
                         promo['description'],
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.white.withOpacity(0.9),
+                          color: Colors.white.withAlpha((255 * 0.9).round()),
                           height: 1.4,
                         ),
                       ),
@@ -149,16 +149,16 @@ class _PromoScreenState extends State<PromoScreen> {
                             'Berlaku hingga: ${promo['validUntil']}',
                             style: TextStyle(
                               fontSize: 12,
-                              color: Colors.white.withOpacity(0.8),
+                              color: Colors.white.withAlpha((255 * 0.8).round()),
                             ),
                           ),
                           if (!promo['isActive'])
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
-                                color: Colors.red.withOpacity(0.2),
+                                color: Colors.red.withAlpha((255 * 0.2).round()),
                                 borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.red.withOpacity(0.5)),
+                                border: Border.all(color: Colors.red.withAlpha((255 * 0.5).round())),
                               ),
                               child: const Text(
                                 'Berakhir',
@@ -185,7 +185,7 @@ class _PromoScreenState extends State<PromoScreen> {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withAlpha((255 * 0.1).round()),
                 shape: BoxShape.circle,
               ),
             ),
@@ -257,7 +257,7 @@ class _PromoScreenState extends State<PromoScreen> {
         border: Border.all(color: Colors.grey[200]!, width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withAlpha((255 * 0.1).round()),
             blurRadius: 20,
             offset: const Offset(0, 8),
             spreadRadius: 0,
@@ -295,7 +295,7 @@ class _PromoScreenState extends State<PromoScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF2196F3).withOpacity(0.1),
+              color: const Color(0xFF2196F3).withAlpha((255 * 0.1).round()),
               borderRadius: BorderRadius.circular(20),
             ),
             child: const Icon(
