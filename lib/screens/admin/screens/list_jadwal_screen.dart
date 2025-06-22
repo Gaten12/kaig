@@ -154,7 +154,7 @@ class ListJadwalScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: electricBlue.withOpacity(0.1),
+                        color: electricBlue.withAlpha((255 * 0.1).round()),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -208,10 +208,10 @@ class ListJadwalScreen extends StatelessWidget {
                       margin: const EdgeInsets.all(24),
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: Colors.red.withOpacity(0.1),
+                        color: Colors.red.withAlpha((255 * 0.1).round()),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: Colors.red.withOpacity(0.3),
+                          color: Colors.red.withAlpha((255 * 0.3).round()),
                           width: 1,
                         ),
                       ),
@@ -277,7 +277,7 @@ class ListJadwalScreen extends StatelessWidget {
                       margin: const EdgeInsets.all(24),
                       padding: const EdgeInsets.all(32),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF3B82F6).withOpacity(0.1),
+                        color: const Color(0xFF3B82F6).withAlpha((255 * 0.1).round()),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Column(
@@ -286,7 +286,7 @@ class ListJadwalScreen extends StatelessWidget {
                           Icon(
                             Icons.train_rounded,
                             size: 64,
-                            color: const Color(0xFF3B82F6).withOpacity(0.7),
+                            color: const Color(0xFF3B82F6).withAlpha((255 * 0.7).round()),
                           ),
                           const SizedBox(height: 20),
                           const Text(
@@ -302,7 +302,7 @@ class ListJadwalScreen extends StatelessWidget {
                             "Silakan tambahkan jadwal baru dengan menekan tombol + di bawah",
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                              color: const Color(0xFF374151).withOpacity(0.7),
+                              color: const Color(0xFF374151).withAlpha((255 * 0.7).round()),
                               fontSize: 16,
                             ),
                           ),
@@ -326,7 +326,7 @@ class ListJadwalScreen extends StatelessWidget {
                         margin: const EdgeInsets.all(24),
                         padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(
-                          color: Colors.grey.withOpacity(0.1),
+                          color: Colors.grey.withAlpha((255 * 0.1).round()),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Column(
@@ -378,7 +378,7 @@ class ListJadwalScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF3B82F6).withOpacity(0.3),
+              color: const Color(0xFF3B82F6).withAlpha((255 * 0.3).round()),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -427,13 +427,13 @@ class ListJadwalScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withAlpha((255 * 0.08).round()),
             blurRadius: 12,
             offset: const Offset(0, 2),
           ),
         ],
         border: Border.all(
-          color: Colors.grey.withOpacity(0.2),
+          color: Colors.grey.withAlpha((255 * 0.2).round()),
           width: 1,
         ),
       ),
@@ -490,7 +490,7 @@ class ListJadwalScreen extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: const Color(0xFF374151).withOpacity(0.7),
+                          color: const Color(0xFF374151).withAlpha((255 * 0.7).round()),
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -508,7 +508,7 @@ class ListJadwalScreen extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF3B82F6).withOpacity(0.1),
+                    color: const Color(0xFF3B82F6).withAlpha((255 * 0.1).round()),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: const Icon(
@@ -526,7 +526,7 @@ class ListJadwalScreen extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: const Color(0xFF374151).withOpacity(0.7),
+                          color: const Color(0xFF374151).withAlpha((255 * 0.7).round()),
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -550,7 +550,7 @@ class ListJadwalScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.grey.withOpacity(0.05),
+                color: Colors.grey.withAlpha((255 * 0.05).round()),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Column(
@@ -560,14 +560,14 @@ class ListJadwalScreen extends StatelessWidget {
                       Icon(
                         Icons.schedule_rounded,
                         size: 16,
-                        color: const Color(0xFF374151).withOpacity(0.7),
+                        color: const Color(0xFF374151).withAlpha((255 * 0.7).round()),
                       ),
                       const SizedBox(width: 8),
                       Text(
                         "Berangkat: ",
                         style: TextStyle(
                           fontSize: 14,
-                          color: const Color(0xFF374151).withOpacity(0.7),
+                          color: const Color(0xFF374151).withAlpha((255 * 0.7).round()),
                         ),
                       ),
                       Text(
@@ -586,14 +586,14 @@ class ListJadwalScreen extends StatelessWidget {
                       Icon(
                         Icons.access_time_rounded,
                         size: 16,
-                        color: const Color(0xFF374151).withOpacity(0.7),
+                        color: const Color(0xFF374151).withAlpha((255 * 0.7).round()),
                       ),
                       const SizedBox(width: 8),
                       Text(
                         "Tiba: ",
                         style: TextStyle(
                           fontSize: 14,
-                          color: const Color(0xFF374151).withOpacity(0.7),
+                          color: const Color(0xFF374151).withAlpha((255 * 0.7).round()),
                         ),
                       ),
                       Text(
@@ -622,7 +622,7 @@ class ListJadwalScreen extends StatelessWidget {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF374151).withOpacity(0.1),
+                    color: const Color(0xFF374151).withAlpha((255 * 0.1).round()),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
@@ -631,7 +631,7 @@ class ListJadwalScreen extends StatelessWidget {
                       Icon(
                         Icons.airline_seat_recline_normal_rounded,
                         size: 16,
-                        color: const Color(0xFF374151).withOpacity(0.8),
+                        color: const Color(0xFF374151).withAlpha((255 * 0.8).round()),
                       ),
                       const SizedBox(width: 6),
                       Text(
@@ -639,7 +639,7 @@ class ListJadwalScreen extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: const Color(0xFF374151).withOpacity(0.8),
+                          color: const Color(0xFF374151).withAlpha((255 * 0.8).round()),
                         ),
                       ),
                     ],
@@ -652,7 +652,7 @@ class ListJadwalScreen extends StatelessWidget {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: Colors.grey.withOpacity(0.3),
+                          color: Colors.grey.withAlpha((255 * 0.3).round()),
                         ),
                       ),
                       child: IconButton(
@@ -671,7 +671,7 @@ class ListJadwalScreen extends StatelessWidget {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: Colors.red.withOpacity(0.3),
+                          color: Colors.red.withAlpha((255 * 0.3).round()),
                         ),
                       ),
                       child: IconButton(
@@ -712,7 +712,7 @@ class ListJadwalScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.1),
+                color: Colors.red.withAlpha((255 * 0.1).round()),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
@@ -739,14 +739,14 @@ class ListJadwalScreen extends StatelessWidget {
             Text(
               'Anda yakin ingin menghapus jadwal berikut?',
               style: TextStyle(
-                color: const Color(0xFF374151).withOpacity(0.8),
+                color: const Color(0xFF374151).withAlpha((255 * 0.8).round()),
               ),
             ),
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.grey.withOpacity(0.1),
+                color: Colors.grey.withAlpha((255 * 0.1).round()),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Column(
@@ -762,7 +762,7 @@ class ListJadwalScreen extends StatelessWidget {
                   Text(
                     "${jadwal.idStasiunAsal} → ${jadwal.idStasiunTujuan}",
                     style: TextStyle(
-                      color: const Color(0xFF374151).withOpacity(0.7),
+                      color: const Color(0xFF374151).withAlpha((255 * 0.7).round()),
                     ),
                   ),
                 ],
@@ -776,7 +776,7 @@ class ListJadwalScreen extends StatelessWidget {
             child: Text(
               'Batal',
               style: TextStyle(
-                color: const Color(0xFF374151).withOpacity(0.7),
+                color: const Color(0xFF374151).withAlpha((255 * 0.7).round()),
               ),
             ),
           ),
