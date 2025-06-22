@@ -212,7 +212,6 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     // Gunakan tema yang sudah ada di aplikasi Anda
     final appBarColor = const Color(0xFFC50000); // Dari AppBar di screens lain
-    final primaryColor = Theme.of(context).primaryColor; // Dari main.dart Theme
 
     return Scaffold(
       appBar: AppBar(
