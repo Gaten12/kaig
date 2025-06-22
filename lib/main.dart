@@ -5,6 +5,7 @@ import 'screens/customer/splash_screen.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:get/get.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter/services.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,6 +15,14 @@ void main() async {
   );
 
   await dotenv.load(fileName: ".env");
+
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.white,
+      statusBarIconBrightness: Brightness.dark,
+    ),
+  );
+
   runApp(const MyApp());
 }
 
@@ -31,7 +40,7 @@ class MyApp extends StatelessWidget {
             borderRadius: BorderRadius.all(Radius.circular(8.0)),
           ),
           focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.orange, width: 2.0),
+            borderSide: BorderSide(color: Color(	0xFFB0BEC5), width: 2.0),
             borderRadius: BorderRadius.all(Radius.circular(8.0)),
           ),
         ),
@@ -44,19 +53,6 @@ class MyApp extends StatelessWidget {
               borderRadius: BorderRadius.circular(8.0),
             ),
           ),
-        ),
-
-        colorScheme: ColorScheme.fromSwatch(
-          primarySwatch: Colors.red,
-        ).copyWith(
-          primaryContainer: Colors.blue.shade100,
-          onPrimaryContainer: Colors.blue.shade900,
-          surfaceVariant: Colors.grey.shade200,
-          onSurfaceVariant: Colors.black,
-          errorContainer: Colors.red.shade100,
-          onErrorContainer: Colors.red.shade900,
-          primary: Colors.orange,
-          secondary: Colors.grey,
         ),
       ),
       home: const SplashScreen(),

@@ -73,6 +73,10 @@ class ListKeretaController extends GetxController {
 class ListKeretaScreen extends StatelessWidget {
   const ListKeretaScreen({super.key});
 
+  static const Color charcoalGray = Color(0xFF374151);
+  static const Color pureWhite = Color(0xFFFFFFFF);
+  static const Color electricBlue = Color(0xFF3B82F6);
+
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(ListKeretaController());
@@ -82,97 +86,94 @@ class ListKeretaScreen extends StatelessWidget {
       appBar: AppBar(
         elevation: 0,
         toolbarHeight: 80,
-        backgroundColor: const Color(0xFF374151),
+        backgroundColor: charcoalGray,
         title: const Text(
           "Daftar Kereta",
           style: TextStyle(
-            color: Colors.white,
+            color: pureWhite,
             fontSize: 24,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.5,
           ),
         ),
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: const IconThemeData(color: pureWhite),
         centerTitle: true,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(4),
+          child: Container(
+            height: 4,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [electricBlue, Colors.blue],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+              ),
+            ),
+          ),
+        ),
       ),
       body: Column(
         children: [
-          // Header dengan gradient
+          // Header dengan search section
           Container(
+            padding: const EdgeInsets.all(20),
             decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0xFF374151), Color(0xFF4B5563)],
-              ),
+              color: pureWhite,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 4,
+                  offset: Offset(0, 2),
+                ),
+              ],
             ),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-              child: Column(
-                children: [
-                  // Search Field
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Obx(() => TextField(
-                          controller: controller.searchController,
-                          decoration: InputDecoration(
-                            labelText: "Cari Nama Kereta",
-                            labelStyle: TextStyle(
-                              color: Colors.grey.shade600,
-                              fontSize: 16,
-                            ),
-                            hintText: "Masukkan nama kereta...",
-                            hintStyle: TextStyle(color: Colors.grey.shade400),
-                            prefixIcon: Icon(
-                              Icons.search_rounded,
-                              color: Colors.grey.shade600,
-                              size: 24,
-                            ),
-                            suffixIcon: controller.searchQuery.value.isNotEmpty
-                                ? IconButton(
-                                    icon: Icon(
-                                      Icons.clear_rounded,
-                                      color: Colors.grey.shade600,
-                                    ),
-                                    onPressed: controller.clearSearch,
-                                  )
-                                : null,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(16),
-                              borderSide: BorderSide.none,
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(16),
-                              borderSide: BorderSide.none,
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(16),
-                              borderSide: const BorderSide(
-                                color: Color(0xFF3B82F6),
-                                width: 2,
-                              ),
-                            ),
-                            filled: true,
-                            fillColor: Colors.white,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 16,
-                            ),
-                          ),
-                        )),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: electricBlue.withOpacity(0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                  child: Obx(() => TextField(
+                    controller: controller.searchController,
+                    style: const TextStyle(fontSize: 16),
+                    decoration: InputDecoration(
+                      labelText: "Cari Nama Kereta",
+                      hintText: "Masukkan nama kereta...",
+                      hintStyle: TextStyle(color: Colors.grey.shade500),
+                      prefixIcon: Icon(Icons.search_rounded, color: electricBlue),
+                      filled: true,
+                      fillColor: pureWhite,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey.shade200),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey.shade200),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: electricBlue, width: 2),
+                      ),
+                      suffixIcon: controller.searchQuery.value.isNotEmpty
+                          ? IconButton(
+                              icon: Icon(Icons.clear_rounded,
+                                  color: Colors.grey.shade600),
+                              onPressed: controller.clearSearch,
+                            )
+                          : const SizedBox.shrink(),
+                    ),
+                  )),
+                ),
+              ],
             ),
           ),
 

@@ -64,144 +64,97 @@ class _ListStasiunScreenState extends State<ListStasiunScreen> {
     return Scaffold(
       backgroundColor: _lightGray,
       appBar: AppBar(
-        toolbarHeight: 85,
-        backgroundColor: _charcoalGray,
         elevation: 0,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [_charcoalGray, _charcoalGray.withOpacity(0.9)],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
+        toolbarHeight: 80,
+        backgroundColor: _charcoalGray,
+        title: const Text(
+          "Daftar Stasiun",
+          style: TextStyle(
+            color: _pureWhite,
+            fontSize: 24,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.5,
+          ),
+        ),
+        iconTheme: const IconThemeData(color: _pureWhite),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(4),
+          child: Container(
+            height: 4,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [_electricBlue, Colors.blue],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+              ),
             ),
           ),
         ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              "Daftar Stasiun",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 26,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.3,
-              ),
-            ),
-            Container(
-              margin: const EdgeInsets.only(top: 4),
-              width: 60,
-              height: 3,
-              decoration: BoxDecoration(
-                color: _electricBlue,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ],
-        ),
-        iconTheme: const IconThemeData(color: Colors.white, size: 26),
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 16),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: _electricBlue.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: _electricBlue.withOpacity(0.3)),
-            ),
-          ),
-        ],
       ),
       body: Column(
         children: [
-          // Premium Search Section
+          // Header dengan search section
           Container(
-            margin: const EdgeInsets.fromLTRB(20, 20, 20, 16),
-            decoration: BoxDecoration(
+            padding: const EdgeInsets.all(20),
+            decoration: const BoxDecoration(
               color: _pureWhite,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: _borderColor, width: 1),
               boxShadow: [
                 BoxShadow(
-                  color: _charcoalGray.withOpacity(0.08),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
-                  spreadRadius: 0,
+                  color: Colors.black12,
+                  blurRadius: 4,
+                  offset: Offset(0, 2),
                 ),
               ],
             ),
-            child: Padding(
-              padding: const EdgeInsets.all(6),
-              child: TextField(
-                controller: _searchController,
-                style: TextStyle(
-                  color: _textPrimary,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-                decoration: InputDecoration(
-                  labelText: "Pencarian Stasiun",
-                  hintText: "Cari berdasarkan nama atau kota...",
-                  labelStyle: TextStyle(
-                    color: _textSecondary,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  hintStyle: TextStyle(
-                    color: _textSecondary.withOpacity(0.7),
-                    fontSize: 15,
-                  ),
-                  prefixIcon: Container(
-                    margin: const EdgeInsets.all(10),
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [_electricBlue, _electricBlue.withOpacity(0.8)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: _electricBlue.withOpacity(0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
                       ),
-                      borderRadius: BorderRadius.circular(12),
+                    ],
+                  ),
+                  child: TextField(
+                    controller: _searchController,
+                    style: const TextStyle(fontSize: 16),
+                    decoration: InputDecoration(
+                      labelText: "Pencarian Stasiun",
+                      hintText: "Cari berdasarkan nama atau kota...",
+                      hintStyle: TextStyle(color: Colors.grey.shade500),
+                      prefixIcon: Icon(Icons.search_rounded, color: _electricBlue),
+                      filled: true,
+                      fillColor: _pureWhite,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey.shade200),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey.shade200),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: _electricBlue, width: 2),
+                      ),
+                      suffixIcon: _searchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: Icon(Icons.clear_rounded,
+                                  color: Colors.grey.shade600),
+                              onPressed: () {
+                                _searchController.clear();
+                              },
+                            )
+                          : const SizedBox.shrink(),
                     ),
-                    child: const Icon(
-                      Icons.search_rounded,
-                      color: Colors.white,
-                      size: 22,
-                    ),
-                  ),
-                  suffixIcon: _searchQuery.isNotEmpty
-                      ? Container(
-                          margin: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: _textSecondary.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: IconButton(
-                            icon: Icon(
-                              Icons.clear_rounded,
-                              color: _textSecondary,
-                              size: 20,
-                            ),
-                            onPressed: () {
-                              _searchController.clear();
-                            },
-                          ),
-                        )
-                      : null,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide.none,
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide(color: _electricBlue, width: 2),
-                  ),
-                  filled: true,
-                  fillColor: Colors.transparent,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 18,
                   ),
                 ),
-              ),
+              ],
             ),
           ),
           // Enhanced List Section

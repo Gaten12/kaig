@@ -92,6 +92,10 @@ class ListJadwalController extends GetxController {
 class ListJadwalScreen extends StatelessWidget {
   const ListJadwalScreen({super.key});
 
+  static const Color charcoalGray = Color(0xFF374151);
+  static const Color pureWhite = Color(0xFFFFFFFF);
+  static const Color electricBlue = Color(0xFF3B82F6);
+
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(ListJadwalController());
@@ -101,85 +105,91 @@ class ListJadwalScreen extends StatelessWidget {
       appBar: AppBar(
         elevation: 0,
         toolbarHeight: 80,
-        backgroundColor: const Color(0xFF374151),
+        backgroundColor: charcoalGray,
         title: const Text(
           "Daftar Jadwal Kereta",
           style: TextStyle(
-            color: Colors.white,
+            color: pureWhite,
             fontSize: 24,
             fontWeight: FontWeight.w600,
+            letterSpacing: 0.5,
           ),
         ),
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: const IconThemeData(color: pureWhite),
         centerTitle: true,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(4),
+          child: Container(
+            height: 4,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [electricBlue, Colors.blue],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+              ),
+            ),
+          ),
+        ),
       ),
       body: Column(
         children: [
-          // Header dengan gradient
+          // Header dengan search section
           Container(
+            padding: const EdgeInsets.all(20),
             decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0xFF374151),
-                  Colors.white,
-                ],
-                stops: [0.0, 1.0],
-              ),
+              color: pureWhite,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 4,
+                  offset: Offset(0, 2),
+                ),
+              ],
             ),
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 20),
-                // Search Field dengan styling modern
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 20,
-                        offset: const Offset(0, 4),
+                        color: electricBlue.withOpacity(0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
                       ),
                     ],
                   ),
                   child: Obx(
                     () => TextField(
                       controller: controller.searchController,
+                      style: const TextStyle(fontSize: 16),
                       decoration: InputDecoration(
                         labelText: "Cari Jadwal",
                         hintText: "Nama kereta, rute, stasiun...",
-                        prefixIcon: const Icon(
-                          Icons.search_rounded,
-                          color: Color(0xFF3B82F6),
+                        hintStyle: TextStyle(color: Colors.grey.shade500),
+                        prefixIcon: Icon(Icons.search_rounded, color: electricBlue),
+                        filled: true,
+                        fillColor: pureWhite,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.grey.shade200),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.grey.shade200),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: electricBlue, width: 2),
                         ),
                         suffixIcon: controller.searchQuery.isNotEmpty
                             ? IconButton(
-                                icon: const Icon(
-                                  Icons.clear_rounded,
-                                  color: Color(0xFF374151),
-                                ),
+                                icon: Icon(Icons.clear_rounded,
+                                    color: Colors.grey.shade600),
                                 onPressed: controller.clearSearch,
                               )
-                            : null,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: BorderSide.none,
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 16,
-                        ),
-                        labelStyle: const TextStyle(
-                          color: Color(0xFF374151),
-                        ),
-                        hintStyle: TextStyle(
-                          color: const Color(0xFF374151).withOpacity(0.6),
-                        ),
+                            : const SizedBox.shrink(),
                       ),
                     ),
                   ),
