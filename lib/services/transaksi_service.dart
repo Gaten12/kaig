@@ -38,7 +38,7 @@ class TransaksiService {
 
     for (var doc in kursiQuerySnapshot.docs) {
       // Pastikan casting tipe data dilakukan dengan aman
-      final data = doc.data() as Map<String, dynamic>;
+      final data = doc.data();
       final key = "Gerbong ${data['nomor_gerbong']} - Kursi ${data['nomor_kursi']}";
       mapStatusKursi[key] = data['status'];
       mapRefKursi[key] = doc.reference;
