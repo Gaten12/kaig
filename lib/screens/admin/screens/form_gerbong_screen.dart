@@ -164,7 +164,7 @@ class _FormGerbongScreenState extends State<FormGerbongScreen> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              _charcoalGray.withAlpha((255 * 0.5).round()),
+              _charcoalGray.withAlpha((255 * 0.05).round()),
               _pureWhite,
             ],
           ),
