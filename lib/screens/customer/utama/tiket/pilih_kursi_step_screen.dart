@@ -183,14 +183,14 @@ class _PilihKursiStepScreenState extends State<PilihKursiStepScreen>
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            primaryTrainColor.withOpacity(0.1),
-            primaryTrainColor.withOpacity(0.05)
+            primaryTrainColor.withAlpha((255 * 0.1).round()),
+            primaryTrainColor.withAlpha((255 * 0.05).round())
           ],
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: primaryTrainColor.withOpacity(0.2)),
+        border: Border.all(color: primaryTrainColor.withAlpha((255 * 0.2).round())),
       ),
       child: Row(
         children: [
@@ -241,7 +241,7 @@ class _PilihKursiStepScreenState extends State<PilihKursiStepScreen>
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withAlpha((255 * 0.08).round()),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -257,7 +257,7 @@ class _PilihKursiStepScreenState extends State<PilihKursiStepScreen>
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: primaryTrainColor.withOpacity(0.1),
+                    color: primaryTrainColor.withAlpha((255 * 0.1).round()),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(
@@ -358,7 +358,7 @@ class _PilihKursiStepScreenState extends State<PilihKursiStepScreen>
                         padding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
-                          color: accentBlueColor.withOpacity(0.1),
+                          color: accentBlueColor.withAlpha((255 * 0.1).round()),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
@@ -413,13 +413,13 @@ class _PilihKursiStepScreenState extends State<PilihKursiStepScreen>
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: hasSelectedSeat
-                ? successGreen.withOpacity(0.3)
-                : Colors.grey.withOpacity(0.2),
+                ? successGreen.withAlpha((255 * 0.3).round())
+                : Colors.grey.withAlpha((255 * 0.2).round()),
             width: hasSelectedSeat ? 2 : 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.06),
+              color: Colors.black.withAlpha((255 * 0.06).round()),
               blurRadius: 12,
               offset: const Offset(0, 2),
             ),
@@ -436,8 +436,8 @@ class _PilihKursiStepScreenState extends State<PilihKursiStepScreen>
                     height: 50,
                     decoration: BoxDecoration(
                       color: hasSelectedSeat
-                          ? successGreen.withOpacity(0.1)
-                          : primaryTrainColor.withOpacity(0.1),
+                          ? successGreen.withAlpha((255 * 0.1).round())
+                          : primaryTrainColor.withAlpha((255 * 0.1).round()),
                       shape: BoxShape.circle,
                     ),
                     child: Center(
@@ -473,7 +473,7 @@ class _PilihKursiStepScreenState extends State<PilihKursiStepScreen>
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 8, vertical: 2),
                               decoration: BoxDecoration(
-                                color: accentBlueColor.withOpacity(0.1),
+                                color: accentBlueColor.withAlpha((255 * 0.1).round()),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: const Text(
@@ -576,7 +576,7 @@ class _PilihKursiStepScreenState extends State<PilihKursiStepScreen>
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withAlpha((255 * 0.1).round()),
             blurRadius: 20,
             offset: const Offset(0, -4),
           ),
@@ -593,9 +593,9 @@ class _PilihKursiStepScreenState extends State<PilihKursiStepScreen>
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 margin: const EdgeInsets.only(bottom: 16),
                 decoration: BoxDecoration(
-                  color: warningOrange.withOpacity(0.1),
+                  color: warningOrange.withAlpha((255 * 0.1).round()),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: warningOrange.withOpacity(0.3)),
+                  border: Border.all(color: warningOrange.withAlpha((255 * 0.3).round())),
                 ),
                 child: Row(
                   children: [
@@ -623,7 +623,7 @@ class _PilihKursiStepScreenState extends State<PilihKursiStepScreen>
                       allSeatsSelected ? accentBlueColor : Colors.grey[400],
                   foregroundColor: Colors.white,
                   elevation: allSeatsSelected ? 4 : 0,
-                  shadowColor: accentBlueColor.withOpacity(0.3),
+                  shadowColor: accentBlueColor.withAlpha((255 * 0.3).round()),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(28),
                   ),
