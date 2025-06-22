@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../models/JadwalModel.dart';
 import '../../../models/KeretaModel.dart';
-import '../../../models/gerbong_tipe_model.dart'; // Menggunakan model baru
+import '../../../models/gerbong_tipe_model.dart';
+import '../../../models/perhentian_krl_model.dart';
+import 'package:kaig/models/jadwal_krl_model.dart';
 import '../../../models/kursi_model.dart';
 import '../../../models/stasiun_model.dart';
 
@@ -210,5 +212,47 @@ class AdminFirestoreService {
 
     await batch.commit();
     print("Batch write untuk ${rangkaianGerbong.length} gerbong berhasil di-commit.");
+  }
+  CollectionReference<JadwalKrlModel> get krlJadwalCollection =>
+      _db.collection('jadwal_krl').withConverter<JadwalKrlModel>(
+        fromFirestore: (snapshots, _) => JadwalKrlModel.fromFirestore(snapshots),
+        toFirestore: (jadwal, _) => jadwal.toFirestore(),
+      );
+
+  Future<void> addJadwalKrl(JadwalKrlModel jadwal) {
+    return krlJadwalCollection.add(jadwal);
+  }
+
+  Future<void> updateJadwalKrl(JadwalKrlModel jadwal) {
+    return krlJadwalCollection.doc(jadwal.id).update(jadwal.toFirestore());
+  }
+
+  Future<void> deleteJadwalKrl(String jadwalId) {
+    return krlJadwalCollection.doc(jadwalId).delete();
+  }
+
+  Stream<List<JadwalKrlModel>> getJadwalKrlList() {
+    return krlJadwalCollection
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) => doc.data()).toList());
+  }
+
+// Query untuk Customer
+  Stream<List<JadwalKrlModel>> findJadwalKrl(String kodeAsal, String kodeTujuan, String tipeHari) {
+    return krlJadwalCollection
+        .where('tipeHari', isEqualTo: tipeHari)
+        .where('stasiunTersedia', arrayContains: kodeAsal)
+        .snapshots()
+        .map((snapshot) {
+      // Filter kedua di sisi client
+      return snapshot.docs.map((doc) => doc.data()).where((jadwal) {
+        final stasiunList = jadwal.perhentian;
+        final indexAsal = stasiunList.indexWhere((p) => p.kodeStasiun == kodeAsal);
+        final indexTujuan = stasiunList.indexWhere((p) => p.kodeStasiun == kodeTujuan);
+
+        // Pastikan stasiun tujuan ada di rute DAN urutannya setelah stasiun asal
+        return indexTujuan != -1 && indexAsal < indexTujuan;
+      }).toList();
+    });
   }
 }

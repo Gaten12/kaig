@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../services/auth_service.dart';
-import '../../../widgets/admin_widget.dart';
 import '../../login/login_screen.dart';
 import 'list_gerbong_screen.dart';
+import 'list_jadwal_krl_final_screen.dart';
 import 'list_jadwal_screen.dart';
 import 'list_kereta_screen.dart';
 import 'list_stasiun_screen.dart';
@@ -92,6 +92,16 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const ListJadwalScreen()),
+        );
+      },
+    },
+    {
+      "title": "Kelola Jadwal KRL",
+      "icon": Icons.schedule,
+      "onTap": (BuildContext context) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const ListJadwalKrlFinalScreen()),
         );
       },
     },
