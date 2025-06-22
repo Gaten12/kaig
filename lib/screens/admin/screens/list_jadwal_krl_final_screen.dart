@@ -150,7 +150,7 @@ class ListJadwalKrlFinalScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: electricBlue.withOpacity(0.1),
+                        color: electricBlue.withAlpha((255 * 0.1).round()),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -241,7 +241,7 @@ class ListJadwalKrlFinalScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: electricBlue.withOpacity(0.3),
+              color: electricBlue.withAlpha((255 * 0.3).round()),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -275,13 +275,13 @@ class ListJadwalKrlFinalScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withAlpha((255 * 0.08).round()),
             blurRadius: 12,
             offset: const Offset(0, 2),
           ),
         ],
         border: Border.all(
-          color: Colors.grey.withOpacity(0.2),
+          color: Colors.grey.withAlpha((255 * 0.2).round()),
           width: 1,
         ),
       ),
@@ -334,7 +334,7 @@ class ListJadwalKrlFinalScreen extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.grey.withOpacity(0.05),
+                    color: Colors.grey.withAlpha((255 * 0.05).round()),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Column(
@@ -345,14 +345,14 @@ class ListJadwalKrlFinalScreen extends StatelessWidget {
                           Icon(
                             Icons.calendar_today_rounded,
                             size: 16,
-                            color: charcoalGray.withOpacity(0.7),
+                            color: charcoalGray.withAlpha((255 * 0.7).round()),
                           ),
                           const SizedBox(width: 8),
                           Text(
                             "Tipe Hari: ",
                             style: TextStyle(
                               fontSize: 14,
-                              color: charcoalGray.withOpacity(0.7),
+                              color: charcoalGray.withAlpha((255 * 0.7).round()),
                             ),
                           ),
                           Text(
@@ -371,14 +371,14 @@ class ListJadwalKrlFinalScreen extends StatelessWidget {
                           Icon(
                             Icons.money_rounded,
                             size: 16,
-                            color: charcoalGray.withOpacity(0.7),
+                            color: charcoalGray.withAlpha((255 * 0.7).round()),
                           ),
                           const SizedBox(width: 8),
                           Text(
                             "Harga: ",
                             style: TextStyle(
                               fontSize: 14,
-                              color: charcoalGray.withOpacity(0.7),
+                              color: charcoalGray.withAlpha((255 * 0.7).round()),
                             ),
                           ),
                           Text(
@@ -402,7 +402,7 @@ class ListJadwalKrlFinalScreen extends StatelessWidget {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: Colors.grey.withOpacity(0.3),
+                          color: Colors.grey.withAlpha((255 * 0.3).round()),
                         ),
                       ),
                       child: IconButton(
@@ -422,7 +422,7 @@ class ListJadwalKrlFinalScreen extends StatelessWidget {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: Colors.red.withOpacity(0.3),
+                          color: Colors.red.withAlpha((255 * 0.3).round()),
                         ),
                       ),
                       child: IconButton(
@@ -477,7 +477,7 @@ class ListJadwalKrlFinalScreen extends StatelessWidget {
         margin: const EdgeInsets.all(24),
         padding: const EdgeInsets.all(32),
         decoration: BoxDecoration(
-          color: electricBlue.withOpacity(0.1),
+          color: electricBlue.withAlpha((255 * 0.1).round()),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Column(
@@ -486,7 +486,7 @@ class ListJadwalKrlFinalScreen extends StatelessWidget {
             Icon(
               Icons.train_rounded,
               size: 64,
-              color: electricBlue.withOpacity(0.7),
+              color: electricBlue.withAlpha((255 * 0.7).round()),
             ),
             const SizedBox(height: 20),
             Text(
@@ -503,7 +503,7 @@ class ListJadwalKrlFinalScreen extends StatelessWidget {
               "Silakan tambahkan jadwal baru dengan menekan tombol + di bawah",
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: charcoalGray.withOpacity(0.7),
+                color: charcoalGray.withAlpha((255 * 0.7).round()),
                 fontSize: 16,
               ),
             ),
@@ -519,10 +519,10 @@ class ListJadwalKrlFinalScreen extends StatelessWidget {
         margin: const EdgeInsets.all(24),
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: Colors.red.withOpacity(0.1),
+          color: Colors.red.withAlpha((255 * 0.1).round()),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: Colors.red.withOpacity(0.3),
+            color: Colors.red.withAlpha((255 * 0.3).round()),
             width: 1,
           ),
         ),
@@ -572,7 +572,7 @@ class ListJadwalKrlFinalScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.1),
+                color: Colors.red.withAlpha((255 * 0.1).round()),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
@@ -599,14 +599,14 @@ class ListJadwalKrlFinalScreen extends StatelessWidget {
             Text(
               'Anda yakin ingin menghapus jadwal KRL berikut?',
               style: TextStyle(
-                color: charcoalGray.withOpacity(0.8),
+                color: charcoalGray.withAlpha((255 * 0.8).round()),
               ),
             ),
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.grey.withOpacity(0.1),
+                color: Colors.grey.withAlpha((255 * 0.1).round()),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Column(
@@ -622,7 +622,7 @@ class ListJadwalKrlFinalScreen extends StatelessWidget {
                   Text(
                     "Tipe Hari: ${jadwal.tipeHari}",
                     style: TextStyle(
-                      color: charcoalGray.withOpacity(0.7),
+                      color: charcoalGray.withAlpha((255 * 0.7).round()),
                     ),
                   ),
                 ],
@@ -636,7 +636,7 @@ class ListJadwalKrlFinalScreen extends StatelessWidget {
             child: Text(
               'Batal',
               style: TextStyle(
-                color: charcoalGray.withOpacity(0.7),
+                color: charcoalGray.withAlpha((255 * 0.7).round()),
               ),
             ),
           ),
