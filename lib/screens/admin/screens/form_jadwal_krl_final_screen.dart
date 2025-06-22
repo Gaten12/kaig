@@ -315,7 +315,7 @@ class _FormJadwalKrlFinalScreenState extends State<FormJadwalKrlFinalScreen> {
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 CircleAvatar(
-                                  backgroundColor: electricBlue.withOpacity(0.1),
+                                  backgroundColor: electricBlue.withAlpha((255 * 0.1).round()),
                                   foregroundColor: electricBlue,
                                   child: Text("${idx + 1}", style: const TextStyle(fontWeight: FontWeight.bold)),
                                 ),
