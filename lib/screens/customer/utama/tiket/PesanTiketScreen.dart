@@ -213,8 +213,8 @@ class _PesanTiketScreenState extends State<PesanTiketScreen> {
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: isDestination
-                    ? lightBlue.withOpacity(0.1)
-                    : primaryRed.withOpacity(0.1),
+                    ? lightBlue.withAlpha((255 * 0.1).round())
+                    : primaryRed.withAlpha((255 * 0.1).round()),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
@@ -267,7 +267,7 @@ class _PesanTiketScreenState extends State<PesanTiketScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withAlpha((255 * 0.08).round()),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -319,7 +319,7 @@ class _PesanTiketScreenState extends State<PesanTiketScreen> {
                       child: Icon(
                         Icons.train,
                         size: 100,
-                        color: Colors.white.withOpacity(0.1),
+                        color: Colors.white.withAlpha((255 * 0.1).round()),
                       ),
                     ),
                   ],
@@ -348,7 +348,7 @@ class _PesanTiketScreenState extends State<PesanTiketScreen> {
                                   Container(
                                     padding: const EdgeInsets.all(12.0),
                                     decoration: BoxDecoration(
-                                      color: textSecondary.withOpacity(0.1),
+                                      color: textSecondary.withAlpha((255 * 0.1).round()),
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: const Icon(
@@ -400,7 +400,7 @@ class _PesanTiketScreenState extends State<PesanTiketScreen> {
                                   const SizedBox(width: 16),
                                   Container(
                                     decoration: BoxDecoration(
-                                      color: accentBlue.withOpacity(0.1),
+                                      color: accentBlue.withAlpha((255 * 0.1).round()),
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: IconButton(
@@ -432,7 +432,7 @@ class _PesanTiketScreenState extends State<PesanTiketScreen> {
                                 Container(
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
-                                    color: primaryRed.withOpacity(0.1),
+                                    color: primaryRed.withAlpha((255 * 0.1).round()),
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: const Icon(
@@ -518,7 +518,7 @@ class _PesanTiketScreenState extends State<PesanTiketScreen> {
                                 Container(
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
-                                    color: accentBlue.withOpacity(0.1),
+                                    color: accentBlue.withAlpha((255 * 0.1).round()),
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: const Icon(
@@ -569,10 +569,10 @@ class _PesanTiketScreenState extends State<PesanTiketScreen> {
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: Colors.orange.withOpacity(0.1),
+                            color: Colors.orange.withAlpha((255 * 0.1).round()),
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color: Colors.orange.withOpacity(0.3),
+                              color: Colors.orange.withAlpha((255 * 0.3).round()),
                               width: 1,
                             ),
                           ),
@@ -612,7 +612,7 @@ class _PesanTiketScreenState extends State<PesanTiketScreen> {
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: accentBlue.withOpacity(0.3),
+                              color: accentBlue.withAlpha((255 * 0.3).round()),
                               blurRadius: 12,
                               offset: const Offset(0, 6),
                             ),

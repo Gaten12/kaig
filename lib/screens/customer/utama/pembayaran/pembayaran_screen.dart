@@ -231,7 +231,7 @@ class _PembayaranScreenState extends State<PembayaranScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.1), spreadRadius: 1, blurRadius: 5),
+          BoxShadow(color: Colors.black.withAlpha((255 * 0.1).round()), spreadRadius: 1, blurRadius: 5),
         ],
       ),
       child: Column(

@@ -211,7 +211,7 @@ class _PilihGerbongScreenState extends State<PilihGerbongScreen> {
                 Text(
                   info.tipeGerbong.subTipe,
                   style: TextStyle(
-                    color: primaryColor.withOpacity(0.8),
+                    color: primaryColor.withAlpha((255 * 0.8).round()),
                     fontSize: 10,
                   ),
                   overflow: TextOverflow.ellipsis,

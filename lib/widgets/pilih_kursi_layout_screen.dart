@@ -233,7 +233,7 @@ class _PilihKursiLayoutScreenState extends State<PilihKursiLayoutScreen> {
             boxShadow: [
               if(isAvailable)
                 BoxShadow(
-                  color: Colors.blue.withOpacity(0.1),
+                  color: Colors.blue.withAlpha((255 * 0.1).round()),
                   blurRadius: 4,
                   offset: const Offset(0, 2),
                 ),
@@ -322,7 +322,7 @@ class _PilihKursiLayoutScreenState extends State<PilihKursiLayoutScreen> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withAlpha((255 * 0.1).round()),
             spreadRadius: 2,
             blurRadius: 8,
             offset: const Offset(0, -4),

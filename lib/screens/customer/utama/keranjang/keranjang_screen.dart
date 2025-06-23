@@ -196,7 +196,7 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
+                          color: Colors.black.withAlpha((255 * 0.1).round()),
                           blurRadius: 20,
                           offset: const Offset(0, 10),
                         ),
@@ -240,7 +240,7 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.08),
+                      color: Colors.black.withAlpha((255 * 0.08).round()),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -277,7 +277,7 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
-                          color: primaryRed.withOpacity(0.1),
+                          color: primaryRed.withAlpha((255 * 0.1).round()),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
@@ -327,8 +327,8 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
         boxShadow: [
           BoxShadow(
             color: isSelected
-                ? primaryRed.withOpacity(0.15)
-                : Colors.black.withOpacity(0.08),
+                ? primaryRed.withAlpha((255 * 0.15).round())
+                : Colors.black.withAlpha((255 * 0.08).round()),
             blurRadius: isSelected ? 15 : 10,
             offset: const Offset(0, 4),
           ),
@@ -555,12 +555,12 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
                               Container(
                                 padding: const EdgeInsets.all(6),
                                 decoration: BoxDecoration(
-                                  color: accentGold.withOpacity(0.2),
+                                  color: accentGold.withAlpha((255 * 0.2).round()),
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Icon(
                                   Icons.person,
-                                  color: accentGold.withOpacity(0.8),
+                                  color: accentGold.withAlpha((255 * 0.8).round()),
                                   size: 16,
                                 ),
                               ),
@@ -590,7 +590,7 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: primaryRed.withOpacity(0.1),
+                                  color: primaryRed.withAlpha((255 * 0.1).round()),
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Text(
@@ -619,14 +619,14 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    primaryRed.withOpacity(0.1),
-                    lightRed.withOpacity(0.05)
+                    primaryRed.withAlpha((255 * 0.1).round()),
+                    lightRed.withAlpha((255 * 0.05).round())
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: primaryRed.withOpacity(0.3)),
+                border: Border.all(color: primaryRed.withAlpha((255 * 0.3).round())),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -665,7 +665,7 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withAlpha((255 * 0.1).round()),
             blurRadius: 10,
             offset: const Offset(0, -5),
           ),
@@ -682,7 +682,7 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: primaryRed.withOpacity(0.3),
+                color: primaryRed.withAlpha((255 * 0.3).round()),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -766,9 +766,9 @@ class _SisaWaktuWidgetState extends State<_SisaWaktuWidget> {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: Colors.red.withOpacity(0.1),
+          color: Colors.red.withAlpha((255 * 0.1).round()),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.red.withOpacity(0.3)),
+          border: Border.all(color: Colors.red.withAlpha((255 * 0.3).round())),
         ),
         child: const Row(
           mainAxisSize: MainAxisSize.min,
@@ -804,9 +804,9 @@ class _SisaWaktuWidgetState extends State<_SisaWaktuWidget> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: timerColor.withOpacity(0.1),
+        color: timerColor.withAlpha((255 * 0.1).round()),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: timerColor.withOpacity(0.3)),
+        border: Border.all(color: timerColor.withAlpha((255 * 0.3).round())),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

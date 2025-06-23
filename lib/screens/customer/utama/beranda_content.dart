@@ -47,8 +47,8 @@ class BerandaContent extends StatelessWidget {
               boxShadow: [
                 BoxShadow(
                   color: isPrimary
-                      ? const Color(0xFF2196F3).withOpacity(0.25)
-                      : Colors.grey.withOpacity(0.15),
+                      ? const Color(0xFF2196F3).withAlpha((255 * 0.25).round())
+                      : Colors.grey.withAlpha((255 * 0.15).round()),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                   spreadRadius: 0,
@@ -62,8 +62,8 @@ class BerandaContent extends StatelessWidget {
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: isPrimary
-                        ? Colors.white.withOpacity(0.2)
-                        : const Color(0xFF2196F3).withOpacity(0.1),
+                        ? Colors.white.withAlpha((255 * 0.2).round())
+                        : const Color(0xFF2196F3).withAlpha((255 * 0.1).round()),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -110,7 +110,7 @@ class BerandaContent extends StatelessWidget {
               borderRadius: BorderRadius.circular(24.0),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.grey[600]!.withOpacity(0.3),
+                  color: Colors.grey[600]!.withAlpha((255 * 0.3).round()),
                   blurRadius: 25,
                   offset: const Offset(0, 12),
                   spreadRadius: 0,
@@ -126,7 +126,7 @@ class BerandaContent extends StatelessWidget {
               width: 120,
               height: 120,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.05),
+                color: Colors.white.withAlpha((255 * 0.05).round()),
                 shape: BoxShape.circle,
               ),
             ),
@@ -138,7 +138,7 @@ class BerandaContent extends StatelessWidget {
               width: 140,
               height: 140,
               decoration: BoxDecoration(
-                color: const Color(0xFF2196F3).withOpacity(0.1),
+                color: const Color(0xFF2196F3).withAlpha((255 * 0.1).round()),
                 shape: BoxShape.circle,
               ),
             ),
@@ -153,7 +153,7 @@ class BerandaContent extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF2196F3).withOpacity(0.2),
+                    color: const Color(0xFF2196F3).withAlpha((255 * 0.2).round()),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(
@@ -177,7 +177,7 @@ class BerandaContent extends StatelessWidget {
                   'Nikmati diskon hingga 50% untuk perjalanan kereta jarak jauh. Berlaku terbatas!',
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.white.withOpacity(0.85),
+                    color: Colors.white.withAlpha((255 * 0.85).round()),
                     height: 1.4,
                   ),
                 ),
@@ -206,7 +206,7 @@ class BerandaContent extends StatelessWidget {
         border: Border.all(color: Colors.grey[200]!, width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withAlpha((255 * 0.1).round()),
             blurRadius: 20,
             offset: const Offset(0, 8),
             spreadRadius: 0,
@@ -244,7 +244,7 @@ class BerandaContent extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF2196F3).withOpacity(0.1),
+              color: const Color(0xFF2196F3).withAlpha((255 * 0.1).round()),
               borderRadius: BorderRadius.circular(20),
             ),
             child: const Icon(
@@ -252,47 +252,6 @@ class BerandaContent extends StatelessWidget {
               size: 36,
               color: Color(0xFF2196F3),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatCard(String value, String label, IconData icon) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey[200]!, width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.08),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Icon(icon, color: const Color(0xFF2196F3), size: 20),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey[800],
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              color: Colors.grey[600],
-            ),
-            textAlign: TextAlign.center,
           ),
         ],
       ),

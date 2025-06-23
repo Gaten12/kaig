@@ -196,7 +196,7 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [primaryRed.withOpacity(0.1), lightRed],
+                colors: [primaryRed.withAlpha((255 * 0.1).round()), lightRed],
                 begin: Alignment.centerLeft,
                 end: Alignment.centerRight,
               ),
@@ -236,7 +236,7 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
-                              color: primaryRed.withOpacity(0.2),
+                              color: primaryRed.withAlpha((255 * 0.2).round()),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
@@ -258,9 +258,9 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: accentBlue.withOpacity(0.1),
+                    color: accentBlue.withAlpha((255 * 0.1).round()),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: accentBlue.withOpacity(0.3)),
+                    border: Border.all(color: accentBlue.withAlpha((255 * 0.3).round())),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -358,7 +358,7 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
-                      color: textSecondary.withOpacity(0.1),
+                      color: textSecondary.withAlpha((255 * 0.1).round()),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
@@ -376,7 +376,7 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
-                      color: primaryRed.withOpacity(0.1),
+                      color: primaryRed.withAlpha((255 * 0.1).round()),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
@@ -394,7 +394,7 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
-                      color: successGreen.withOpacity(0.1),
+                      color: successGreen.withAlpha((255 * 0.1).round()),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
@@ -414,7 +414,7 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
-                      color: warningOrange.withOpacity(0.1),
+                      color: warningOrange.withAlpha((255 * 0.1).round()),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
@@ -444,7 +444,7 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
                         ? successGreen
                         : (isStasiunAkhir
                             ? warningOrange
-                            : primaryRed.withOpacity(0.3)),
+                            : primaryRed.withAlpha((255 * 0.3).round())),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: isStasiunAwal
@@ -470,8 +470,8 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          primaryRed.withOpacity(0.6),
-                          primaryRed.withOpacity(0.3)
+                          primaryRed.withAlpha((255 * 0.6).round()),
+                          primaryRed.withAlpha((255 * 0.3).round())
                         ],
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
@@ -517,14 +517,14 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                accentBlue.withOpacity(0.1),
-                accentBlue.withOpacity(0.05)
+                accentBlue.withAlpha((255 * 0.1).round()),
+                accentBlue.withAlpha((255 * 0.05).round())
               ],
               begin: Alignment.centerLeft,
               end: Alignment.centerRight,
             ),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: accentBlue.withOpacity(0.3)),
+            border: Border.all(color: accentBlue.withAlpha((255 * 0.3).round())),
           ),
           child: Row(
             children: [
@@ -617,8 +617,8 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
             ],
             border: Border.all(
               color: isTersedia
-                  ? accentBlue.withOpacity(0.2)
-                  : Colors.grey.withOpacity(0.2),
+                  ? accentBlue.withAlpha((255 * 0.2).round())
+                  : Colors.grey.withAlpha((255 * 0.2).round()),
               width: 1,
             ),
           ),
@@ -654,12 +654,12 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
                         gradient: LinearGradient(
                           colors: isTersedia
                               ? [
-                                  accentBlue.withOpacity(0.1),
-                                  accentBlue.withOpacity(0.05)
+                                  accentBlue.withAlpha((255 * 0.1).round()),
+                                  accentBlue.withAlpha((255 * 0.05).round())
                                 ]
                               : [
-                                  Colors.grey.withOpacity(0.1),
-                                  Colors.grey.withOpacity(0.05)
+                                  Colors.grey.withAlpha((255 * 0.1).round()),
+                                  Colors.grey.withAlpha((255 * 0.05).round())
                                 ],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
@@ -667,8 +667,8 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: isTersedia
-                              ? accentBlue.withOpacity(0.3)
-                              : Colors.grey.withOpacity(0.3),
+                              ? accentBlue.withAlpha((255 * 0.3).round())
+                              : Colors.grey.withAlpha((255 * 0.3).round()),
                         ),
                       ),
                       child: Icon(
@@ -699,8 +699,8 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
                                 horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
                               color: isTersedia
-                                  ? successGreen.withOpacity(0.1)
-                                  : Colors.red.withOpacity(0.1),
+                                  ? successGreen.withAlpha((255 * 0.1).round())
+                                  : Colors.red.withAlpha((255 * 0.1).round()),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Row(
@@ -747,8 +747,8 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
                             color: isTersedia
-                                ? accentBlue.withOpacity(0.1)
-                                : Colors.grey.withOpacity(0.1),
+                                ? accentBlue.withAlpha((255 * 0.1).round())
+                                : Colors.grey.withAlpha((255 * 0.1).round()),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Icon(

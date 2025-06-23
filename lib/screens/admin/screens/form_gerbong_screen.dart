@@ -117,7 +117,7 @@ class _FormGerbongScreenState extends State<FormGerbongScreen> {
   @override
   Widget build(BuildContext context) {
     // Definisikan BorderSide dengan warna tema baru
-    final BorderSide defaultBorderSide = BorderSide(color: _charcoalGray.withOpacity(0.3));
+    final BorderSide defaultBorderSide = BorderSide(color: _charcoalGray.withAlpha((255 * 0.3).round()));
     final BorderSide focusedBorderSide = const BorderSide(color: _electricBlue, width: 2.0);
     const BorderSide errorBorderSide = BorderSide(color: Colors.red, width: 1.0);
 
@@ -164,7 +164,7 @@ class _FormGerbongScreenState extends State<FormGerbongScreen> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              _charcoalGray.withOpacity(0.05),
+              _charcoalGray.withAlpha((255 * 0.05).round()),
               _pureWhite,
             ],
           ),
@@ -175,7 +175,7 @@ class _FormGerbongScreenState extends State<FormGerbongScreen> {
               padding: const EdgeInsets.all(16.0),
               child: Card(
                 elevation: 8.0,
-                shadowColor: _charcoalGray.withOpacity(0.2),
+                shadowColor: _charcoalGray.withAlpha((255 * 0.2).round()),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16.0),
                 ),
@@ -191,7 +191,7 @@ class _FormGerbongScreenState extends State<FormGerbongScreen> {
                         Container(
                           padding: const EdgeInsets.all(16.0),
                           decoration: BoxDecoration(
-                            color: _electricBlue.withOpacity(0.1),
+                            color: _electricBlue.withAlpha((255 * 0.1).round()),
                             borderRadius: BorderRadius.circular(12.0),
                           ),
                           child: Icon(
@@ -206,14 +206,14 @@ class _FormGerbongScreenState extends State<FormGerbongScreen> {
                           value: _selectedKelas,
                           decoration: InputDecoration(
                             labelText: 'Pilih Kelas Utama',
-                            labelStyle: TextStyle(color: _charcoalGray.withOpacity(0.7)),
+                            labelStyle: TextStyle(color: _charcoalGray.withAlpha((255 * 0.7).round())),
                             enabledBorder: defaultOutlineInputBorder,
                             focusedBorder: focusedOutlineInputBorder,
                             errorBorder: errorOutlineInputBorder,
                             focusedErrorBorder: focusedErrorOutlineInputBorder,
                             prefixIcon: Icon(Icons.star_outline, color: _electricBlue),
                             filled: true,
-                            fillColor: _charcoalGray.withOpacity(0.02),
+                            fillColor: _charcoalGray.withAlpha((255 * 0.02).round()),
                           ),
                           dropdownColor: _pureWhite,
                           items: KelasUtama.values.map((KelasUtama kelas) {
@@ -235,14 +235,14 @@ class _FormGerbongScreenState extends State<FormGerbongScreen> {
                           style: const TextStyle(color: _charcoalGray),
                           decoration: InputDecoration(
                             labelText: 'Nama/Sub-Tipe (mis: New Generation)',
-                            labelStyle: TextStyle(color: _charcoalGray.withOpacity(0.7)),
+                            labelStyle: TextStyle(color: _charcoalGray.withAlpha((255 * 0.7).round())),
                             enabledBorder: defaultOutlineInputBorder,
                             focusedBorder: focusedOutlineInputBorder,
                             errorBorder: errorOutlineInputBorder,
                             focusedErrorBorder: focusedErrorOutlineInputBorder,
                             prefixIcon: Icon(Icons.text_fields_outlined, color: _electricBlue),
                             filled: true,
-                            fillColor: _charcoalGray.withOpacity(0.02),
+                            fillColor: _charcoalGray.withAlpha((255 * 0.02).round()),
                           ),
                           validator: (value) => (value == null || value.isEmpty)
                               ? 'Sub-tipe tidak boleh kosong'
@@ -254,14 +254,14 @@ class _FormGerbongScreenState extends State<FormGerbongScreen> {
                           value: _selectedLayout,
                           decoration: InputDecoration(
                             labelText: 'Tipe Layout Kursi',
-                            labelStyle: TextStyle(color: _charcoalGray.withOpacity(0.7)),
+                            labelStyle: TextStyle(color: _charcoalGray.withAlpha((255 * 0.7).round())),
                             enabledBorder: defaultOutlineInputBorder,
                             focusedBorder: focusedOutlineInputBorder,
                             errorBorder: errorOutlineInputBorder,
                             focusedErrorBorder: focusedErrorOutlineInputBorder,
                             prefixIcon: Icon(Icons.grid_view_outlined, color: _electricBlue),
                             filled: true,
-                            fillColor: _charcoalGray.withOpacity(0.02),
+                            fillColor: _charcoalGray.withAlpha((255 * 0.02).round()),
                           ),
                           dropdownColor: _pureWhite,
                           items: TipeLayoutGerbong.values.map((TipeLayoutGerbong layout) {
@@ -283,14 +283,14 @@ class _FormGerbongScreenState extends State<FormGerbongScreen> {
                           style: const TextStyle(color: _charcoalGray),
                           decoration: InputDecoration(
                             labelText: 'Jumlah Kursi',
-                            labelStyle: TextStyle(color: _charcoalGray.withOpacity(0.7)),
+                            labelStyle: TextStyle(color: _charcoalGray.withAlpha((255 * 0.7).round())),
                             enabledBorder: defaultOutlineInputBorder,
                             focusedBorder: focusedOutlineInputBorder,
                             errorBorder: errorOutlineInputBorder,
                             focusedErrorBorder: focusedErrorOutlineInputBorder,
                             prefixIcon: Icon(Icons.event_seat_outlined, color: _electricBlue),
                             filled: true,
-                            fillColor: _charcoalGray.withOpacity(0.02),
+                            fillColor: _charcoalGray.withAlpha((255 * 0.02).round()),
                           ),
                           keyboardType: TextInputType.number,
                           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -311,14 +311,14 @@ class _FormGerbongScreenState extends State<FormGerbongScreen> {
                           height: 56,
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
-                              colors: [_electricBlue, _electricBlue.withOpacity(0.8)],
+                              colors: [_electricBlue, _electricBlue.withAlpha((255 * 0.8).round())],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             ),
                             borderRadius: BorderRadius.circular(12.0),
                             boxShadow: [
                               BoxShadow(
-                                color: _electricBlue.withOpacity(0.3),
+                                color: _electricBlue.withAlpha((255 * 0.3).round()),
                                 blurRadius: 8.0,
                                 offset: const Offset(0, 4),
                               ),

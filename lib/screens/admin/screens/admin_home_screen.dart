@@ -201,7 +201,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                       child: Icon(
                         Icons.admin_panel_settings,
                         size: 100,
-                        color: pureWhite.withOpacity(0.2),
+                        color: pureWhite.withAlpha((255 * 0.2).round()),
                       ),
                     ),
                   ],
@@ -250,7 +250,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: Colors.black.withAlpha((255 * 0.05).round()),
                         blurRadius: 10,
                         offset: const Offset(0, 2),
                       ),
@@ -261,7 +261,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: electricBlue.withOpacity(0.1),
+                          color: electricBlue.withAlpha((255 * 0.1).round()),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Icon(
@@ -279,7 +279,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                               "Selamat Datang!",
                               style: TextStyle(
                                 fontSize: 14,
-                                color: charcoalGray.withOpacity(0.7),
+                                color: charcoalGray.withAlpha((255 * 0.7).round()),
                               ),
                             ),
                             Text(
@@ -361,12 +361,12 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                           gradient: LinearGradient(
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
-                            colors: [electricBlue, electricBlue.withOpacity(0.8)],
+                            colors: [electricBlue, electricBlue.withAlpha((255 * 0.8).round())],
                           ),
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: electricBlue.withOpacity(0.3),
+                              color: electricBlue.withAlpha((255 * 0.3).round()),
                               blurRadius: 12,
                               offset: const Offset(0, 4),
                             ),
@@ -382,7 +382,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                                   "Grand Total",
                                   style: TextStyle(
                                     fontSize: 16,
-                                    color: pureWhite.withOpacity(0.9),
+                                    color: pureWhite.withAlpha((255 * 0.9).round()),
                                   ),
                                 ),
                                 const SizedBox(height: 4),
@@ -399,7 +399,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                             Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: pureWhite.withOpacity(0.2),
+                                color: pureWhite.withAlpha((255 * 0.2).round()),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Icon(
@@ -433,7 +433,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                           decoration: BoxDecoration(
                             color: pureWhite,
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: electricBlue.withOpacity(0.3)),
+                            border: Border.all(color: electricBlue.withAlpha((255 * 0.3).round())),
                           ),
                           child: DropdownButtonFormField<int>(
                             value: _selectedMonth,
@@ -461,7 +461,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                           decoration: BoxDecoration(
                             color: pureWhite,
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: electricBlue.withOpacity(0.3)),
+                            border: Border.all(color: electricBlue.withAlpha((255 * 0.3).round())),
                           ),
                           child: DropdownButtonFormField<int>(
                             value: _selectedYear,
@@ -514,7 +514,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
+                              color: Colors.black.withAlpha((255 * 0.05).round()),
                               blurRadius: 10,
                               offset: const Offset(0, 2),
                             ),
@@ -548,7 +548,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                     decoration: BoxDecoration(
                       color: pureWhite,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: electricBlue.withOpacity(0.3)),
+                      border: Border.all(color: electricBlue.withAlpha((255 * 0.3).round())),
                     ),
                     child: DropdownButtonFormField<String>(
                       value: _selectedGraphType,
@@ -629,7 +629,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
+                              color: Colors.black.withAlpha((255 * 0.05).round()),
                               blurRadius: 10,
                               offset: const Offset(0, 2),
                             ),
@@ -676,7 +676,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                                             gradient: LinearGradient(
                                               begin: Alignment.bottomCenter,
                                               end: Alignment.topCenter,
-                                              colors: [electricBlue, electricBlue.withOpacity(0.7)],
+                                              colors: [electricBlue, electricBlue.withAlpha((255 * 0.7).round())],
                                             ),
                                             borderRadius: BorderRadius.circular(4),
                                           ),
@@ -709,7 +709,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                                 : SingleChildScrollView(
                               scrollDirection: Axis.horizontal,
                               child: DataTable(
-                                headingRowColor: MaterialStateProperty.all(electricBlue.withOpacity(0.1)),
+                                headingRowColor: WidgetStateProperty.all(electricBlue.withAlpha((255 * 0.1).round())),
                                 columns: const [
                                   DataColumn(
                                     label: Text(
@@ -760,11 +760,11 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   }
 
   Widget _buildAdminMenuItem(
-    BuildContext context, {
-    required String title,
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
+      BuildContext context, {
+        required String title,
+        required IconData icon,
+        required VoidCallback onTap,
+      }) {
     return Container(
       width: 130,
       child: GestureDetector(
@@ -776,7 +776,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withAlpha((255 * 0.05).round()),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -788,7 +788,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: electricBlue.withOpacity(0.1),
+                  color: electricBlue.withAlpha((255 * 0.1).round()),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(

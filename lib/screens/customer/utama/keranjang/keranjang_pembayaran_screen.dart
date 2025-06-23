@@ -108,7 +108,7 @@ class _KeranjangPembayaranScreenState extends State<KeranjangPembayaranScreen> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withAlpha((255 * 0.1).round()),
               spreadRadius: 1,
               blurRadius: 5)
         ],

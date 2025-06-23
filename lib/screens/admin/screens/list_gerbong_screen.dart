@@ -141,7 +141,7 @@ class ListGerbongScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: electricBlue.withOpacity(0.1),
+                  color: electricBlue.withAlpha((255 * 0.1).round()),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -292,7 +292,7 @@ class ListGerbongScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withAlpha((255 * 0.05).round()),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -342,7 +342,7 @@ class ListGerbongScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withAlpha((255 * 0.05).round()),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -362,7 +362,7 @@ class ListGerbongScreen extends StatelessWidget {
                   width: 56,
                   height: 56,
                   decoration: BoxDecoration(
-                    color: electricBlue.withOpacity(0.1),
+                    color: electricBlue.withAlpha((255 * 0.1).round()),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -429,7 +429,7 @@ class ListGerbongScreen extends StatelessWidget {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: electricBlue.withOpacity(0.1),
+                    color: electricBlue.withAlpha((255 * 0.1).round()),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: IconButton(
@@ -452,7 +452,7 @@ class ListGerbongScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: electricBlue.withOpacity(0.3),
+            color: electricBlue.withAlpha((255 * 0.3).round()),
             blurRadius: 12,
             offset: const Offset(0, 6),
           ),

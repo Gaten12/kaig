@@ -173,7 +173,7 @@ class _PilihStasiunScreenState extends State<PilihStasiunScreen>
         decoration: BoxDecoration(
           color: warmGray,
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: primaryRed.withOpacity(0.2), width: 1.5),
+          border: Border.all(color: primaryRed.withAlpha((255 * 0.2).round()), width: 1.5),
         ),
         child: TextField(
           controller: _searchController,
@@ -251,12 +251,12 @@ class _PilihStasiunScreenState extends State<PilihStasiunScreen>
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [primaryRed.withOpacity(0.1), lightRed],
+          colors: [primaryRed.withAlpha((255 * 0.1).round()), lightRed],
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: primaryRed.withOpacity(0.3), width: 1),
+        border: Border.all(color: primaryRed.withAlpha((255 * 0.3).round()), width: 1),
       ),
       child: Row(
         children: [
@@ -327,11 +327,11 @@ class _PilihStasiunScreenState extends State<PilihStasiunScreen>
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
             gradient: LinearGradient(
-              colors: [Colors.white, lightRed.withOpacity(0.3)],
+              colors: [Colors.white, lightRed.withAlpha((255 * 0.3).round())],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            border: Border.all(color: primaryRed.withOpacity(0.2), width: 1),
+            border: Border.all(color: primaryRed.withAlpha((255 * 0.2).round()), width: 1),
           ),
           child: InkWell(
             onTap: () => _pilihStasiun(stasiun),
@@ -381,7 +381,7 @@ class _PilihStasiunScreenState extends State<PilihStasiunScreen>
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: primaryRed.withOpacity(0.1),
+                      color: primaryRed.withAlpha((255 * 0.1).round()),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -481,12 +481,12 @@ class _PilihStasiunScreenState extends State<PilihStasiunScreen>
         height: 50,
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [primaryRed.withOpacity(0.1), lightRed],
+            colors: [primaryRed.withAlpha((255 * 0.1).round()), lightRed],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: primaryRed.withOpacity(0.3), width: 1),
+          border: Border.all(color: primaryRed.withAlpha((255 * 0.3).round()), width: 1),
         ),
         child: const Icon(Icons.train_rounded, color: primaryRed, size: 24),
       ),
@@ -514,7 +514,7 @@ class _PilihStasiunScreenState extends State<PilihStasiunScreen>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(
-              color: primaryRed.withOpacity(0.1),
+              color: primaryRed.withAlpha((255 * 0.1).round()),
               borderRadius: BorderRadius.circular(6),
             ),
             child: Text(
@@ -532,8 +532,8 @@ class _PilihStasiunScreenState extends State<PilihStasiunScreen>
           ? Container(
               decoration: BoxDecoration(
                 color: stasiun.isFavorit
-                    ? Colors.amber.withOpacity(0.1)
-                    : Colors.grey.withOpacity(0.1),
+                    ? Colors.amber.withAlpha((255 * 0.1).round())
+                    : Colors.grey.withAlpha((255 * 0.1).round()),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: IconButton(
@@ -550,7 +550,7 @@ class _PilihStasiunScreenState extends State<PilihStasiunScreen>
           : Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: accentBlue.withOpacity(0.1),
+                color: accentBlue.withAlpha((255 * 0.1).round()),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(Icons.access_time_rounded,
