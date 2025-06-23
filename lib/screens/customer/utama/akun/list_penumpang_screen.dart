@@ -36,7 +36,7 @@ class _ListPenumpangScreenState extends State<ListPenumpangScreen> {
     }
   }
 
-   void _navigateAndRefresh() {
+  void _navigateAndRefresh() {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const FormPenumpangScreen()),
@@ -49,6 +49,9 @@ class _ListPenumpangScreenState extends State<ListPenumpangScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 600;
+
     return Scaffold(
       backgroundColor: Colors.white, // Latar belakang putih
       appBar: AppBar(
@@ -58,7 +61,7 @@ class _ListPenumpangScreenState extends State<ListPenumpangScreen> {
         iconTheme: const IconThemeData(color: Colors.white),
         title: Text(
           widget.isSelectionMode ? "Pilih Penumpang" : "Daftar Penumpang",
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: isSmallScreen ? 18 : 20),
         ),
       ),
       body: StreamBuilder<List<PassengerModel>>(
@@ -72,7 +75,7 @@ class _ListPenumpangScreenState extends State<ListPenumpangScreen> {
             return Center(child: Text("Error: ${snapshot.error}"));
           }
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return _buildEmptyState(context);
+            return _buildEmptyState(context, isSmallScreen);
           }
 
           final penumpangList = snapshot.data!;
@@ -82,7 +85,7 @@ class _ListPenumpangScreenState extends State<ListPenumpangScreen> {
             children: [
               Expanded(
                 child: ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 12.0 : 16.0, vertical: isSmallScreen ? 8.0 : 12.0),
                   itemCount: penumpangList.length,
                   itemBuilder: (context, index) {
                     final penumpang = penumpangList[index];
@@ -102,7 +105,7 @@ class _ListPenumpangScreenState extends State<ListPenumpangScreen> {
                         }
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 16.0),
+                        padding: EdgeInsets.symmetric(vertical: isSmallScreen ? 12.0 : 16.0),
                         decoration: const BoxDecoration(
                           border: Border(
                             bottom: BorderSide(color: Color(0xFFE0E0E0), width: 1),
@@ -111,18 +114,19 @@ class _ListPenumpangScreenState extends State<ListPenumpangScreen> {
                         child: Row(
                           children: [
                             CircleAvatar(
-                                backgroundColor: const Color(0xFFC50000), // Warna merah
-                                foregroundColor: Colors.white,
-                                child: Text(
-                                  // Cek apakah namaLengkap tidak kosong, jika ya, ambil huruf pertama
-                                  // Jika kosong, tampilkan "?" sebagai default
-                                  penumpang.namaLengkap.isNotEmpty
-                                      ? penumpang.namaLengkap[0].toUpperCase()
-                                      : '?',
-                                  style: const TextStyle(fontWeight: FontWeight.bold),
-                                ),
+                              radius: isSmallScreen ? 20 : 25, // Responsive radius
+                              backgroundColor: const Color(0xFFC50000), // Warna merah
+                              foregroundColor: Colors.white,
+                              child: Text(
+                                // Cek apakah namaLengkap tidak kosong, jika ya, ambil huruf pertama
+                                // Jika kosong, tampilkan "?" sebagai default
+                                penumpang.namaLengkap.isNotEmpty
+                                    ? penumpang.namaLengkap[0].toUpperCase()
+                                    : '?',
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: isSmallScreen ? 18 : 22), // Responsive font size
+                              ),
                             ),
-                            const SizedBox(width: 16),
+                            SizedBox(width: isSmallScreen ? 12 : 16),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -130,21 +134,21 @@ class _ListPenumpangScreenState extends State<ListPenumpangScreen> {
                                   Text(
                                     "Dewasa", // Anda bisa mengganti dengan `penumpang.tipePenumpang` jika ada
                                     style: TextStyle(
-                                      fontSize: 12,
+                                      fontSize: isSmallScreen ? 10 : 12, // Responsive font size
                                       color: Colors.grey.shade600,
                                     ),
                                   ),
                                   Text(
                                     penumpang.namaLengkap,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      fontSize: 16,
+                                      fontSize: isSmallScreen ? 14 : 16, // Responsive font size
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-                            const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+                            Icon(Icons.arrow_forward_ios, size: isSmallScreen ? 14 : 16, color: Colors.grey), // Responsive icon size
                           ],
                         ),
                       ),
@@ -153,21 +157,21 @@ class _ListPenumpangScreenState extends State<ListPenumpangScreen> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: EdgeInsets.all(isSmallScreen ? 12.0 : 16.0),
                 child: SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: _navigateAndRefresh,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF0000CD), // Warna biru
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      backgroundColor: Color(0xFF304FFE), // Warna biru
+                      padding: EdgeInsets.symmetric(vertical: isSmallScreen ? 14 : 16), // Responsive padding
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    child: const Text(
+                    child: Text(
                       "Tambah Penumpang",
-                      style: TextStyle(fontSize: 16, color: Colors.white),
+                      style: TextStyle(fontSize: isSmallScreen ? 15 : 16, color: Colors.white),
                     ),
                   ),
                 ),
@@ -176,62 +180,65 @@ class _ListPenumpangScreenState extends State<ListPenumpangScreen> {
           );
         },
       ),
-    //
+      //
     );
   }
 
   // Widget untuk tampilan saat daftar penumpang kosong
-  Widget _buildEmptyState(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const Spacer(),
-          const Icon(
-            Icons.assignment, // Icon sesuai gambar
-            size: 100,
-            color: Color(0xFF0000CD), // Warna biru
-          ),
-          const SizedBox(height: 24),
-          Text(
-            "Belum Ada Penumpang Tersimpan",
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey.shade800,
+  Widget _buildEmptyState(BuildContext context, bool isSmallScreen) {
+    return SingleChildScrollView( // Added SingleChildScrollView
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 20.0 : 24.0, vertical: isSmallScreen ? 20.0 : 40.0), // Responsive padding
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(height: isSmallScreen ? 20 : 40), // Responsive spacing
+            Icon(
+              Icons.assignment, // Icon sesuai gambar
+              size: isSmallScreen ? 80 : 100, // Responsive icon size
+              color: const Color(0xFF0000CD), // Warna biru
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            "Anda dapat menambahkan daftar penumpang untuk mempermudah saat pemesanan tiket",
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey.shade600,
+            SizedBox(height: isSmallScreen ? 20 : 24), // Responsive spacing
+            Text(
+              "Belum Ada Penumpang Tersimpan",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: isSmallScreen ? 16 : 18, // Responsive font size
+                fontWeight: FontWeight.bold,
+                color: Colors.grey.shade800,
+              ),
             ),
-          ),
-          const Spacer(),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 16.0),
-            child: ElevatedButton(
-              onPressed: _navigateAndRefresh,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF0000CD), // Warna biru
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+            SizedBox(height: isSmallScreen ? 6 : 8), // Responsive spacing
+            Text(
+              "Anda dapat menambahkan daftar penumpang untuk mempermudah saat pemesanan tiket",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: isSmallScreen ? 12 : 14, // Responsive font size
+                color: Colors.grey.shade600,
+              ),
+            ),
+            SizedBox(height: isSmallScreen ? 40 : 60), // Responsive spacing
+            Padding(
+              padding: EdgeInsets.only(bottom: isSmallScreen ? 12.0 : 16.0), // Responsive bottom padding
+              child: ElevatedButton(
+                onPressed: _navigateAndRefresh,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF304FFE), // Warna biru
+                  padding: EdgeInsets.symmetric(vertical: isSmallScreen ? 14 : 16), // Responsive padding
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: Text(
+                  "Tambah Penumpang",
+                  style: TextStyle(fontSize: isSmallScreen ? 15 : 16, color: Colors.white),
                 ),
               ),
-              child: const Text(
-                "Tambah Penumpang",
-                style: TextStyle(fontSize: 16, color: Colors.white),
-              ),
             ),
-          ),
-        ],
+            SizedBox(height: isSmallScreen ? 8 : 16), // Ensure content is not too close to the screen edge
+          ],
+        ),
       ),
     );
   }

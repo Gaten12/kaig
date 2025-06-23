@@ -59,8 +59,8 @@ class _TambahEwalletScreenState extends State<TambahEwalletScreen> {
             ElevatedButton(
               onPressed: _simpan,
               style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 50),
-                  backgroundColor: const Color(0xFF0000CD)
+                minimumSize: const Size(double.infinity, 50),
+                backgroundColor: Color(0xFF304FFE),
               ),
               child: const Text("Tambah E-Wallet", style: TextStyle(color: Colors.white)),
             )

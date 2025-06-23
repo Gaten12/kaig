@@ -97,6 +97,9 @@ class _DaftarAkunScreenState extends State<DaftarAkunScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 600; // Contoh breakpoint untuk layar kecil
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -108,7 +111,7 @@ class _DaftarAkunScreenState extends State<DaftarAkunScreen> {
         title: const Text('Daftar Akun', style: TextStyle(color: Colors.white)), // Teks AppBar berwarna putih
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(isSmallScreen ? 12.0 : 16.0), // Adjust padding based on screen size
         child: Form(
           key: _formKey,
           child: ListView(
@@ -116,10 +119,11 @@ class _DaftarAkunScreenState extends State<DaftarAkunScreen> {
               Text(
                 'Daftar akun TrainOrder sekarang untuk mulai menjelajahi berbagai layanan dan fitur unggulan yang telah kami siapkan untukmu.',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Colors.black87, // Sesuaikan warna teks jika perlu
-                    ),
+                  color: Colors.black87, // Sesuaikan warna teks jika perlu
+                  fontSize: isSmallScreen ? 14.0 : 16.0, // Adjust font size
+                ),
               ),
-              const SizedBox(height: 24.0),
+              SizedBox(height: isSmallScreen ? 18.0 : 24.0), // Adjust spacing
 
               // Nama Lengkap
               TextFormField(
@@ -137,7 +141,7 @@ class _DaftarAkunScreenState extends State<DaftarAkunScreen> {
                   return null;
                 },
               ),
-              const SizedBox(height: 16.0),
+              SizedBox(height: isSmallScreen ? 12.0 : 16.0), // Adjust spacing
 
               // No. Telepon
               TextFormField(
@@ -157,7 +161,7 @@ class _DaftarAkunScreenState extends State<DaftarAkunScreen> {
                   return null;
                 },
               ),
-              const SizedBox(height: 16.0),
+              SizedBox(height: isSmallScreen ? 12.0 : 16.0), // Adjust spacing
 
               // Email
               TextFormField(
@@ -179,28 +183,28 @@ class _DaftarAkunScreenState extends State<DaftarAkunScreen> {
                   return null;
                 },
               ),
-              const SizedBox(height: 16.0),
+              SizedBox(height: isSmallScreen ? 12.0 : 16.0), // Adjust spacing
 
               // Tipe ID & Nomor ID (dalam satu baris)
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    flex: 2, // Sesuaikan rasio lebar
+                    flex: isSmallScreen ? 3 : 2, // Adjust flex for small screens
                     child: DropdownButtonFormField<String>(
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'Tipe ID',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.badge_outlined),
-                        // PERBAIKAN: Mengurangi padding internal untuk memberi ruang
-                        contentPadding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 8.0),
+                        border: const OutlineInputBorder(),
+                        // REMOVED prefixIcon: Icon(Icons.badge_outlined), to resolve overflow
+                        contentPadding: EdgeInsets.symmetric(vertical: isSmallScreen ? 10.0 : 12.0, horizontal: 10.0), // Adjusted padding
+                        isDense: true, // Make it more compact
                       ),
                       value: _selectedTipeId,
                       hint: const Text('Pilih Tipe'),
                       items: _tipeIdOptions.map((String value) {
                         return DropdownMenuItem<String>(
                           value: value,
-                          child: Text(value),
+                          child: Text(value, overflow: TextOverflow.ellipsis), // Added overflow to text in dropdown
                         );
                       }).toList(),
                       onChanged: (newValue) {
@@ -212,15 +216,17 @@ class _DaftarAkunScreenState extends State<DaftarAkunScreen> {
                       value == null ? 'Pilih tipe ID' : null,
                     ),
                   ),
-                  const SizedBox(width: 8.0),
+                  SizedBox(width: isSmallScreen ? 4.0 : 8.0), // Adjust spacing
                   Expanded(
-                    flex: 3, // Sesuaikan rasio lebar
+                    flex: isSmallScreen ? 4 : 3, // Adjust flex for small screens
                     child: TextFormField(
                       controller: _nomorIdController,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'Nomor ID',
                         hintText: 'Masukkan Nomor ID',
-                        border: OutlineInputBorder(),
+                        border: const OutlineInputBorder(),
+                        isDense: true, // Also make this more compact
+                        contentPadding: EdgeInsets.symmetric(vertical: isSmallScreen ? 10.0 : 12.0, horizontal: 10.0), // Adjusted padding
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -232,7 +238,7 @@ class _DaftarAkunScreenState extends State<DaftarAkunScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 16.0),
+              SizedBox(height: isSmallScreen ? 12.0 : 16.0), // Adjust spacing
 
               // Tanggal Lahir
               TextFormField(
@@ -241,29 +247,29 @@ class _DaftarAkunScreenState extends State<DaftarAkunScreen> {
                   labelText: 'Tanggal Lahir',
                   hintText: _selectedTanggalLahir == null
                       ? 'Pilih Tanggal Lahir'
-                      : DateFormat('dd MMMM yyyy', 'id_ID').format(_selectedTanggalLahir!), // Format ke bahasa Indonesia
+                      : DateFormat('dd MMMM yyyy', 'id_ID').format(_selectedTanggalLahir!), // Changed format for full year
                   border: const OutlineInputBorder(),
                   prefixIcon: const Icon(Icons.calendar_today_outlined),
+                  isDense: true, // Make it more compact
+                  contentPadding: EdgeInsets.symmetric(vertical: isSmallScreen ? 10.0 : 12.0, horizontal: 10.0), // Adjusted padding
                 ),
                 onTap: () => _pilihTanggalLahir(context),
                 validator: (value) {
-                  // Validasi dilakukan saat submit form karena field ini readOnly
-                  // dan nilainya di-set oleh _selectedTanggalLahir
                   if (_selectedTanggalLahir == null) {
                     return 'Tanggal lahir tidak boleh kosong';
                   }
                   return null;
                 },
               ),
-              const SizedBox(height: 16.0),
+              SizedBox(height: isSmallScreen ? 12.0 : 16.0), // Adjust spacing
 
               // Jenis Kelamin
-              const Text('Jenis Kelamin', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              Text('Jenis Kelamin', style: TextStyle(fontSize: isSmallScreen ? 14 : 16, fontWeight: FontWeight.bold)), // Adjust font size
               Row(
                 children: <Widget>[
                   Expanded(
                     child: RadioListTile<String>(
-                      title: const Text('Laki-laki'),
+                      title: Text('Laki-laki', style: TextStyle(fontSize: isSmallScreen ? 11 : null)), // Adjust font size
                       value: 'Laki-laki',
                       groupValue: _selectedJenisKelamin,
                       onChanged: (value) {
@@ -275,7 +281,7 @@ class _DaftarAkunScreenState extends State<DaftarAkunScreen> {
                   ),
                   Expanded(
                     child: RadioListTile<String>(
-                      title: const Text('Perempuan'),
+                      title: Text('Perempuan', style: TextStyle(fontSize: isSmallScreen ? 11 : null)), // Adjust font size
                       value: 'Perempuan',
                       groupValue: _selectedJenisKelamin,
                       onChanged: (value) {
@@ -287,19 +293,21 @@ class _DaftarAkunScreenState extends State<DaftarAkunScreen> {
                   ),
                 ],
               ),
-              // Anda bisa menambahkan validator tersembunyi jika ingin memastikan salah satu dipilih
-              // Atau validasi dilakukan saat submit form.
-              const SizedBox(height: 24.0),
+              SizedBox(height: isSmallScreen ? 18.0 : 24.0), // Adjust spacing
 
               // Tombol Lanjutkan
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 50),
-                  backgroundColor: const Color(0xFF304FFE), // Warna tombol "LANJUTKAN" (Biru)
-                  foregroundColor: Colors.white, // Warna teks tombol "LANJUTKAN"
+              SizedBox(
+                width: double.infinity,
+                height: isSmallScreen ? 45.0 : 50.0, // Adjust button height
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF304FFE), // Warna tombol "LANJUTKAN" (Biru)
+                    foregroundColor: Colors.white, // Warna teks tombol "LANJUTKAN"
+                    textStyle: TextStyle(fontSize: isSmallScreen ? 16.0 : 18.0), // Adjust font size
+                  ),
+                  onPressed: _submitForm,
+                  child: const Text('LANJUTKAN'),
                 ),
-                onPressed: _submitForm,
-                child: const Text('LANJUTKAN'),
               ),
             ],
           ),

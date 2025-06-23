@@ -71,8 +71,8 @@ class _TambahKartuScreenState extends State<TambahKartuScreen> {
             ElevatedButton(
               onPressed: _simpan,
               style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 50),
-                  backgroundColor: const Color(0xFF0000CD)
+                minimumSize: const Size(double.infinity, 50),
+                backgroundColor: Color(0xFF304FFE),
               ),
               child: const Text("Tambah Kartu Baru", style: TextStyle(color: Colors.white)),
             )

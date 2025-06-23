@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:kaig/screens/customer/utama/tiket/jadwal_krl_viewer_screen.dart';
-
 
 class BerandaContent extends StatelessWidget {
   final Function(int) onNavigateToTab;
@@ -11,15 +9,16 @@ class BerandaContent extends StatelessWidget {
       {required IconData iconData,
         required String label,
         required VoidCallback onTap,
-        required bool isPrimary}) {
+        required bool isPrimary,
+        required bool isSmallScreen}) { // Added isSmallScreen parameter
     return Container(
-      height: 140,
+      height: isSmallScreen ? 120 : 140, // Responsive height
       child: Material(
-        borderRadius: BorderRadius.circular(24.0),
+        borderRadius: BorderRadius.circular(isSmallScreen ? 16.0 : 24.0), // Responsive border radius
         elevation: 0,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(24.0),
+          borderRadius: BorderRadius.circular(isSmallScreen ? 16.0 : 24.0),
           child: Container(
             decoration: BoxDecoration(
               gradient: isPrimary
@@ -39,7 +38,7 @@ class BerandaContent extends StatelessWidget {
                   Colors.grey[50]!,
                 ],
               ),
-              borderRadius: BorderRadius.circular(24.0),
+              borderRadius: BorderRadius.circular(isSmallScreen ? 16.0 : 24.0),
               border: Border.all(
                 color: isPrimary ? Colors.transparent : Colors.grey[200]!,
                 width: 1.5,
@@ -49,8 +48,8 @@ class BerandaContent extends StatelessWidget {
                   color: isPrimary
                       ? const Color(0xFF2196F3).withOpacity(0.25)
                       : Colors.grey.withOpacity(0.15),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
+                  blurRadius: isSmallScreen ? 10 : 20, // Responsive blur
+                  offset: Offset(0, isSmallScreen ? 4 : 8), // Responsive offset
                   spreadRadius: 0,
                 ),
               ],
@@ -59,7 +58,7 @@ class BerandaContent extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(isSmallScreen ? 12 : 16), // Responsive padding
                   decoration: BoxDecoration(
                     color: isPrimary
                         ? Colors.white.withOpacity(0.2)
@@ -68,15 +67,15 @@ class BerandaContent extends StatelessWidget {
                   ),
                   child: Icon(
                     iconData,
-                    size: 32,
+                    size: isSmallScreen ? 28 : 32, // Responsive icon size
                     color: isPrimary ? Colors.white : const Color(0xFF2196F3),
                   ),
                 ),
-                const SizedBox(height: 16.0),
+                SizedBox(height: isSmallScreen ? 8.0 : 16.0), // Responsive spacing
                 Text(
                   label,
                   style: TextStyle(
-                    fontSize: 15,
+                    fontSize: isSmallScreen ? 13 : 15, // Responsive font size
                     fontWeight: FontWeight.w600,
                     color: isPrimary ? Colors.white : const Color(0xFF37474F),
                     letterSpacing: 0.5,
@@ -91,13 +90,15 @@ class BerandaContent extends StatelessWidget {
     );
   }
 
-  Widget _buildPromoCard() {
+  Widget _buildPromoCard({required bool isSmallScreen}) { // Added isSmallScreen
     return Container(
-      height: 200,
+      // Removed fixed height to allow content to dictate height, combined with adjusted padding/font sizes
+      // height: 200, // This was causing the overflow
       margin: const EdgeInsets.symmetric(vertical: 8),
       child: Stack(
         children: [
           Container(
+            padding: EdgeInsets.all(isSmallScreen ? 16.0 : 24.0), // Responsive padding
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
@@ -107,76 +108,48 @@ class BerandaContent extends StatelessWidget {
                   Colors.grey[900]!,
                 ],
               ),
-              borderRadius: BorderRadius.circular(24.0),
+              borderRadius: BorderRadius.circular(isSmallScreen ? 16.0 : 24.0),
               boxShadow: [
                 BoxShadow(
                   color: Colors.grey[600]!.withOpacity(0.3),
-                  blurRadius: 25,
-                  offset: const Offset(0, 12),
+                  blurRadius: isSmallScreen ? 15 : 25, // Responsive blur
+                  offset: Offset(0, isSmallScreen ? 6 : 12), // Responsive offset
                   spreadRadius: 0,
                 ),
               ],
             ),
-          ),
-          // Decorative elements
-          Positioned(
-            top: -40,
-            right: -40,
-            child: Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.05),
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: -50,
-            left: -50,
-            child: Container(
-              width: 140,
-              height: 140,
-              decoration: BoxDecoration(
-                color: const Color(0xFF2196F3).withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-          // Content
-          Padding(
-            padding: const EdgeInsets.all(24.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min, // Ensure it wraps its content
               children: [
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: EdgeInsets.all(isSmallScreen ? 10 : 12), // Responsive padding
                   decoration: BoxDecoration(
                     color: const Color(0xFF2196F3).withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(isSmallScreen ? 8 : 12), // Responsive border radius
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.local_offer_rounded,
-                    color: Color(0xFF2196F3),
-                    size: 28,
+                    color: const Color(0xFF2196F3),
+                    size: isSmallScreen ? 24 : 28, // Responsive icon size
                   ),
                 ),
-                const SizedBox(height: 16),
-                const Text(
+                SizedBox(height: isSmallScreen ? 10 : 16), // Responsive spacing
+                Text(
                   'Promo Eksklusif!',
                   style: TextStyle(
-                    fontSize: 24,
+                    fontSize: isSmallScreen ? 20 : 24, // Responsive font size
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                     letterSpacing: 0.5,
                   ),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: isSmallScreen ? 6 : 8), // Responsive spacing
                 Text(
                   'Nikmati diskon hingga 50% untuk perjalanan kereta jarak jauh. Berlaku terbatas!',
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: isSmallScreen ? 12 : 14, // Responsive font size
                     color: Colors.white.withOpacity(0.85),
                     height: 1.4,
                   ),
@@ -184,15 +157,40 @@ class BerandaContent extends StatelessWidget {
               ],
             ),
           ),
+          // Decorative elements (adjusted for responsiveness if needed, but less critical for overflow)
+          Positioned(
+            top: isSmallScreen ? -20 : -40,
+            right: isSmallScreen ? -20 : -40,
+            child: Container(
+              width: isSmallScreen ? 80 : 120,
+              height: isSmallScreen ? 80 : 120,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.05),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: isSmallScreen ? -30 : -50,
+            left: isSmallScreen ? -30 : -50,
+            child: Container(
+              width: isSmallScreen ? 100 : 140,
+              height: isSmallScreen ? 100 : 140,
+              decoration: BoxDecoration(
+                color: const Color(0xFF2196F3).withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildWelcomeCard(BuildContext context) {
+  Widget _buildWelcomeCard(BuildContext context, {required bool isSmallScreen}) { // Added isSmallScreen
     return Container(
-      margin: const EdgeInsets.only(bottom: 32),
-      padding: const EdgeInsets.all(24),
+      margin: EdgeInsets.only(bottom: isSmallScreen ? 24 : 32), // Responsive margin
+      padding: EdgeInsets.all(isSmallScreen ? 16 : 24), // Responsive padding
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -202,13 +200,13 @@ class BerandaContent extends StatelessWidget {
             Colors.white,
           ],
         ),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(isSmallScreen ? 16 : 24),
         border: Border.all(color: Colors.grey[200]!, width: 1),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
+            blurRadius: isSmallScreen ? 10 : 20,
+            offset: Offset(0, isSmallScreen ? 4 : 8),
             spreadRadius: 0,
           ),
         ],
@@ -222,17 +220,17 @@ class BerandaContent extends StatelessWidget {
                 Text(
                   'Selamat Datang! 👋',
                   style: TextStyle(
-                    fontSize: 20,
+                    fontSize: isSmallScreen ? 18 : 20, // Responsive font size
                     fontWeight: FontWeight.bold,
                     color: Colors.grey[800],
                     letterSpacing: 0.5,
                   ),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: isSmallScreen ? 6 : 8), // Responsive spacing
                 Text(
                   'Pesan tiket kereta dengan mudah, cepat, dan terpercaya untuk perjalanan nyaman Anda',
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: isSmallScreen ? 12 : 14, // Responsive font size
                     color: Colors.grey[600],
                     height: 1.4,
                   ),
@@ -240,17 +238,17 @@ class BerandaContent extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: isSmallScreen ? 12 : 16), // Responsive spacing
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
             decoration: BoxDecoration(
               color: const Color(0xFF2196F3).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(isSmallScreen ? 16 : 20),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.train_rounded,
-              size: 36,
-              color: Color(0xFF2196F3),
+              size: isSmallScreen ? 32 : 36, // Responsive icon size
+              color: const Color(0xFF2196F3),
             ),
           ),
         ],
@@ -258,38 +256,39 @@ class BerandaContent extends StatelessWidget {
     );
   }
 
-  Widget _buildStatCard(String value, String label, IconData icon) {
+  // _buildStatCard (not directly used in the current context, but can be made responsive)
+  Widget _buildStatCard(String value, String label, IconData icon, {required bool isSmallScreen}) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(isSmallScreen ? 12 : 16),
         border: Border.all(color: Colors.grey[200]!, width: 1),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.08),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            blurRadius: isSmallScreen ? 8 : 10,
+            offset: Offset(0, isSmallScreen ? 2 : 4),
           ),
         ],
       ),
       child: Column(
         children: [
-          Icon(icon, color: const Color(0xFF2196F3), size: 20),
-          const SizedBox(height: 8),
+          Icon(icon, color: const Color(0xFF2196F3), size: isSmallScreen ? 18 : 20),
+          SizedBox(height: isSmallScreen ? 6 : 8),
           Text(
             value,
             style: TextStyle(
-              fontSize: 16,
+              fontSize: isSmallScreen ? 14 : 16,
               fontWeight: FontWeight.bold,
               color: Colors.grey[800],
             ),
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: isSmallScreen ? 2 : 4),
           Text(
             label,
             style: TextStyle(
-              fontSize: 11,
+              fontSize: isSmallScreen ? 10 : 11,
               color: Colors.grey[600],
             ),
             textAlign: TextAlign.center,
@@ -299,8 +298,12 @@ class BerandaContent extends StatelessWidget {
     );
   }
 
+
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 600; // Example breakpoint for small screens
+
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -313,19 +316,19 @@ class BerandaContent extends StatelessWidget {
         ),
       ),
       child: ListView(
-        padding: const EdgeInsets.all(20.0),
+        padding: EdgeInsets.all(isSmallScreen ? 16.0 : 20.0), // Responsive padding
         children: <Widget>[
-          _buildWelcomeCard(context),
+          _buildWelcomeCard(context, isSmallScreen: isSmallScreen), // Pass isSmallScreen
           Text(
             'Layanan Utama',
             style: TextStyle(
-              fontSize: 22,
+              fontSize: isSmallScreen ? 18 : 22, // Responsive font size
               fontWeight: FontWeight.bold,
               color: Colors.grey[800],
               letterSpacing: 0.5,
             ),
           ),
-          const SizedBox(height: 20.0),
+          SizedBox(height: isSmallScreen ? 16.0 : 20.0), // Responsive spacing
           Row(
             children: <Widget>[
               Expanded(
@@ -334,74 +337,90 @@ class BerandaContent extends StatelessWidget {
                   iconData: Icons.train_outlined,
                   label: 'Pesan Tiket',
                   isPrimary: true,
+                  isSmallScreen: isSmallScreen, // Pass isSmallScreen
                   onTap: () {
                     onNavigateToTab(1);
                   },
                 ),
               ),
-              const SizedBox(width: 20),
+              SizedBox(width: isSmallScreen ? 12 : 20), // Responsive spacing
               Expanded(
                 child: _buildMenuItem(
                   context,
                   iconData: Icons.train,
                   label: 'Commuter Line',
                   isPrimary: false,
+                  isSmallScreen: isSmallScreen, // Pass isSmallScreen
                   onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const JadwalKrlViewerScreen()));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: const Text(
+                            'Fitur Commuter Line sedang dalam pengembangan'),
+                        backgroundColor: Colors.grey[700],
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        margin: const EdgeInsets.all(16),
+                      ),
+                    );
                   },
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 32.0),
+          SizedBox(height: isSmallScreen ? 24.0 : 32.0), // Responsive spacing
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 'Promo Terbaru',
                 style: TextStyle(
-                  fontSize: 22,
+                  fontSize: isSmallScreen ? 18 : 22, // Responsive font size
                   fontWeight: FontWeight.bold,
                   color: Colors.grey[800],
                   letterSpacing: 0.5,
                 ),
               ),
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF2196F3), Color(0xFF1976D2)],
-                  ),
-                ),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
+              // Changed Container with Material to just a flexible row for button
+              Flexible( // Use Flexible to prevent overflow
+                child: Container(
+                  decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20),
-                    onTap: () {
-                      // Gunakan callback untuk navigasi ke tab index 3 (PromoScreen)
-                      onNavigateToTab(3);
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: const [
-                          Text(
-                            'Lihat Semua',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14,
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF2196F3), Color(0xFF1976D2)],
+                    ),
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(20),
+                      onTap: () {
+                        // Gunakan callback untuk navigasi ke tab index 3 (PromoScreen)
+                        onNavigateToTab(3);
+                      },
+                      child: Container(
+                        padding: EdgeInsets.symmetric( // Responsive padding
+                            horizontal: isSmallScreen ? 12 : 16, vertical: isSmallScreen ? 6 : 8),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Lihat Semua',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                                fontSize: isSmallScreen ? 12 : 14, // Responsive font size
+                              ),
                             ),
-                          ),
-                          SizedBox(width: 4),
-                          Icon(
-                            Icons.arrow_forward_ios_rounded,
-                            color: Colors.white,
-                            size: 14,
-                          ),
-                        ],
+                            SizedBox(width: isSmallScreen ? 2 : 4),
+                            Icon(
+                              Icons.arrow_forward_ios_rounded,
+                              color: Colors.white,
+                              size: isSmallScreen ? 12 : 14, // Responsive icon size
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -409,9 +428,9 @@ class BerandaContent extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 20.0),
-          _buildPromoCard(),
-          const SizedBox(height: 24),
+          SizedBox(height: isSmallScreen ? 16.0 : 20.0), // Responsive spacing
+          _buildPromoCard(isSmallScreen: isSmallScreen), // Pass isSmallScreen
+          SizedBox(height: isSmallScreen ? 16.0 : 24.0), // Responsive spacing
         ],
       ),
     );

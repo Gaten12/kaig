@@ -71,8 +71,14 @@ class _FormPenumpangScreenState extends State<FormPenumpangScreen> {
   }
 
   Future<void> _submitForm() async {
-    // ... (validasi tetap sama) ...
-    if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) {
+      // Show error if any field is invalid
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Harap lengkapi semua field yang wajib diisi.')),
+      );
+      return;
+    }
+
     if (_selectedTipePenumpang == null || _selectedTipeId == null || _selectedTanggalLahir == null || _selectedJenisKelamin == null) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Harap lengkapi semua field.')));
       return;
@@ -163,6 +169,9 @@ class _FormPenumpangScreenState extends State<FormPenumpangScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 600;
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFFC50000),
@@ -171,66 +180,88 @@ class _FormPenumpangScreenState extends State<FormPenumpangScreen> {
         ),
         title: Text(
           _isEditing ? "Ubah Penumpang" : "Tambah Penumpang Baru",
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-          ),
-        
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: isSmallScreen ? 18 : 20),
+        ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
+      body: SingleChildScrollView( // Added SingleChildScrollView to make it scrollable
+        padding: EdgeInsets.all(isSmallScreen ? 16.0 : 20.0), // Responsive padding
         child: Form(
           key: _formKey,
-          child: ListView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch, // Stretch children to fill width
             children: <Widget>[
               TextFormField(
                 controller: _namaLengkapController,
-                decoration: const InputDecoration(labelText: "Nama Lengkap", border: OutlineInputBorder()),
+                decoration: InputDecoration(
+                  labelText: "Nama Lengkap",
+                  border: const OutlineInputBorder(),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: isSmallScreen ? 12 : 14), // Responsive padding
+                ),
                 validator: (value) => (value == null || value.isEmpty) ? "Nama tidak boleh kosong" : null,
               ),
-              const SizedBox(height: 16.0),
+              SizedBox(height: isSmallScreen ? 12.0 : 16.0), // Responsive spacing
               DropdownButtonFormField<String>(
                 value: _selectedTipePenumpang,
-                decoration: const InputDecoration(labelText: "Tipe Penumpang", border: OutlineInputBorder()),
+                decoration: InputDecoration(
+                  labelText: "Tipe Penumpang",
+                  border: const OutlineInputBorder(),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: isSmallScreen ? 12 : 14), // Responsive padding
+                  isDense: true, // Make it more compact
+                ),
                 items: _tipePenumpangOptions.map((String value) {
-                  return DropdownMenuItem<String>(value: value, child: Text(value));
+                  return DropdownMenuItem<String>(value: value, child: Text(value, style: TextStyle(fontSize: isSmallScreen ? 14 : null))); // Responsive font size
                 }).toList(),
                 onChanged: (value) => setState(() => _selectedTipePenumpang = value),
                 validator: (value) => value == null ? "Pilih tipe penumpang" : null,
               ),
-              const SizedBox(height: 16.0),
+              SizedBox(height: isSmallScreen ? 12.0 : 16.0), // Responsive spacing
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start, // Align top for overflow prevention
                 children: [
                   Expanded(
+                    flex: isSmallScreen ? 2 : 2, // Adjust flex for small screens, maintain ratio
                     child: DropdownButtonFormField<String>(
                       value: _selectedTipeId,
-                      decoration: const InputDecoration(labelText: "Tipe ID", border: OutlineInputBorder()),
+                      decoration: InputDecoration(
+                        labelText: "Tipe ID",
+                        border: const OutlineInputBorder(),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: isSmallScreen ? 12 : 14), // Responsive padding
+                        isDense: true, // Make it more compact
+                      ),
                       items: _tipeIdOptions.map((String value) {
-                        return DropdownMenuItem<String>(value: value, child: Text(value));
+                        return DropdownMenuItem<String>(value: value, child: Text(value, style: TextStyle(fontSize: isSmallScreen ? 14 : null))); // Responsive font size
                       }).toList(),
                       onChanged: (value) => setState(() => _selectedTipeId = value),
                       validator: (value) => value == null ? "Pilih tipe ID" : null,
                     ),
                   ),
-                  const SizedBox(width: 12.0),
+                  SizedBox(width: isSmallScreen ? 8.0 : 12.0), // Responsive spacing
                   Expanded(
-                    flex: 2,
+                    flex: isSmallScreen ? 3 : 3, // Adjust flex, give more space to Nomor ID
                     child: TextFormField(
                       controller: _nomorIdController,
-                      decoration: const InputDecoration(labelText: "Nomor ID", border: OutlineInputBorder()),
+                      decoration: InputDecoration(
+                        labelText: "Nomor ID",
+                        border: const OutlineInputBorder(),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: isSmallScreen ? 12 : 14), // Responsive padding
+                        isDense: true, // Make it more compact
+                      ),
                       validator: (value) => (value == null || value.isEmpty) ? "Nomor ID tidak boleh kosong" : null,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 16.0),
+              SizedBox(height: isSmallScreen ? 12.0 : 16.0), // Responsive spacing
               TextFormField(
                   readOnly: true,
                   decoration: InputDecoration(
                     labelText: 'Tanggal Lahir',
                     hintText: _selectedTanggalLahir == null
                         ? 'Pilih Tanggal Lahir'
-                        : DateFormat('dd MMMM yyyy', 'id_ID').format(_selectedTanggalLahir!),
+                        : DateFormat('dd MMMM yyyy', 'id_ID').format(_selectedTanggalLahir!), // Changed format for full year
                     border: const OutlineInputBorder(),
                     suffixIcon: const Icon(Icons.calendar_today),
+                    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: isSmallScreen ? 12 : 14), // Responsive padding
                   ),
                   onTap: () => _pilihTanggalLahir(context),
                   validator: (value){
@@ -238,19 +269,21 @@ class _FormPenumpangScreenState extends State<FormPenumpangScreen> {
                     return null;
                   }
               ),
-              const SizedBox(height: 16.0),
-              const Text("Jenis Kelamin", style: TextStyle(fontSize: 16)),
+              SizedBox(height: isSmallScreen ? 12.0 : 16.0), // Responsive spacing
+              Text("Jenis Kelamin", style: TextStyle(fontSize: isSmallScreen ? 15 : 16)), // Responsive font size
               Row(
                 children: <Widget>[
                   Expanded(
                     child: RadioListTile<String>(
-                      title: const Text('Laki-laki'), value: 'Laki-laki', groupValue: _selectedJenisKelamin,
+                      title: Text('Laki-laki', style: TextStyle(fontSize: isSmallScreen ? 10 : null)), // Responsive font size
+                      value: 'Laki-laki', groupValue: _selectedJenisKelamin,
                       onChanged: (value) => setState(() => _selectedJenisKelamin = value),
                     ),
                   ),
                   Expanded(
                     child: RadioListTile<String>(
-                      title: const Text('Perempuan'), value: 'Perempuan', groupValue: _selectedJenisKelamin,
+                      title: Text('Perempuan', style: TextStyle(fontSize: isSmallScreen ? 10 : null)), // Responsive font size
+                      value: 'Perempuan', groupValue: _selectedJenisKelamin,
                       onChanged: (value) => setState(() => _selectedJenisKelamin = value),
                     ),
                   ),
@@ -258,31 +291,34 @@ class _FormPenumpangScreenState extends State<FormPenumpangScreen> {
               ),
               if (_selectedJenisKelamin == null)
                 Padding(
-                  padding: const EdgeInsets.only(left: 12.0, top:0),
-                  child: Text("Pilih jenis kelamin", style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 12)),
+                  padding: EdgeInsets.only(left: isSmallScreen ? 12.0 : 16.0, top: isSmallScreen ? 0 : 4), // Responsive padding
+                  child: Text("Pilih jenis kelamin", style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: isSmallScreen ? 11 : 12)), // Responsive font size
                 ),
-              const SizedBox(height: 32.0),
+              SizedBox(height: isSmallScreen ? 24.0 : 32.0), // Responsive spacing
               ElevatedButton(
                 onPressed: _submitForm,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF304FFE),
-                  minimumSize: const Size(double.infinity, 50)
-                  ),
-                
-                child: Text(_isEditing ? "SIMPAN PERUBAHAN" : "SIMPAN PENUMPANG"),
+                  minimumSize: Size(double.infinity, isSmallScreen ? 45 : 50), // Responsive button height
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(isSmallScreen ? 8 : 12)), // Responsive border radius
+                ),
+                child: Text(_isEditing ? "SIMPAN PERUBAHAN" : "SIMPAN PENUMPANG", style: TextStyle(fontSize: isSmallScreen ? 15 : 16)), // Responsive font size
               ),
               if (_isEditing) ...[
-                const SizedBox(height: 12.0),
+                SizedBox(height: isSmallScreen ? 8.0 : 12.0), // Responsive spacing
                 OutlinedButton(
                   onPressed: _deletePassenger,
                   style: OutlinedButton.styleFrom(
-                    minimumSize: const Size(double.infinity, 50),
+                    minimumSize: Size(double.infinity, isSmallScreen ? 45 : 50), // Responsive button height
                     side: BorderSide(color: Colors.red.shade300),
                     foregroundColor: Colors.red.shade700,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(isSmallScreen ? 8 : 12)), // Responsive border radius
                   ),
-                  child: const Text("HAPUS PENUMPANG"),
+                  child: Text("HAPUS PENUMPANG", style: TextStyle(fontSize: isSmallScreen ? 15 : 16)), // Responsive font size
                 ),
-              ]
+              ],
+              SizedBox(height: isSmallScreen ? 8 : 16), // Extra bottom padding for scroll
             ],
           ),
         ),

@@ -28,8 +28,9 @@ class _TiketSayaScreenState extends State<TiketSayaScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Halaman "Tiket Saya" tidak memerlukan AppBar sendiri karena
-    // AppBar sudah di-handle oleh HomeScreen.
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 600;
+
     return Scaffold(
       body: StreamBuilder<List<TransaksiModel>>(
         stream: _tiketStream,
@@ -41,17 +42,28 @@ class _TiketSayaScreenState extends State<TiketSayaScreen> {
             return Center(child: Text("Error: ${snapshot.error}"));
           }
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(
+            return Center(
               child: Padding(
-                padding: EdgeInsets.all(24.0),
+                padding: EdgeInsets.all(isSmallScreen ? 16.0 : 24.0), // Responsive padding
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.receipt_long_outlined, size: 80, color: Colors.grey),
-                    SizedBox(height: 16),
-                    Text("Belum Ada Tiket", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                    SizedBox(height: 8),
-                    Text("Semua tiket yang berhasil Anda pesan akan muncul di sini.", textAlign: TextAlign.center, style: TextStyle(color: Colors.grey)),
+                    Icon(Icons.receipt_long_outlined,
+                        size: isSmallScreen ? 60 : 80,
+                        color: Colors.grey), // Responsive icon size
+                    SizedBox(height: isSmallScreen ? 12 : 16), // Responsive spacing
+                    Text("Belum Ada Tiket",
+                        style: TextStyle(
+                            fontSize: isSmallScreen ? 18 : 20,
+                            fontWeight: FontWeight.bold)), // Responsive font size
+                    SizedBox(height: isSmallScreen ? 6 : 8), // Responsive spacing
+                    Text(
+                      "Semua tiket yang berhasil Anda pesan akan muncul di sini.",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: isSmallScreen ? 12 : 14), // Responsive font size
+                    ),
                   ],
                 ),
               ),
@@ -60,11 +72,15 @@ class _TiketSayaScreenState extends State<TiketSayaScreen> {
 
           final tiketList = snapshot.data!;
           return ListView.builder(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 80), // Padding bawah agar tidak tertutup nav bar
+            padding: EdgeInsets.fromLTRB(
+                isSmallScreen ? 12 : 16,
+                isSmallScreen ? 12 : 16,
+                isSmallScreen ? 12 : 16,
+                isSmallScreen ? 70 : 80), // Responsive bottom padding
             itemCount: tiketList.length,
             itemBuilder: (context, index) {
               final tiket = tiketList[index];
-              return _buildTiketCard(context, tiket);
+              return _buildTiketCard(context, tiket, isSmallScreen); // Pass isSmallScreen
             },
           );
         },
@@ -72,8 +88,10 @@ class _TiketSayaScreenState extends State<TiketSayaScreen> {
     );
   }
 
-  Widget _buildTiketCard(BuildContext context, TransaksiModel tiket) {
-    final currencyFormatter = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp. ', decimalDigits: 0);
+  Widget _buildTiketCard(
+      BuildContext context, TransaksiModel tiket, bool isSmallScreen) {
+    final currencyFormatter =
+    NumberFormat.currency(locale: 'id_ID', symbol: 'Rp. ', decimalDigits: 0);
     final ruteParts = tiket.rute.split('❯');
     final stasiunAsal = ruteParts.isNotEmpty ? ruteParts[0].trim() : '';
     final stasiunTujuan = ruteParts.length > 1 ? ruteParts[1].trim() : '';
@@ -84,7 +102,7 @@ class _TiketSayaScreenState extends State<TiketSayaScreen> {
     }
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: EdgeInsets.only(bottom: isSmallScreen ? 10 : 12), // Responsive margin
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       elevation: 3,
       child: InkWell(
@@ -100,7 +118,7 @@ class _TiketSayaScreenState extends State<TiketSayaScreen> {
           children: [
             // Header Kartu
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 12 : 16, vertical: isSmallScreen ? 6 : 8), // Responsive padding
               decoration: BoxDecoration(
                 color: Colors.red.shade700,
                 borderRadius: const BorderRadius.only(
@@ -111,36 +129,67 @@ class _TiketSayaScreenState extends State<TiketSayaScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text("Kode Pemesanan: ${tiket.kodeBooking}", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                  Text(tiket.status, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  Text("Kode Pemesanan: ${tiket.kodeBooking}",
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: isSmallScreen ? 12 : 14)), // Responsive font size
+                  Text(tiket.status,
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: isSmallScreen ? 12 : 14)), // Responsive font size
                 ],
               ),
             ),
             // Body Kartu
             Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: EdgeInsets.all(isSmallScreen ? 12.0 : 16.0), // Responsive padding
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.train, color: Colors.black54, size: 40),
-                  const SizedBox(width: 16),
+                  Icon(Icons.train,
+                      color: Colors.black54,
+                      size: isSmallScreen ? 32 : 40), // Responsive icon size
+                  SizedBox(width: isSmallScreen ? 12 : 16), // Responsive spacing
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text("KERETA ANTAR KOTA", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                        Text(tiket.namaKereta.toUpperCase(), style: const TextStyle(color: Colors.black54)),
-                        const SizedBox(height: 4),
-                        Text(infoPenumpang, style: const TextStyle(fontSize: 12, color: Colors.black54)),
-                        const SizedBox(height: 8),
+                        Text("KERETA ANTAR KOTA",
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize:
+                                isSmallScreen ? 14 : 16)), // Responsive font size
+                        Text(tiket.namaKereta.toUpperCase(),
+                            style: TextStyle(
+                                color: Colors.black54,
+                                fontSize:
+                                isSmallScreen ? 12 : null)), // Responsive font size
+                        SizedBox(height: isSmallScreen ? 2 : 4), // Responsive spacing
+                        Text(infoPenumpang,
+                            style: TextStyle(
+                                fontSize: isSmallScreen ? 10 : 12,
+                                color: Colors.black54)), // Responsive font size
+                        SizedBox(height: isSmallScreen ? 6 : 8), // Responsive spacing
                         Row(
                           children: [
-                            Text(stasiunAsal, style: const TextStyle(fontWeight: FontWeight.bold)),
-                            const Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 8.0),
-                              child: Icon(Icons.arrow_forward, size: 16),
+                            Text(stasiunAsal,
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize:
+                                    isSmallScreen ? 14 : null)), // Responsive font size
+                            Padding(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: isSmallScreen ? 6.0 : 8.0), // Responsive padding
+                              child: Icon(Icons.arrow_forward,
+                                  size: isSmallScreen ? 14 : 16), // Responsive icon size
                             ),
-                            Text(stasiunTujuan, style: const TextStyle(fontWeight: FontWeight.bold)),
+                            Text(stasiunTujuan,
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize:
+                                    isSmallScreen ? 14 : null)), // Responsive font size
                           ],
                         ),
                       ],
@@ -151,46 +200,77 @@ class _TiketSayaScreenState extends State<TiketSayaScreen> {
             ),
             // Footer Kartu
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              padding: EdgeInsets.fromLTRB(
+                  isSmallScreen ? 12 : 16,
+                  0,
+                  isSmallScreen ? 12 : 16,
+                  isSmallScreen ? 12 : 16), // Responsive padding
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text("Total Harga", style: TextStyle(color: Colors.black54)),
-                      Text(
-                        currencyFormatter.format(tiket.totalBayar),
-                        style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold, fontSize: 16),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => DetailRiwayatScreen(transaksi: tiket)),
-                          );
-                        },
-                        child: const Text("Detail"),
-                      ),
-                      const SizedBox(width: 8),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue,
-                            foregroundColor: Colors.white
+                  Expanded( // Use Expanded to give priority to price column
+                    flex: 2, // Adjust flex as needed
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("Total Harga",
+                            style: TextStyle(
+                                color: Colors.black54,
+                                fontSize:
+                                isSmallScreen ? 12 : null)), // Responsive font size
+                        Text(
+                          currencyFormatter.format(tiket.totalBayar),
+                          style: TextStyle(
+                              color: const Color(0xFF0000CD),
+                              fontWeight: FontWeight.bold,
+                              fontSize:
+                              isSmallScreen ? 16 : 18), // Responsive font size
                         ),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => ETiketScreen(tiket: tiket)),
-                          );
-                        },
-                        child: const Text("Lihat E-Tiket"),
-                      )
-                    ],
+                      ],
+                    ),
+                  ),
+                  SizedBox(width: isSmallScreen ? 8 : 12), // Responsive spacing
+                  Expanded( // Use Expanded for the buttons row
+                    flex: 3, // Adjust flex as needed
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end, // Align buttons to the end
+                      children: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      DetailRiwayatScreen(transaksi: tiket)),
+                            );
+                          },
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 8 : 12, vertical: isSmallScreen ? 4 : 8), // Responsive padding
+                            textStyle: TextStyle(fontSize: isSmallScreen ? 12 : 14), // Responsive font size
+                            foregroundColor: const Color(0xFF304FFE),
+                          ),
+                          child: const Text("Detail"),
+                        ),
+                        SizedBox(width: isSmallScreen ? 4 : 8), // Responsive spacing
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white,
+                            padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 8 : 12, vertical: isSmallScreen ? 4 : 8), // Responsive padding
+                            textStyle: TextStyle(fontSize: isSmallScreen ? 12 : 14), // Responsive font size
+                            minimumSize: Size(isSmallScreen ? 90 : 110, isSmallScreen ? 30 : 35), // Responsive minimum size
+                          ),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => ETiketScreen(tiket: tiket)),
+                            );
+                          },
+                          child: const Text("Lihat E-Tiket"),
+                        )
+                      ],
+                    ),
                   )
                 ],
               ),
@@ -199,5 +279,28 @@ class _TiketSayaScreenState extends State<TiketSayaScreen> {
         ),
       ),
     );
+  }
+}
+
+// Extension for TransaksiModel (already exists and remains unchanged)
+extension TransaksiModelExtension on TransaksiModel {
+  String get durasiPerjalanan {
+    final format = DateFormat('HH:mm');
+    try {
+      final berangkat = format.parse(waktuBerangkat);
+      final tiba = format.parse(waktuTiba);
+
+      final dtBerangkat =
+      DateTime(2025, 1, 1, berangkat.hour, berangkat.minute);
+      final dtTiba = DateTime(2025, 1, (tiba.hour < berangkat.hour ? 2 : 1),
+          tiba.hour, tiba.minute);
+
+      final durasi = dtTiba.difference(dtBerangkat);
+      final jam = durasi.inHours;
+      final menit = durasi.inMinutes.remainder(60);
+      return "${jam}j ${menit}m";
+    } catch (e) {
+      return '-';
+    }
   }
 }

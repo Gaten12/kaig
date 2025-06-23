@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:kaig/screens/customer/utama/akun/tentang_aplikasi.dart';
 import 'package:kaig/screens/customer/utama/riwayat/riwayat_transaksi_screen.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/cupertino.dart'; // Digunakan untuk CupertinoAlertDialog
 import '../../../../models/passenger_model.dart';
-import '../../../../services/auth_service.dart'; // Pastikan path ini benar
-import '../../../login/login_screen.dart'; // Halaman login
+import '../../../../services/auth_service.dart';
+import '../../../login/login_screen.dart';
 import '../pembayaran/metode_pembayaran_screen.dart';
 import 'ganti_kata_sandi_screen.dart';
 import 'informasi_data_diri_screen.dart';
-import 'list_penumpang_screen.dart'; // Halaman daftar penumpang
+import 'list_penumpang_screen.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -19,21 +19,20 @@ class AccountScreen extends StatefulWidget {
 
 class _AccountScreenState extends State<AccountScreen> {
   final AuthService _authService = AuthService();
-  // UserModel? _currentUserModel; // Bisa tetap ada jika perlu data lain dari UserModel
   String _userName = "Pengguna";
   String get _userInitials => getInitials(_userName);
 
   String getInitials(String name) {
     String trimmedName = name.trim();
     if (trimmedName.isEmpty) return "?";
-    
+
     final List<String> nameParts = trimmedName.split(RegExp(r'\s+'));
     String initials = nameParts[0][0];
-    
+
     if (nameParts.length > 1 && nameParts[1].isNotEmpty) {
       initials += nameParts[1][0];
     }
-    
+
     return initials.toUpperCase();
   }
 
@@ -45,10 +44,9 @@ class _AccountScreenState extends State<AccountScreen> {
 
   Future<void> _loadUserData() async {
     final firebaseUser = _authService.currentUser;
-    String displayNameToShow = "Pengguna"; // Default
+    String displayNameToShow = "Pengguna";
 
     if (firebaseUser != null) {
-      // Ambil nama dari data penumpang utama (primary passenger)
       try {
         PassengerModel? primaryPassenger = await _authService.getPrimaryPassenger(firebaseUser.uid);
         if (primaryPassenger != null && primaryPassenger.namaLengkap.isNotEmpty) {
@@ -66,16 +64,11 @@ class _AccountScreenState extends State<AccountScreen> {
           displayNameToShow = firebaseUser.email!.split('@')[0];
         }
       }
-
-      // Jika Anda masih perlu data lain dari UserModel (misal no telepon, role, dll.)
-      // Anda bisa tetap mengambil _currentUserModel di sini:
-      // _currentUserModel = await _authService.getUserModel(firebaseUser.uid);
     }
 
     if (mounted) {
       setState(() {
         _userName = displayNameToShow;
-        // Potong nama jika terlalu panjang untuk tampilan header
         if (_userName.length > 20) {
           _userName = "${_userName.substring(0, 17)}...";
         }
@@ -83,9 +76,8 @@ class _AccountScreenState extends State<AccountScreen> {
     }
   }
 
-  // --- FUNGSI BARU UNTUK MENAMPILKAN DIALOG ---
   void _showLogoutConfirmationDialog() {
-    showDialog(
+    showCupertinoDialog(
       context: context,
       builder: (BuildContext context) {
         return CupertinoAlertDialog(
@@ -95,16 +87,13 @@ class _AccountScreenState extends State<AccountScreen> {
             CupertinoDialogAction(
               child: const Text("TIDAK"),
               onPressed: () {
-                Navigator.of(context).pop(); // Tutup dialog
+                Navigator.of(context).pop();
               },
             ),
             CupertinoDialogAction(
-              isDefaultAction: true, // Membuat teks menjadi tebal (gaya default iOS)
+              isDefaultAction: true,
               onPressed: () async {
-                // Tutup dialog terlebih dahulu
                 Navigator.of(context).pop();
-
-                // Lakukan proses logout
                 await _authService.signOut();
                 if (mounted) {
                   Navigator.of(context).pushAndRemoveUntil(
@@ -121,66 +110,62 @@ class _AccountScreenState extends State<AccountScreen> {
     );
   }
 
-@override
+  @override
   Widget build(BuildContext context) {
-    // Daftar menu, dipisahkan dari header
-    final List<Widget> listMenuItems = [
-      _buildSectionTitle("Informasi Pengguna"),
-      _buildMenuItem(context, icon: Icons.lock_outline, title: "Ganti Kata Sandi", onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const GantiKataSandiScreen()))),
-      _buildMenuItem(context, icon: Icons.receipt_long_outlined, title: "Riwayat Transaksi", onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const RiwayatTransaksiScreen()))),
-      _buildMenuItem(context, icon: Icons.people_alt_outlined, title: "Daftar Penumpang", onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ListPenumpangScreen()))),
-      _buildMenuItem(context, icon: Icons.payment_outlined, title: "Metode Pembayaran Saya", onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const MetodePembayaranScreen()))),
-      _buildSectionTitle("Lainnya"),
-      _buildMenuItem(context, icon: Icons.info_outline, title: "Tentang Aplikasi TrainOrder", onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const TentangAplikasiScreen()))),
-      _buildMenuItem(context, icon: Icons.logout, title: "Keluar", textColor: Colors.red, iconColor: Colors.red, onTap: _showLogoutConfirmationDialog),
-    ];
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 600;
 
     return Scaffold(
-      backgroundColor: Colors.grey[200], // Background abu-abu untuk daftar menu
-      // Menggunakan Column agar bisa menumpuk header dan list
-      body: Column(
-        children: [
-          _buildProfileHeader(context),
-          Expanded(
-            child: ListView.separated(
-              padding: EdgeInsets.zero, // Hapus padding atas dari list
-              itemCount: listMenuItems.length,
-              itemBuilder: (context, index) {
-                return listMenuItems[index];
-              },
-              separatorBuilder: (context, index) {
-                final currentItem = listMenuItems[index];
-                if (index < listMenuItems.length - 1) {
-                  final nextItem = listMenuItems[index + 1];
-                  // Tampilkan divider hanya di antara dua menu item
-                  if (currentItem is Container && nextItem is Container) {
-                    return const Divider(height: 1, thickness: 1, indent: 56, endIndent: 16);
-                  }
-                }
-                return const SizedBox.shrink();
-              },
+      backgroundColor: Colors.grey[200],
+      body: SingleChildScrollView( // Wrap the entire body content in SingleChildScrollView
+        child: Column(
+          children: [
+            _buildProfileHeader(context, isSmallScreen), // This builds the header
+            // Directly list out menu items within the Column
+            _buildSectionTitle("Informasi Pengguna", isSmallScreen),
+            // Group menu items in a Card or Container for better visual separation and shadow if desired
+            Container(
+              color: Colors.white, // Background for the menu group
+              child: Column(
+                children: [
+                  _buildMenuItem(context, icon: Icons.lock_outline, title: "Ganti Kata Sandi", onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const GantiKataSandiScreen())), isSmallScreen: isSmallScreen),
+                  Divider(height: 1, thickness: 1, indent: isSmallScreen ? 50 : 56, endIndent: 16, color: Colors.grey[300]),
+                  _buildMenuItem(context, icon: Icons.receipt_long_outlined, title: "Riwayat Transaksi", onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const RiwayatTransaksiScreen())), isSmallScreen: isSmallScreen),
+                  Divider(height: 1, thickness: 1, indent: isSmallScreen ? 50 : 56, endIndent: 16, color: Colors.grey[300]),
+                  _buildMenuItem(context, icon: Icons.people_alt_outlined, title: "Daftar Penumpang", onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ListPenumpangScreen())), isSmallScreen: isSmallScreen),
+                  Divider(height: 1, thickness: 1, indent: isSmallScreen ? 50 : 56, endIndent: 16, color: Colors.grey[300]),
+                  _buildMenuItem(context, icon: Icons.payment_outlined, title: "Metode Pembayaran Saya", onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const MetodePembayaranScreen())), isSmallScreen: isSmallScreen),
+                ],
+              ),
             ),
-          ),
-        ],
+            _buildSectionTitle("Lainnya", isSmallScreen),
+            Container(
+              color: Colors.white, // Background for the other menu group
+              child: Column(
+                children: [
+                  _buildMenuItem(context, icon: Icons.info_outline, title: "Tentang Aplikasi TrainOrder", onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const TentangAplikasiScreen())), isSmallScreen: isSmallScreen),
+                  Divider(height: 1, thickness: 1, indent: isSmallScreen ? 50 : 56, endIndent: 16, color: Colors.grey[300]),
+                  _buildMenuItem(context, icon: Icons.logout, title: "Keluar", textColor: Colors.red, iconColor: Colors.red, onTap: _showLogoutConfirmationDialog, isSmallScreen: isSmallScreen),
+                ],
+              ),
+            ),
+            SizedBox(height: MediaQuery.of(context).padding.bottom + (isSmallScreen ? 16 : 24)), // Responsive bottom padding to account for safe area and ensure scrollability
+          ],
+        ),
       ),
     );
   }
 
-  /// PERUBAHAN UTAMA: Widget ini sekarang membangun seluruh bagian header merah.
-  Widget _buildProfileHeader(BuildContext context) {
-    // Mendapatkan tinggi status bar untuk padding yang aman
+  Widget _buildProfileHeader(BuildContext context, bool isSmallScreen) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
-
     return Container(
-      // Container Merah sebagai background utama
-      padding: EdgeInsets.fromLTRB(16.0, statusBarHeight + 16.0, 16.0, 16.0),
-      color: const Color(0xFFB71C1C), // Warna merah maroon
+      padding: EdgeInsets.fromLTRB(isSmallScreen ? 12.0 : 16.0, statusBarHeight + (isSmallScreen ? 12.0 : 16.0), isSmallScreen ? 12.0 : 16.0, isSmallScreen ? 12.0 : 16.0),
+      color: const Color(0xFFB71C1C),
       child: Container(
-        // Container Putih sebagai kartu (card)
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(isSmallScreen ? 12.0 : 16.0),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12.0),
+          borderRadius: BorderRadius.circular(isSmallScreen ? 10.0 : 12.0),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -188,22 +173,22 @@ class _AccountScreenState extends State<AccountScreen> {
             Row(
               children: [
                 CircleAvatar(
-                  radius: 30,
+                  radius: isSmallScreen ? 25 : 30, // Responsive radius
                   backgroundColor: const Color(0xFFC50000),
                   child: Text(
                     _userInitials,
-                    style: const TextStyle(
-                        fontSize: 28,
+                    style: TextStyle(
+                        fontSize: isSmallScreen ? 24 : 28, // Responsive font size
                         color: Colors.white,
                         fontWeight: FontWeight.bold),
                   ),
                 ),
-                const SizedBox(width: 16.0),
+                SizedBox(width: isSmallScreen ? 12.0 : 16.0), // Responsive spacing
                 Expanded(
                   child: Text(
                     _userName,
-                    style: const TextStyle(
-                        fontSize: 20,
+                    style: TextStyle(
+                        fontSize: isSmallScreen ? 18 : 20, // Responsive font size
                         fontWeight: FontWeight.bold,
                         color: Colors.black87),
                     overflow: TextOverflow.ellipsis,
@@ -211,26 +196,25 @@ class _AccountScreenState extends State<AccountScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 16.0),
-            // Tombol "Kelola Profile"
+            SizedBox(height: isSmallScreen ? 12.0 : 16.0), // Responsive spacing
             ElevatedButton.icon(
-              icon: const Icon(Icons.person, size: 20),
-              label: const Text("Kelola Profile"),
+              icon: Icon(Icons.person, size: isSmallScreen ? 18 : 20), // Responsive icon size
+              label: Text("Kelola Profile", style: TextStyle(fontSize: isSmallScreen ? 14 : 16)), // Responsive font size
               onPressed: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                       builder: (context) => const InformasiDataDiriScreen()),
-                );
+                ).then((_) => _loadUserData()); // Refresh data when returning
               },
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.white,
-                backgroundColor: const Color(0xFFC50000), // Merah maroon
-                minimumSize: const Size(double.infinity, 40),
+                backgroundColor: const Color(0xFFC50000),
+                minimumSize: Size(double.infinity, isSmallScreen ? 35 : 40), // Responsive button height
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.0),
+                  borderRadius: BorderRadius.circular(isSmallScreen ? 6.0 : 8.0), // Responsive border radius
                 ),
-                elevation: 0, // Hilangkan bayangan tombol
+                elevation: 0,
               ),
             ),
           ],
@@ -239,39 +223,40 @@ class _AccountScreenState extends State<AccountScreen> {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
+  Widget _buildSectionTitle(String title, bool isSmallScreen) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16.0, 24.0, 16.0, 8.0),
-      child: Text(
-        title,
-        style: TextStyle(
-            fontSize: 14,
-            color: Colors.grey.shade600,
-            fontWeight: FontWeight.bold),
+      padding: EdgeInsets.fromLTRB(isSmallScreen ? 16.0 : 20.0, isSmallScreen ? 20.0 : 24.0, isSmallScreen ? 16.0 : 20.0, isSmallScreen ? 6.0 : 8.0), // Responsive padding
+      child: Align(
+        alignment: Alignment.centerLeft, // Align text to the left
+        child: Text(
+          title,
+          style: TextStyle(
+              fontSize: isSmallScreen ? 13 : 14, // Responsive font size
+              color: Colors.grey.shade600,
+              fontWeight: FontWeight.bold),
+        ),
       ),
     );
   }
 
   Widget _buildMenuItem(BuildContext context,
       {required IconData icon,
-      required String title,
-      required VoidCallback onTap,
-      Color? textColor,
-      Color? iconColor}) {
-    return Container(
-      color: Colors.white,
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
-        leading: Icon(icon, color: iconColor ?? Colors.grey.shade700),
-        title: Text(title,
-            style: TextStyle(
-                color: textColor ?? Colors.black87,
-                fontSize: 16,
-                fontWeight: FontWeight.w500)),
-        trailing:
-            const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
-        onTap: onTap,
-      ),
+        required String title,
+        required VoidCallback onTap,
+        Color? textColor,
+        Color? iconColor,
+        required bool isSmallScreen}) { // Added isSmallScreen
+    return ListTile(
+      contentPadding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 16.0 : 20.0), // Responsive padding
+      leading: Icon(icon, color: iconColor ?? Colors.grey.shade700, size: isSmallScreen ? 20 : 24), // Responsive icon size
+      title: Text(title,
+          style: TextStyle(
+              color: textColor ?? Colors.black87,
+              fontSize: isSmallScreen ? 15 : 16, // Responsive font size
+              fontWeight: FontWeight.w500)),
+      trailing:
+      Icon(Icons.arrow_forward_ios, size: isSmallScreen ? 14 : 16, color: Colors.grey), // Responsive icon size
+      onTap: onTap,
     );
   }
 }

@@ -145,7 +145,7 @@ class _InformasiDataDiriScreenState extends State<InformasiDataDiriScreen> {
         ElevatedButton(
           onPressed: _hapusAkun,
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.red,
+            backgroundColor: const Color(0xFFC50000),
             foregroundColor: Colors.white,
             minimumSize: const Size(double.infinity, 50),
           ),

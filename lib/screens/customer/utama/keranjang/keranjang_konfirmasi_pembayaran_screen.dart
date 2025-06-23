@@ -28,13 +28,47 @@ class _KeranjangKonfirmasiPembayaranScreenState
   final TransaksiService _transaksiService = TransaksiService();
   bool _isLoading = false;
 
+  // Helper method for responsive font sizes
+  double _responsiveFontSize(double screenWidth, double baseSize) {
+    if (screenWidth < 360) {
+      return baseSize * 0.8; // Smaller for very small phones
+    } else if (screenWidth < 600) {
+      return baseSize; // Base size for phones
+    } else if (screenWidth < 900) {
+      return baseSize * 1.1; // Slightly larger for tablets
+    } else {
+      return baseSize * 1.2; // Even larger for desktops
+    }
+  }
+
+  // Helper method for responsive icon sizes
+  double _responsiveIconSize(double screenWidth, double baseSize) {
+    if (screenWidth < 600) {
+      return baseSize;
+    } else if (screenWidth < 900) {
+      return baseSize * 1.1;
+    } else {
+      return baseSize * 1.2;
+    }
+  }
+
+  // Helper method for responsive horizontal padding
+  double _responsiveHorizontalPadding(double screenWidth) {
+    if (screenWidth > 1200) {
+      return (screenWidth - 1000) / 2; // Center content for very large screens
+    } else if (screenWidth > 600) {
+      return 24.0; // Medium padding for tablets
+    } else {
+      return 16.0; // Standard padding for phones
+    }
+  }
+
   Future<void> _prosesKonfirmasi() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Error: Pengguna tidak ditemukan.")));
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Error: Pengguna tidak ditemukan.")));
       return;
     }
 
@@ -48,16 +82,18 @@ class _KeranjangKonfirmasiPembayaranScreenState
       );
 
       if (mounted) {
+        final screenWidth = MediaQuery.of(context).size.width; // Get screen width for dialog responsiveness
         showDialog(
           context: context,
           barrierDismissible: false,
           builder: (ctx) => AlertDialog(
-            title: const Text("Pembayaran Berhasil!"),
+            title: Text("Pembayaran Berhasil!", style: TextStyle(fontSize: _responsiveFontSize(screenWidth, 18), fontWeight: FontWeight.bold)),
             content: Text(
-                "${kodeBookings.length} tiket telah berhasil diterbitkan. Anda dapat melihatnya di halaman 'Tiket Saya'."),
+                "${kodeBookings.length} tiket telah berhasil diterbitkan. Anda dapat melihatnya di halaman 'Tiket Saya'.",
+                style: TextStyle(fontSize: _responsiveFontSize(screenWidth, 14))),
             actions: [
               TextButton(
-                child: const Text("OK"),
+                child: Text("OK", style: TextStyle(fontSize: _responsiveFontSize(screenWidth, 16), fontWeight: FontWeight.bold)),
                 onPressed: () {
                   Navigator.of(ctx).pop();
                   Navigator.of(context).pushAndRemoveUntil(
@@ -74,7 +110,7 @@ class _KeranjangKonfirmasiPembayaranScreenState
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Gagal memproses transaksi: $e")));
+            SnackBar(content: Text("Gagal memproses transaksi: $e", style: TextStyle(fontSize: _responsiveFontSize(MediaQuery.of(context).size.width, 14)))));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -83,6 +119,7 @@ class _KeranjangKonfirmasiPembayaranScreenState
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
     final currencyFormatter =
     NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
 
@@ -105,35 +142,45 @@ class _KeranjangKonfirmasiPembayaranScreenState
       appBar: AppBar(
         backgroundColor: const Color(0xFFC50000),
         foregroundColor: Colors.white,
-        title: const Text("Konfirmasi Pembayaran")
+        title: Text(
+          "Konfirmasi Pembayaran",
+          style: TextStyle(fontSize: _responsiveFontSize(screenWidth, 20)),
         ),
+      ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(child: CircularProgressIndicator(strokeWidth: _responsiveIconSize(screenWidth, 3)))
           : ListView(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(_responsiveHorizontalPadding(screenWidth)),
         children: [
           Card(
+            elevation: _responsiveFontSize(screenWidth, 2.0),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(_responsiveFontSize(screenWidth, 12))),
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: EdgeInsets.all(_responsiveFontSize(screenWidth, 16.0)),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                      "Metode Pembayaran: ${widget.metodePembayaran.namaMetode}",
-                      style:
-                      const TextStyle(fontWeight: FontWeight.bold)),
-                  const Divider(height: 20),
+                    "Metode Pembayaran: ${widget.metodePembayaran.namaMetode}",
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: _responsiveFontSize(screenWidth, 16)),
+                  ),
+                  Divider(height: _responsiveFontSize(screenWidth, 20)),
                   // Gunakan variabel dinamis yang sudah disiapkan
-                  Text(infoJudul),
+                  Text(infoJudul, style: TextStyle(fontSize: _responsiveFontSize(screenWidth, 14))),
                   SelectableText(
                     infoNomor,
                     style: Theme.of(context)
                         .textTheme
                         .titleLarge
-                        ?.copyWith(fontWeight: FontWeight.bold),
+                        ?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        fontSize: _responsiveFontSize(screenWidth, 20)),
                   ),
-                  const SizedBox(height: 16),
-                  const Text("Total Pembayaran"),
+                  SizedBox(height: _responsiveFontSize(screenWidth, 16)),
+                  Text("Total Pembayaran", style: TextStyle(fontSize: _responsiveFontSize(screenWidth, 14))),
                   Text(
                     currencyFormatter.format(widget.totalBayar),
                     style: Theme.of(context)
@@ -141,8 +188,8 @@ class _KeranjangKonfirmasiPembayaranScreenState
                         .titleLarge
                         ?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color:Color(0xFF0000CD)
-                        ),
+                        fontSize: _responsiveFontSize(screenWidth, 20),
+                        color: const Color(0xFF0000CD)),
                   ),
                 ],
               ),
@@ -151,14 +198,19 @@ class _KeranjangKonfirmasiPembayaranScreenState
         ],
       ),
       bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(_responsiveHorizontalPadding(screenWidth)),
         child: ElevatedButton(
           onPressed: _isLoading ? null : _prosesKonfirmasi,
           style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0000CD), 
+              backgroundColor: Color(0xFF304FFE),
               foregroundColor: Colors.white,
-              minimumSize: const Size(double.infinity, 50)),
-          child: const Text("KONFIRMASI PEMBAYARAN"),
+              minimumSize: Size(double.infinity, _responsiveFontSize(screenWidth, 50)), // Responsive height
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(_responsiveFontSize(screenWidth, 25)))), // Responsive border radius
+          child: Text("KONFIRMASI PEMBAYARAN",
+              style: TextStyle(
+                  fontSize: _responsiveFontSize(screenWidth, 16),
+                  fontWeight: FontWeight.bold)),
         ),
       ),
     );

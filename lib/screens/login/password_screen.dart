@@ -6,8 +6,7 @@ import '../customer/utama/home_screen.dart'; // Layar Customer
 import '../../screens/admin/screens/admin_home_screen.dart';
 import '../lupa_password/lupa_password_screen.dart';
 import 'login_screen.dart'; // Layar Admin
-// import 'forgot_password_screen.dart'; // Jika ada
-// import 'login_email_screen.dart'; // Jika perlu navigasi kembali
+
 
 class LoginPasswordScreen extends StatefulWidget {
   final String email; // Email dari layar sebelumnya
@@ -20,7 +19,7 @@ class LoginPasswordScreen extends StatefulWidget {
 
 class _LoginPasswordScreenState extends State<LoginPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _passwordController = TextEditingController(); // Ganti nama jika perlu
+  final _passwordController = TextEditingController();
   bool _isLoading = false;
   bool _obscureText = true;
 
@@ -37,7 +36,7 @@ class _LoginPasswordScreenState extends State<LoginPasswordScreen> {
     if (!_formKey.currentState!.validate()) {
       return;
     }
-    _formKey.currentState!.save(); // Meskipun tidak ada onSaved eksplisit, ini praktik baik
+    _formKey.currentState!.save();
 
     setState(() {
       _isLoading = true;
@@ -56,7 +55,7 @@ class _LoginPasswordScreenState extends State<LoginPasswordScreen> {
 
       if (firebaseUser != null && mounted) {
         print("[LoginPasswordScreen] Mengambil role pengguna dari Firestore...");
-        // Logika pengecekan peran disalin dari SplashScreen._fetchUserRoleAndNavigate
+
         DocumentSnapshot<Map<String, dynamic>> userDoc =
         await _firestore.collection('users').doc(firebaseUser.uid).get();
 
@@ -82,14 +81,12 @@ class _LoginPasswordScreenState extends State<LoginPasswordScreen> {
             );
           }
         } else {
-          // Dokumen user tidak ditemukan di Firestore setelah login berhasil
-          // Ini kasus yang aneh, mungkin data user belum dibuat atau ada masalah sinkronisasi.
-          // Sebagai fallback, arahkan ke HomeScreen Customer atau tampilkan error.
+
           print("[LoginPasswordScreen] Dokumen user tidak ditemukan untuk UID: ${firebaseUser.uid}. Arahkan ke HomeScreen sebagai fallback.");
           if (mounted) {
             await _auth.signOut();
             Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (context) => LoginEmailScreen()), // Kembali ke login
+              MaterialPageRoute(builder: (context) => LoginEmailScreen()),
                   (Route<dynamic> route) => false,
             );
             ScaffoldMessenger.of(context).showSnackBar(
@@ -102,7 +99,7 @@ class _LoginPasswordScreenState extends State<LoginPasswordScreen> {
           }
         }
       } else {
-        // firebaseUser null setelah signIn, seharusnya tidak terjadi jika tidak ada exception
+
         print("[LoginPasswordScreen] firebaseUser null setelah signIn berhasil (seharusnya tidak terjadi).");
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -122,7 +119,7 @@ class _LoginPasswordScreenState extends State<LoginPasswordScreen> {
       } else if (e.code == 'invalid-credential') {
         message = 'Kredensial tidak valid.';
       }
-      // Tambahkan penanganan error lain jika perlu
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(message), backgroundColor: Colors.red),
@@ -148,10 +145,14 @@ class _LoginPasswordScreenState extends State<LoginPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
-  return Scaffold(
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 600; // Define a breakpoint for small screens
+
+    return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        // Tombol kembali diatur di sini
+
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
@@ -163,98 +164,102 @@ class _LoginPasswordScreenState extends State<LoginPasswordScreen> {
         backgroundColor: const Color(0xFFB71C1C), // Warna merah gelap
         elevation: 0,
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              // Teks instruksi sesuai gambar
-              const Text(
-                'Buat kamu yang sudah pernah bergabung, silahkan gunakan akun lamamu. Demi keamanan, jangan pernah bagikan kata sandimu ke siapapun ya!',
-                style: TextStyle(fontSize: 14, color: Colors.black54),
-              ),
-              const SizedBox(height: 24),
-              // Form field untuk password
-              TextFormField(
-                controller: _passwordController,
-                decoration: InputDecoration(
-                  labelText: 'Kata Sandi',
-                  hintText: 'Masukkan Kata Sandi',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.0),
+      body: SingleChildScrollView( // Wrapped with SingleChildScrollView to prevent overflow
+        padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 16.0 : 24.0, vertical: 20.0),
+        child: ConstrainedBox( // Use ConstrainedBox to ensure content takes up enough space
+          constraints: BoxConstraints(
+            minHeight: screenHeight - (AppBar().preferredSize.height + MediaQuery.of(context).padding.top),
+          ),
+          child: IntrinsicHeight( // Allow column to take intrinsic height
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    'Buat kamu yang sudah pernah bergabung, silahkan gunakan akun lamamu. Demi keamanan, jangan pernah bagikan kata sandimu ke siapapun ya!',
+                    style: TextStyle(fontSize: isSmallScreen ? 13 : 14, color: Colors.black54),
                   ),
-                  // Menghilangkan prefixIcon
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscureText ? Icons.visibility_off : Icons.visibility,
+                  SizedBox(height: isSmallScreen ? 18 : 24), // Responsive spacing
+                  TextFormField(
+                    controller: _passwordController,
+                    decoration: InputDecoration(
+                      labelText: 'Kata Sandi',
+                      hintText: 'Masukkan Kata Sandi',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscureText ? Icons.visibility_off : Icons.visibility,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _obscureText = !_obscureText;
+                          });
+                        },
+                      ),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: isSmallScreen ? 12 : 14), // Responsive padding
                     ),
-                    onPressed: () {
-                      setState(() {
-                        _obscureText = !_obscureText;
-                      });
+                    obscureText: _obscureText,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Kata sandi tidak boleh kosong';
+                      }
+                      if (value.length < 6) {
+                        return 'Kata sandi minimal 6 karakter';
+                      }
+                      return null;
                     },
                   ),
-                ),
-                obscureText: _obscureText,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Kata sandi tidak boleh kosong';
-                  }
-                  if (value.length < 6) {
-                    return 'Kata sandi minimal 6 karakter';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 12),
-              // Tombol "Lupa Kata Sandi?"
-              Align(
-                alignment: Alignment.centerLeft, // Diubah ke kiri
-                child: TextButton(
-                  onPressed: () {
-                     // Navigasi ke LupaPasswordScreen dengan membawa email
-                     Navigator.push(
-                       context,
-                       MaterialPageRoute(
-                         builder: (context) => ForgotPasswordScreen(initialEmail: widget.email),
-                       ),
-                     );
-                  },
-                  style: TextButton.styleFrom(
-                    padding: EdgeInsets.zero, // Menghilangkan padding default
+                  SizedBox(height: isSmallScreen ? 8 : 12), // Responsive spacing
+                  Align(
                     alignment: Alignment.centerLeft,
-                  ),
-                  child: const Text(
-                    'Lupa Kata Sandi?',
-                    style: TextStyle (color: Color(0xFF304FFE),), // Warna biru seperti di gambar
-                  ),
-                ),
-              ),
-              const Spacer(), // Mendorong tombol ke bawah
-              // Tombol Lanjutkan
-              _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _loginUserAndNavigate,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF304FFE), // Warna biru
-                          foregroundColor: Colors.white, // Warna teks putih
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8.0),
+                    child: TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ForgotPasswordScreen(initialEmail: widget.email),
                           ),
-                        ),
-                        child: const Text(
-                          'LANJUTKAN',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
+                        );
+                      },
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        alignment: Alignment.centerLeft,
+                      ),
+                      child: const Text(
+                        'Lupa Kata Sandi?',
+                        style: TextStyle(color: Color(0xFF304FFE)),
                       ),
                     ),
-            ],
+                  ),
+                  const Spacer(), // Pushes content to the top, and button to the bottom
+                  _isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : SizedBox(
+                    width: double.infinity,
+                    height: isSmallScreen ? 45 : 50, // Responsive button height
+                    child: ElevatedButton(
+                      onPressed: _loginUserAndNavigate,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF304FFE),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12), // Adjusted vertical padding
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                      ),
+                      child: Text(
+                        'LANJUTKAN',
+                        style: TextStyle(fontSize: isSmallScreen ? 15 : 16, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: isSmallScreen ? 12.0 : 20.0), // Add some bottom padding
+                ],
+              ),
+            ),
           ),
         ),
       ),

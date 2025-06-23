@@ -25,7 +25,7 @@ class _PesanTiketScreenState extends State<PesanTiketScreen> {
 
   // Enhanced color scheme
   static const Color primaryRed = Color(0xFFC50000);
-  static const Color darkRed = Color(0xFF8B0000);
+
   static const Color accentBlue = Color(0xFF1976D2);
   static const Color lightBlue = Color(0xFF42A5F5);
   static const Color backgroundGrey = Color(0xFFF8F9FA);
@@ -33,6 +33,9 @@ class _PesanTiketScreenState extends State<PesanTiketScreen> {
   static const Color textPrimary = Color(0xFF212121);
   static const Color textSecondary = Color(0xFF757575);
   static const Color dividerColor = Color(0xFFE0E0E0);
+  // New color for the search button
+  static const Color searchButtonColor = Color(0xFF304FFE);
+
 
   Future<void> _pilihStasiunUntuk(bool isAsal) async {
     final StasiunModel? stasiunTerpilih = await Navigator.push(
@@ -286,47 +289,30 @@ class _PesanTiketScreenState extends State<PesanTiketScreen> {
 
     return Scaffold(
       backgroundColor: backgroundGrey,
+      appBar: AppBar(
+        title: const Text(
+          'Pesan Tiket',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: Colors.white,
+          ),
+        ),
+        centerTitle: false,
+        backgroundColor: primaryRed,
+        // Remove the leading IconButton to remove the back button
+        // leading: IconButton(
+        //   icon: const Icon(Icons.arrow_back, color: Colors.white),
+        //   onPressed: () {
+        //     Navigator.pop(context);
+        //   },
+        // ),
+        automaticallyImplyLeading: false, // This will remove the default back button
+        elevation: 0,
+      ),
       body: CustomScrollView(
         slivers: [
-          SliverAppBar(
-            expandedHeight: 120,
-            floating: false,
-            pinned: true,
-            elevation: 0,
-            backgroundColor: primaryRed,
-            foregroundColor: Colors.white,
-            flexibleSpace: FlexibleSpaceBar(
-              title: const Text(
-                'Kereta Antar Kota',
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 18,
-                ),
-              ),
-              background: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [primaryRed, darkRed],
-                  ),
-                ),
-                child: Stack(
-                  children: [
-                    Positioned(
-                      right: -20,
-                      top: 20,
-                      child: Icon(
-                        Icons.train,
-                        size: 100,
-                        color: Colors.white.withOpacity(0.1),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
+
           SliverPadding(
             padding: const EdgeInsets.all(16.0),
             sliver: SliverList(
@@ -348,12 +334,13 @@ class _PesanTiketScreenState extends State<PesanTiketScreen> {
                                   Container(
                                     padding: const EdgeInsets.all(12.0),
                                     decoration: BoxDecoration(
-                                      color: textSecondary.withOpacity(0.1),
+                                      // Changed icon color to match primaryRed for consistency
+                                      color: const Color.fromARGB(255, 7, 0, 197).withOpacity(0.1),
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: const Icon(
                                       Icons.location_on,
-                                      color: textSecondary,
+                                      color: Color(0xFF304FFE), // Changed icon color
                                       size: 16,
                                     ),
                                   ),
@@ -445,7 +432,7 @@ class _PesanTiketScreenState extends State<PesanTiketScreen> {
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                    CrossAxisAlignment.start,
                                     children: [
                                       const Text(
                                         'Tanggal Keberangkatan',
@@ -460,8 +447,8 @@ class _PesanTiketScreenState extends State<PesanTiketScreen> {
                                         _selectedTanggalPergi == null
                                             ? 'Pilih tanggal perjalanan'
                                             : DateFormat('EEEE, dd MMMM yyyy',
-                                                    'id_ID')
-                                                .format(_selectedTanggalPergi!),
+                                            'id_ID')
+                                            .format(_selectedTanggalPergi!),
                                         style: const TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.w600,
@@ -495,7 +482,7 @@ class _PesanTiketScreenState extends State<PesanTiketScreen> {
                                       },
                                       activeColor: accentBlue,
                                       materialTapTargetSize:
-                                          MaterialTapTargetSize.shrinkWrap,
+                                      MaterialTapTargetSize.shrinkWrap,
                                     ),
                                   ],
                                 )
@@ -531,7 +518,7 @@ class _PesanTiketScreenState extends State<PesanTiketScreen> {
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                    CrossAxisAlignment.start,
                                     children: [
                                       const Text(
                                         'Jumlah Penumpang',
@@ -604,15 +591,12 @@ class _PesanTiketScreenState extends State<PesanTiketScreen> {
                       // Search Button
                       Container(
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [accentBlue, lightBlue],
-                            begin: Alignment.centerLeft,
-                            end: Alignment.centerRight,
-                          ),
+                          // Changed gradient to a solid color as requested
+                          color: searchButtonColor,
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: accentBlue.withOpacity(0.3),
+                              color: searchButtonColor.withOpacity(0.3), // Use new color for shadow
                               blurRadius: 12,
                               offset: const Offset(0, 6),
                             ),
