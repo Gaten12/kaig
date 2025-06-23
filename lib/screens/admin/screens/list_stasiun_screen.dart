@@ -114,7 +114,7 @@ class _ListStasiunScreenState extends State<ListStasiunScreen> {
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: _electricBlue.withOpacity(0.1),
+                        color: _electricBlue.withAlpha((255 * 0.1).round()),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -210,10 +210,10 @@ class _ListStasiunScreenState extends State<ListStasiunScreen> {
       decoration: BoxDecoration(
         color: _pureWhite,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _borderColor.withOpacity(0.5)),
+        border: Border.all(color: _borderColor.withAlpha((255 * 0.5).round())),
         boxShadow: [
           BoxShadow(
-            color: _charcoalGray.withOpacity(0.06),
+            color: _charcoalGray.withAlpha((255 * 0.06).round()),
             blurRadius: 16,
             offset: const Offset(0, 6),
             spreadRadius: 0,
@@ -228,8 +228,8 @@ class _ListStasiunScreenState extends State<ListStasiunScreen> {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  _electricBlue.withOpacity(0.05),
-                  _electricBlue.withOpacity(0.02),
+                  _electricBlue.withAlpha((255 * 0.05).round()),
+                  _electricBlue.withAlpha((255 * 0.02).round()),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -245,7 +245,7 @@ class _ListStasiunScreenState extends State<ListStasiunScreen> {
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [_electricBlue, _electricBlue.withOpacity(0.8)],
+                      colors: [_electricBlue, _electricBlue.withAlpha((255 * 0.8).round())],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -278,7 +278,7 @@ class _ListStasiunScreenState extends State<ListStasiunScreen> {
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: _charcoalGray.withOpacity(0.1),
+                          color: _charcoalGray.withAlpha((255 * 0.1).round()),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Row(
@@ -353,7 +353,7 @@ class _ListStasiunScreenState extends State<ListStasiunScreen> {
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.2),
+            color: color.withAlpha((255 * 0.2).round()),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -384,13 +384,13 @@ class _ListStasiunScreenState extends State<ListStasiunScreen> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
         gradient: LinearGradient(
-          colors: [_electricBlue, _electricBlue.withOpacity(0.8)],
+          colors: [_electricBlue, _electricBlue.withAlpha((255 * 0.8).round())],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         boxShadow: [
           BoxShadow(
-            color: _electricBlue.withOpacity(0.4),
+            color: _electricBlue.withAlpha((255 * 0.4).round()),
             blurRadius: 16,
             offset: const Offset(0, 8),
             spreadRadius: 0,
@@ -433,7 +433,7 @@ class _ListStasiunScreenState extends State<ListStasiunScreen> {
               border: Border.all(color: _borderColor),
               boxShadow: [
                 BoxShadow(
-                  color: _charcoalGray.withOpacity(0.1),
+                  color: _charcoalGray.withAlpha((255 * 0.1).round()),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -446,8 +446,8 @@ class _ListStasiunScreenState extends State<ListStasiunScreen> {
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        _electricBlue.withOpacity(0.1),
-                        _electricBlue.withOpacity(0.05)
+                        _electricBlue.withAlpha((255 * 0.1).round()),
+                        _electricBlue.withAlpha((255 * 0.05).round())
                       ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
@@ -497,7 +497,7 @@ class _ListStasiunScreenState extends State<ListStasiunScreen> {
               border: Border.all(color: _borderColor),
               boxShadow: [
                 BoxShadow(
-                  color: _charcoalGray.withOpacity(0.1),
+                  color: _charcoalGray.withAlpha((255 * 0.1).round()),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -508,7 +508,7 @@ class _ListStasiunScreenState extends State<ListStasiunScreen> {
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: _electricBlue.withOpacity(0.1),
+                    color: _electricBlue.withAlpha((255 * 0.1).round()),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Icon(
@@ -555,10 +555,10 @@ class _ListStasiunScreenState extends State<ListStasiunScreen> {
               color: _pureWhite,
               borderRadius: BorderRadius.circular(24),
               border:
-                  Border.all(color: const Color(0xFFEF4444).withOpacity(0.2)),
+                  Border.all(color: const Color(0xFFEF4444).withAlpha((255 * 0.2).round())),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFFEF4444).withOpacity(0.1),
+                  color: const Color(0xFFEF4444).withAlpha((255 * 0.1).round()),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -569,7 +569,7 @@ class _ListStasiunScreenState extends State<ListStasiunScreen> {
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFEF4444).withOpacity(0.1),
+                    color: const Color(0xFFEF4444).withAlpha((255 * 0.1).round()),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: const Icon(
@@ -620,7 +620,7 @@ class _ListStasiunScreenState extends State<ListStasiunScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEF4444).withOpacity(0.1),
+                  color: const Color(0xFFEF4444).withAlpha((255 * 0.1).round()),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: const Icon(

@@ -43,7 +43,6 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
   static const Color cardShadow = Color(0x1A000000);
   static const Color successGreen = Color(0xFF2E7D32);
   static const Color warningOrange = Color(0xFFE65100);
-  static const Color darkBlue = Color(0xFF0000CD); // New color for numbers
 
   @override
   void initState() {
@@ -72,45 +71,10 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
     super.dispose();
   }
 
-  // Helper method for responsive horizontal padding
-  double _responsiveHorizontalPadding(double screenWidth) {
-    if (screenWidth > 1200) {
-      return (screenWidth - 1000) / 2; // Center content for very large screens
-    } else if (screenWidth > 600) {
-      return 24.0; // Medium padding for tablets
-    } else {
-      return 16.0; // Standard padding for phones
-    }
-  }
-
-  // Helper method for responsive font sizes
-  double _responsiveFontSize(double screenWidth, double baseSize) {
-    if (screenWidth < 360) {
-      return baseSize * 0.8; // Smaller for very small phones
-    } else if (screenWidth < 600) {
-      return baseSize; // Base size for phones
-    } else if (screenWidth < 900) {
-      return baseSize * 1.1; // Slightly larger for tablets
-    } else {
-      return baseSize * 1.2; // Even larger for desktops
-    }
-  }
-
-  // Helper method for responsive icon sizes
-  double _responsiveIconSize(double screenWidth, double baseSize) {
-    if (screenWidth < 600) {
-      return baseSize;
-    } else if (screenWidth < 900) {
-      return baseSize * 1.1;
-    } else {
-      return baseSize * 1.2;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final currencyFormatter =
-    NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+        NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
     String penumpangInfo = "${widget.jumlahDewasa} Dewasa";
     if (widget.jumlahBayi > 0) {
       penumpangInfo += ", ${widget.jumlahBayi} Bayi";
@@ -125,22 +89,16 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
         opacity: _fadeAnimation,
         child: SlideTransition(
           position: _slideAnimation,
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final double horizontalPadding = _responsiveHorizontalPadding(constraints.maxWidth);
-              final double screenWidth = constraints.maxWidth;
-              return SingleChildScrollView(
-                padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 20.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildRuteKeretaSection(screenWidth),
-                    SizedBox(height: _responsiveFontSize(screenWidth, 32.0)),
-                    _buildKelasSection(currencyFormatter, screenWidth),
-                  ],
-                ),
-              );
-            },
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildRuteKeretaSection(),
+                const SizedBox(height: 32.0),
+                _buildKelasSection(currencyFormatter),
+              ],
+            ),
           ),
         ),
       ),
@@ -160,7 +118,7 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
         ),
         child: IconButton(
           icon:
-          Icon(Icons.arrow_back_ios_new, color: primaryRed, size: _responsiveIconSize(MediaQuery.of(context).size.width, 20)),
+              const Icon(Icons.arrow_back_ios_new, color: primaryRed, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -168,7 +126,7 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: EdgeInsets.symmetric(horizontal: _responsiveFontSize(MediaQuery.of(context).size.width, 12), vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [primaryRed, darkRed],
@@ -178,9 +136,9 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
-              "${widget.stasiunAsalDisplay} 🚂 ${widget.stasiunTujuanDisplay}",
-              style: TextStyle(
-                fontSize: _responsiveFontSize(MediaQuery.of(context).size.width, 14),
+              "${widget.stasiunAsalDisplay} ✈ ${widget.stasiunTujuanDisplay}",
+              style: const TextStyle(
+                fontSize: 14,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
@@ -190,22 +148,22 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
           const SizedBox(height: 4),
           Row(
             children: [
-              Icon(Icons.calendar_today, size: _responsiveIconSize(MediaQuery.of(context).size.width, 12), color: textSecondary),
-              SizedBox(width: _responsiveFontSize(MediaQuery.of(context).size.width, 4)),
+              Icon(Icons.calendar_today, size: 12, color: textSecondary),
+              const SizedBox(width: 4),
               Text(
                 tanggalInfo,
                 style: TextStyle(
-                    fontSize: _responsiveFontSize(MediaQuery.of(context).size.width, 11),
+                    fontSize: 11,
                     color: textSecondary,
                     fontWeight: FontWeight.w500),
               ),
-              SizedBox(width: _responsiveFontSize(MediaQuery.of(context).size.width, 12)),
-              Icon(Icons.people, size: _responsiveIconSize(MediaQuery.of(context).size.width, 12), color: textSecondary),
-              SizedBox(width: _responsiveFontSize(MediaQuery.of(context).size.width, 4)),
+              const SizedBox(width: 12),
+              Icon(Icons.people, size: 12, color: textSecondary),
+              const SizedBox(width: 4),
               Text(
                 penumpangInfo,
                 style: TextStyle(
-                    fontSize: _responsiveFontSize(MediaQuery.of(context).size.width, 11),
+                    fontSize: 11,
                     color: textSecondary,
                     fontWeight: FontWeight.w500),
               ),
@@ -217,7 +175,7 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
     );
   }
 
-  Widget _buildRuteKeretaSection(double screenWidth) {
+  Widget _buildRuteKeretaSection() {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -235,7 +193,7 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
         children: [
           Container(
             width: double.infinity,
-            padding: EdgeInsets.all(_responsiveFontSize(screenWidth, 20)),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [primaryRed.withOpacity(0.1), lightRed],
@@ -253,38 +211,38 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
                 Row(
                   children: [
                     Container(
-                      padding: EdgeInsets.all(_responsiveFontSize(screenWidth, 8)),
+                      padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         color: primaryRed,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Icon(Icons.train_rounded,
-                          color: Colors.white, size: _responsiveIconSize(screenWidth, 24)),
+                      child: const Icon(Icons.train_rounded,
+                          color: Colors.white, size: 24),
                     ),
-                    SizedBox(width: _responsiveFontSize(screenWidth, 12)),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             widget.jadwalDipesan.namaKereta.toUpperCase(),
-                            style: TextStyle(
-                              fontSize: _responsiveFontSize(screenWidth, 18),
+                            style: const TextStyle(
+                              fontSize: 18,
                               fontWeight: FontWeight.bold,
                               color: primaryRed,
                             ),
                           ),
                           Container(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: _responsiveFontSize(screenWidth, 8), vertical: _responsiveFontSize(screenWidth, 2)),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
                               color: primaryRed.withOpacity(0.2),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
                               widget.jadwalDipesan.idKereta,
-                              style: TextStyle(
-                                fontSize: _responsiveFontSize(screenWidth, 12),
+                              style: const TextStyle(
+                                fontSize: 12,
                                 fontWeight: FontWeight.bold,
                                 color: primaryRed,
                               ),
@@ -295,10 +253,10 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
                     ),
                   ],
                 ),
-                SizedBox(height: _responsiveFontSize(screenWidth, 12)),
+                const SizedBox(height: 12),
                 Container(
                   padding:
-                  EdgeInsets.symmetric(horizontal: _responsiveFontSize(screenWidth, 12), vertical: _responsiveFontSize(screenWidth, 6)),
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: accentBlue.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
@@ -307,12 +265,12 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.access_time, size: _responsiveIconSize(screenWidth, 16), color: accentBlue),
-                      SizedBox(width: _responsiveFontSize(screenWidth, 6)),
+                      Icon(Icons.access_time, size: 16, color: accentBlue),
+                      const SizedBox(width: 6),
                       Text(
                         "Durasi: ${widget.jadwalDipesan.durasiPerjalananTotal}",
                         style: TextStyle(
-                          fontSize: _responsiveFontSize(screenWidth, 13),
+                          fontSize: 13,
                           fontWeight: FontWeight.w600,
                           color: accentBlue,
                         ),
@@ -324,20 +282,20 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
             ),
           ),
           Padding(
-            padding: EdgeInsets.all(_responsiveFontSize(screenWidth, 20)),
+            padding: const EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   "🛤️ Rute Perjalanan",
-                  style: TextStyle(
-                    fontSize: _responsiveFontSize(screenWidth, 16),
+                  style: const TextStyle(
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: textPrimary,
                   ),
                 ),
-                SizedBox(height: _responsiveFontSize(screenWidth, 16)),
-                _buildRuteTimeline(screenWidth),
+                const SizedBox(height: 16),
+                _buildRuteTimeline(),
               ],
             ),
           ),
@@ -346,10 +304,10 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
     );
   }
 
-  Widget _buildRuteTimeline(double screenWidth) {
+  Widget _buildRuteTimeline() {
     if (widget.jadwalDipesan.detailPerhentian.isEmpty) {
       return Container(
-        padding: EdgeInsets.all(_responsiveFontSize(screenWidth, 20)),
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: warmGray,
           borderRadius: BorderRadius.circular(12),
@@ -357,11 +315,11 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
         child: Row(
           children: [
             Icon(Icons.info_outline, color: textSecondary),
-            SizedBox(width: _responsiveFontSize(screenWidth, 12)),
+            const SizedBox(width: 12),
             Text(
               "Detail rute tidak tersedia",
               style:
-              TextStyle(color: textSecondary, fontWeight: FontWeight.w500),
+                  TextStyle(color: textSecondary, fontWeight: FontWeight.w500),
             ),
           ],
         ),
@@ -376,29 +334,29 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
           i == widget.jadwalDipesan.detailPerhentian.length - 1;
 
       ruteWidgets.add(
-          _buildStationTimelineItem(perhentian, isStasiunAwal, isStasiunAkhir, screenWidth));
+          _buildStationTimelineItem(perhentian, isStasiunAwal, isStasiunAkhir));
     }
 
     return Column(children: ruteWidgets);
   }
 
   Widget _buildStationTimelineItem(
-      dynamic perhentian, bool isStasiunAwal, bool isStasiunAkhir, double screenWidth) {
+      dynamic perhentian, bool isStasiunAwal, bool isStasiunAkhir) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Time Column
-          Expanded(
-            flex: 2, // Give it a flex factor to occupy some space
+          SizedBox(
+            width: 80,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 if (!isStasiunAwal && perhentian.waktuTiba != null)
                   Container(
                     padding:
-                    EdgeInsets.symmetric(horizontal: _responsiveFontSize(screenWidth, 8), vertical: _responsiveFontSize(screenWidth, 2)),
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
                       color: textSecondary.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(6),
@@ -407,8 +365,8 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
                       DateFormat('HH:mm')
                           .format(perhentian.waktuTiba!.toDate()),
                       style: TextStyle(
-                          fontSize: _responsiveFontSize(screenWidth, 11),
-                          color: darkBlue, // Changed color to darkBlue
+                          fontSize: 11,
+                          color: textSecondary,
                           fontWeight: FontWeight.w500),
                     ),
                   ),
@@ -416,7 +374,7 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
                 if (!isStasiunAkhir && perhentian.waktuBerangkat != null)
                   Container(
                     padding:
-                    EdgeInsets.symmetric(horizontal: _responsiveFontSize(screenWidth, 8), vertical: _responsiveFontSize(screenWidth, 2)),
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
                       color: primaryRed.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(6),
@@ -424,17 +382,17 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
                     child: Text(
                       DateFormat('HH:mm')
                           .format(perhentian.waktuBerangkat!.toDate()),
-                      style: TextStyle(
-                        fontSize: _responsiveFontSize(screenWidth, 12),
+                      style: const TextStyle(
+                        fontSize: 12,
                         fontWeight: FontWeight.bold,
-                        color: darkBlue, // Changed color to darkBlue
+                        color: primaryRed,
                       ),
                     ),
                   ),
                 if (isStasiunAwal && perhentian.waktuBerangkat != null)
                   Container(
                     padding:
-                    EdgeInsets.symmetric(horizontal: _responsiveFontSize(screenWidth, 8), vertical: _responsiveFontSize(screenWidth, 2)),
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
                       color: successGreen.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(6),
@@ -442,10 +400,10 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
                     child: Text(
                       DateFormat('HH:mm')
                           .format(perhentian.waktuBerangkat!.toDate()),
-                      style: TextStyle(
-                        fontSize: _responsiveFontSize(screenWidth, 12),
+                      style: const TextStyle(
+                        fontSize: 12,
                         fontWeight: FontWeight.bold,
-                        color: darkBlue, // Changed color to darkBlue
+                        color: successGreen,
                       ),
                     ),
                   ),
@@ -454,7 +412,7 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
                     !isStasiunAwal)
                   Container(
                     padding:
-                    EdgeInsets.symmetric(horizontal: _responsiveFontSize(screenWidth, 8), vertical: _responsiveFontSize(screenWidth, 2)),
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
                       color: warningOrange.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(6),
@@ -462,10 +420,10 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
                     child: Text(
                       DateFormat('HH:mm')
                           .format(perhentian.waktuTiba!.toDate()),
-                      style: TextStyle(
-                        fontSize: _responsiveFontSize(screenWidth, 12),
+                      style: const TextStyle(
+                        fontSize: 12,
                         fontWeight: FontWeight.bold,
-                        color: darkBlue, // Changed color to darkBlue
+                        color: warningOrange,
                       ),
                     ),
                   ),
@@ -475,19 +433,19 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
 
           // Timeline Indicator
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: _responsiveFontSize(screenWidth, 16.0)),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Column(
               children: [
                 Container(
-                  width: _responsiveIconSize(screenWidth, 24),
-                  height: _responsiveIconSize(screenWidth, 24),
+                  width: 24,
+                  height: 24,
                   decoration: BoxDecoration(
                     color: isStasiunAwal
                         ? successGreen
                         : (isStasiunAkhir
-                        ? warningOrange
-                        : primaryRed.withOpacity(0.3)),
-                    borderRadius: BorderRadius.circular(_responsiveIconSize(screenWidth, 12)),
+                            ? warningOrange
+                            : primaryRed.withOpacity(0.3)),
+                    borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: isStasiunAwal
                           ? successGreen
@@ -499,15 +457,15 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
                     isStasiunAwal
                         ? Icons.play_arrow_rounded
                         : (isStasiunAkhir
-                        ? Icons.location_on_rounded
-                        : Icons.fiber_manual_record),
+                            ? Icons.location_on_rounded
+                            : Icons.fiber_manual_record),
                     color: Colors.white,
-                    size: _responsiveIconSize(screenWidth, 14),
+                    size: 14,
                   ),
                 ),
                 if (!isStasiunAkhir)
                   Container(
-                    height: _responsiveFontSize(screenWidth, 40),
+                    height: 40,
                     width: 2,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -519,7 +477,7 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
                         end: Alignment.bottomCenter,
                       ),
                     ),
-                    margin: EdgeInsets.symmetric(vertical: _responsiveFontSize(screenWidth, 4)),
+                    margin: const EdgeInsets.symmetric(vertical: 4),
                   ),
               ],
             ),
@@ -527,9 +485,8 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
 
           // Station Name
           Expanded(
-            flex: 3, // Give it more flex space for station name
             child: Container(
-              padding: EdgeInsets.symmetric(vertical: _responsiveFontSize(screenWidth, 2)),
+              padding: const EdgeInsets.symmetric(vertical: 2),
               child: Text(
                 perhentian.namaStasiun.isNotEmpty
                     ? perhentian.namaStasiun.toUpperCase()
@@ -538,7 +495,7 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
                   fontWeight: (isStasiunAwal || isStasiunAkhir)
                       ? FontWeight.bold
                       : FontWeight.w600,
-                  fontSize: _responsiveFontSize(screenWidth, (isStasiunAwal || isStasiunAkhir) ? 15 : 14),
+                  fontSize: (isStasiunAwal || isStasiunAkhir) ? 15 : 14,
                   color: (isStasiunAwal || isStasiunAkhir)
                       ? textPrimary
                       : textSecondary,
@@ -551,12 +508,12 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
     );
   }
 
-  Widget _buildKelasSection(NumberFormat currencyFormatter, double screenWidth) {
+  Widget _buildKelasSection(NumberFormat currencyFormatter) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          padding: EdgeInsets.symmetric(horizontal: _responsiveFontSize(screenWidth, 20), vertical: _responsiveFontSize(screenWidth, 16)),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
@@ -572,19 +529,19 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
           child: Row(
             children: [
               Container(
-                padding: EdgeInsets.all(_responsiveFontSize(screenWidth, 8)),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: accentBlue,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(Icons.airline_seat_recline_normal,
-                    color: Colors.white, size: _responsiveIconSize(screenWidth, 20)),
+                child: const Icon(Icons.airline_seat_recline_normal,
+                    color: Colors.white, size: 20),
               ),
-              SizedBox(width: _responsiveFontSize(screenWidth, 12)),
-              Text(
+              const SizedBox(width: 12),
+              const Text(
                 "🎟️ Pilih Kelas & Harga",
                 style: TextStyle(
-                  fontSize: _responsiveFontSize(screenWidth, 18),
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: accentBlue,
                 ),
@@ -592,18 +549,18 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
             ],
           ),
         ),
-        SizedBox(height: _responsiveFontSize(screenWidth, 16)),
+        const SizedBox(height: 16),
         if (widget.jadwalDipesan.daftarKelasHarga.isEmpty)
-          _buildEmptyKelasState(screenWidth)
+          _buildEmptyKelasState()
         else
-          _buildKelasList(currencyFormatter, screenWidth),
+          _buildKelasList(currencyFormatter),
       ],
     );
   }
 
-  Widget _buildEmptyKelasState(double screenWidth) {
+  Widget _buildEmptyKelasState() {
     return Container(
-      padding: EdgeInsets.all(_responsiveFontSize(screenWidth, 32)),
+      padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -614,20 +571,20 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
       ),
       child: Column(
         children: [
-          Icon(Icons.event_seat_outlined, size: _responsiveIconSize(screenWidth, 64), color: textSecondary),
-          SizedBox(height: _responsiveFontSize(screenWidth, 16)),
+          Icon(Icons.event_seat_outlined, size: 64, color: textSecondary),
+          const SizedBox(height: 16),
           Text(
             "Tidak Ada Kelas Tersedia",
             style: TextStyle(
-              fontSize: _responsiveFontSize(screenWidth, 18),
+              fontSize: 18,
               fontWeight: FontWeight.bold,
               color: textSecondary,
             ),
           ),
-          SizedBox(height: _responsiveFontSize(screenWidth, 8)),
+          const SizedBox(height: 8),
           Text(
             "Detail kelas tidak tersedia untuk jadwal ini",
-            style: TextStyle(fontSize: _responsiveFontSize(screenWidth, 14), color: textSecondary),
+            style: TextStyle(fontSize: 14, color: textSecondary),
             textAlign: TextAlign.center,
           ),
         ],
@@ -635,7 +592,7 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
     );
   }
 
-  Widget _buildKelasList(NumberFormat currencyFormatter, double screenWidth) {
+  Widget _buildKelasList(NumberFormat currencyFormatter) {
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -644,7 +601,7 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
         final kelas = widget.jadwalDipesan.daftarKelasHarga[index];
         bool isTersedia = kelas.kuota > 0;
         String ketersediaanText =
-        isTersedia ? "${kelas.kuota} kursi tersedia" : "Habis";
+            isTersedia ? "${kelas.kuota} kursi tersedia" : "Habis";
 
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
@@ -672,38 +629,38 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
               onTap: !isTersedia
                   ? null
                   : () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => DataPenumpangScreen(
-                      jadwalDipesan: widget.jadwalDipesan,
-                      kelasDipilih: kelas,
-                      tanggalBerangkat: widget.tanggalBerangkat,
-                      jumlahDewasa: widget.jumlahDewasa,
-                      jumlahBayi: widget.jumlahBayi,
-                    ),
-                  ),
-                );
-              },
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DataPenumpangScreen(
+                            jadwalDipesan: widget.jadwalDipesan,
+                            kelasDipilih: kelas,
+                            tanggalBerangkat: widget.tanggalBerangkat,
+                            jumlahDewasa: widget.jumlahDewasa,
+                            jumlahBayi: widget.jumlahBayi,
+                          ),
+                        ),
+                      );
+                    },
               child: Padding(
-                padding: EdgeInsets.all(_responsiveFontSize(screenWidth, 20)),
+                padding: const EdgeInsets.all(20),
                 child: Row(
                   children: [
                     // Class Icon
                     Container(
-                      width: _responsiveIconSize(screenWidth, 60),
-                      height: _responsiveIconSize(screenWidth, 60),
+                      width: 60,
+                      height: 60,
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: isTersedia
                               ? [
-                            accentBlue.withOpacity(0.1),
-                            accentBlue.withOpacity(0.05)
-                          ]
+                                  accentBlue.withOpacity(0.1),
+                                  accentBlue.withOpacity(0.05)
+                                ]
                               : [
-                            Colors.grey.withOpacity(0.1),
-                            Colors.grey.withOpacity(0.05)
-                          ],
+                                  Colors.grey.withOpacity(0.1),
+                                  Colors.grey.withOpacity(0.05)
+                                ],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
@@ -717,11 +674,11 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
                       child: Icon(
                         _getClassIcon(kelas.displayKelasLengkap),
                         color: isTersedia ? accentBlue : Colors.grey,
-                        size: _responsiveIconSize(screenWidth, 28),
+                        size: 28,
                       ),
                     ),
 
-                    SizedBox(width: _responsiveFontSize(screenWidth, 16)),
+                    const SizedBox(width: 16),
 
                     // Class Info
                     Expanded(
@@ -732,14 +689,14 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
                             kelas.displayKelasLengkap,
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: _responsiveFontSize(screenWidth, 16),
+                              fontSize: 16,
                               color: isTersedia ? textPrimary : Colors.grey,
                             ),
                           ),
-                          SizedBox(height: _responsiveFontSize(screenWidth, 6)),
+                          const SizedBox(height: 6),
                           Container(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: _responsiveFontSize(screenWidth, 10), vertical: _responsiveFontSize(screenWidth, 4)),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
                               color: isTersedia
                                   ? successGreen.withOpacity(0.1)
@@ -747,25 +704,23 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Row(
-
+                              mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(
                                   isTersedia
                                       ? Icons.check_circle
                                       : Icons.cancel,
-                                  size: _responsiveIconSize(screenWidth, 14),
+                                  size: 14,
                                   color: isTersedia ? successGreen : Colors.red,
                                 ),
-                                SizedBox(width: _responsiveFontSize(screenWidth, 4)),
-                                Flexible(
-                                  child: Text(
-                                    ketersediaanText,
-                                    style: TextStyle(
-                                      fontSize: _responsiveFontSize(screenWidth, 12),
-                                      fontWeight: FontWeight.w600,
-                                      color:
-                                      isTersedia ? successGreen : Colors.red,
-                                    ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  ketersediaanText,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color:
+                                        isTersedia ? successGreen : Colors.red,
                                   ),
                                 ),
                               ],
@@ -776,40 +731,33 @@ class _PilihKelasScreenState extends State<PilihKelasScreen>
                     ),
 
                     // Price & Arrow
-                    Expanded(
-                      flex: 1,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          FittedBox(
-                            fit: BoxFit.scaleDown,
-                            alignment: Alignment.centerRight,
-                            child: Text(
-                              currencyFormatter.format(kelas.harga),
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: _responsiveFontSize(screenWidth, 16),
-                                color: darkBlue, // Changed color to darkBlue
-                              ),
-                            ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          currencyFormatter.format(kelas.harga),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: isTersedia ? primaryRed : Colors.grey,
                           ),
-                          SizedBox(height: _responsiveFontSize(screenWidth, 8)),
-                          Container(
-                            padding: EdgeInsets.all(_responsiveFontSize(screenWidth, 8)),
-                            decoration: BoxDecoration(
-                              color: isTersedia
-                                  ? accentBlue.withOpacity(0.1)
-                                  : Colors.grey.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Icon(
-                              Icons.arrow_forward_ios,
-                              size: _responsiveIconSize(screenWidth, 16),
-                              color: isTersedia ? accentBlue : Colors.grey,
-                            ),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: isTersedia
+                                ? accentBlue.withOpacity(0.1)
+                                : Colors.grey.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                        ],
-                      ),
+                          child: Icon(
+                            Icons.arrow_forward_ios,
+                            size: 16,
+                            color: isTersedia ? accentBlue : Colors.grey,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),

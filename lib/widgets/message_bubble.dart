@@ -19,7 +19,7 @@ class MessageBubble extends StatelessWidget {
           margin: const EdgeInsets.only(bottom: 8, left: 15, right: 15),
           padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
           decoration: BoxDecoration(
-            color: colors.surfaceVariant,
+            color: colors.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(18),
           ),
           child: const SizedBox(
@@ -38,7 +38,7 @@ class MessageBubble extends StatelessWidget {
     } else if (message.isFromUser) {
       bubbleColor = colors.primaryContainer;
     } else {
-      bubbleColor = colors.surfaceVariant;
+      bubbleColor = colors.surfaceContainerHighest;
     }
 
 

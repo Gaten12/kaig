@@ -135,7 +135,7 @@ class ListKeretaScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: electricBlue.withOpacity(0.1),
+                        color: electricBlue.withAlpha((255 * 0.1).round()),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -228,7 +228,7 @@ class ListKeretaScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF3B82F6).withOpacity(0.3),
+              color: const Color(0xFF3B82F6).withAlpha((255 * 0.3).round()),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -270,7 +270,7 @@ class ListKeretaScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withAlpha((255 * 0.08).round()),
             blurRadius: 12,
             offset: const Offset(0, 2),
           ),
@@ -296,7 +296,7 @@ class ListKeretaScreen extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF3B82F6).withOpacity(0.1),
+                        color: const Color(0xFF3B82F6).withAlpha((255 * 0.1).round()),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(
@@ -362,7 +362,7 @@ class ListKeretaScreen extends StatelessWidget {
                     // Edit button
                     Container(
                       decoration: BoxDecoration(
-                        color: const Color(0xFF3B82F6).withOpacity(0.1),
+                        color: const Color(0xFF3B82F6).withAlpha((255 * 0.1).round()),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: IconButton(
@@ -382,7 +382,7 @@ class ListKeretaScreen extends StatelessWidget {
                     // Delete button
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.red.withOpacity(0.1),
+                        color: Colors.red.withAlpha((255 * 0.1).round()),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: IconButton(

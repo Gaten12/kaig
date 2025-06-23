@@ -28,7 +28,7 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
     with SingleTickerProviderStateMixin {
   final AdminFirestoreService _firestoreService = AdminFirestoreService();
   final currencyFormatter =
-  NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+      NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
 
   late DateTime _currentSelectedDate;
   final List<DateTime> _dateTabs = [];
@@ -77,7 +77,7 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
       _dateTabs.add(baseDate.add(Duration(days: i)));
     }
     if (!_dateTabs.any((d) =>
-    d.year == _currentSelectedDate.year &&
+        d.year == _currentSelectedDate.year &&
         d.month == _currentSelectedDate.month &&
         d.day == _currentSelectedDate.day)) {
       _currentSelectedDate = _dateTabs.isNotEmpty ? _dateTabs.first : baseDate;
@@ -94,16 +94,16 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
 
   void _updateJadwalStream() {
     String kodeAsal =
-    widget.stasiunAsal.contains("(") && widget.stasiunAsal.contains(")")
-        ? widget.stasiunAsal.substring(widget.stasiunAsal.indexOf("(") + 1,
-        widget.stasiunAsal.indexOf(")"))
-        : widget.stasiunAsal;
+        widget.stasiunAsal.contains("(") && widget.stasiunAsal.contains(")")
+            ? widget.stasiunAsal.substring(widget.stasiunAsal.indexOf("(") + 1,
+                widget.stasiunAsal.indexOf(")"))
+            : widget.stasiunAsal;
     String kodeTujuan =
-    widget.stasiunTujuan.contains("(") && widget.stasiunTujuan.contains(")")
-        ? widget.stasiunTujuan.substring(
-        widget.stasiunTujuan.indexOf("(") + 1,
-        widget.stasiunTujuan.indexOf(")"))
-        : widget.stasiunTujuan;
+        widget.stasiunTujuan.contains("(") && widget.stasiunTujuan.contains(")")
+            ? widget.stasiunTujuan.substring(
+                widget.stasiunTujuan.indexOf("(") + 1,
+                widget.stasiunTujuan.indexOf(")"))
+            : widget.stasiunTujuan;
 
     print(
         "[PilihJadwalScreen] Memperbarui stream untuk tanggal: ${DateFormat('yyyy-MM-dd').format(_currentSelectedDate)}");
@@ -120,79 +120,39 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
 
   String _formatInfoPenumpangAppBar() {
     String tanggalFormatted =
-    DateFormat('EEE, dd MMM yy', 'id_ID').format(widget.tanggalBerangkat);
+        DateFormat('EEE, dd MMM yy', 'id_ID').format(widget.tanggalBerangkat);
     String dewasaInfo = "${widget.jumlahDewasa} Dewasa";
     String bayiInfo =
-    widget.jumlahBayi > 0 ? ", ${widget.jumlahBayi} Bayi" : "";
+        widget.jumlahBayi > 0 ? ", ${widget.jumlahBayi} Bayi" : "";
     return "$tanggalFormatted  •  $dewasaInfo$bayiInfo";
-  }
-
-  // Helper method for responsive font sizes
-  double _responsiveFontSize(double screenWidth, double baseSize) {
-    if (screenWidth < 360) {
-      return baseSize * 0.8; // Smaller for very small phones
-    } else if (screenWidth < 600) {
-      return baseSize; // Base size for phones
-    } else if (screenWidth < 900) {
-      return baseSize * 1.1; // Slightly larger for tablets
-    } else {
-      return baseSize * 1.2; // Even larger for desktops
-    }
-  }
-
-  // Helper method for responsive icon sizes
-  double _responsiveIconSize(double screenWidth, double baseSize) {
-    if (screenWidth < 600) {
-      return baseSize;
-    } else if (screenWidth < 900) {
-      return baseSize * 1.1;
-    } else {
-      return baseSize * 1.2;
-    }
-  }
-
-  // Helper method for responsive horizontal padding
-  double _responsiveHorizontalPadding(double screenWidth) {
-    if (screenWidth > 1200) {
-      return (screenWidth - 1000) / 2; // Center content for very large screens
-    } else if (screenWidth > 600) {
-      return 24.0; // Medium padding for tablets
-    } else {
-      return 16.0; // Standard padding for phones
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     print("[PilihJadwalScreen] Build method dipanggil.");
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isSmallScreen = screenWidth < 600; // Contoh breakpoint untuk layar kecil
-
     return Scaffold(
       backgroundColor: lightGray,
-      appBar: _buildAppBar(screenWidth),
+      appBar: _buildAppBar(),
       body: FadeTransition(
         opacity: _fadeAnimation,
-        child: SingleChildScrollView( // Made the entire body scrollable
-          child: Column(
-            children: [
-              _buildDateTabsWidget(isSmallScreen, screenWidth),
-              _buildHeaderSection(isSmallScreen, screenWidth),
-              _buildJadwalList(isSmallScreen, screenWidth), // Pass screenWidth
-            ],
-          ),
+        child: Column(
+          children: [
+            _buildDateTabsWidget(),
+            _buildHeaderSection(),
+            Expanded(child: _buildJadwalList()),
+          ],
         ),
       ),
     );
   }
 
-  PreferredSizeWidget _buildAppBar(double screenWidth) {
+  PreferredSizeWidget _buildAppBar() {
     return AppBar(
       backgroundColor: primaryRed,
       foregroundColor: Colors.white,
       elevation: 0,
       leading: IconButton(
-        icon: Icon(Icons.arrow_back_ios, color: Colors.white, size: _responsiveIconSize(screenWidth, 20)),
+        icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
         onPressed: () => Navigator.pop(context),
       ),
       title: Column(
@@ -203,8 +163,8 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
               Expanded(
                 child: Text(
                   widget.stasiunAsal.toUpperCase(),
-                  style: TextStyle(
-                    fontSize: _responsiveFontSize(screenWidth, 16),
+                  style: const TextStyle(
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
@@ -212,18 +172,18 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
                 ),
               ),
               Container(
-                margin: EdgeInsets.symmetric(horizontal: _responsiveFontSize(screenWidth, 8)),
-                child: Icon(
+                margin: const EdgeInsets.symmetric(horizontal: 8),
+                child: const Icon(
                   Icons.train,
                   color: Colors.white,
-                  size: _responsiveIconSize(screenWidth, 20),
+                  size: 20,
                 ),
               ),
               Expanded(
                 child: Text(
                   widget.stasiunTujuan.toUpperCase(),
-                  style: TextStyle(
-                    fontSize: _responsiveFontSize(screenWidth, 16),
+                  style: const TextStyle(
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
@@ -232,11 +192,11 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
               ),
             ],
           ),
-          SizedBox(height: _responsiveFontSize(screenWidth, 2)),
+          const SizedBox(height: 2),
           Text(
             _formatInfoPenumpangAppBar(),
-            style: TextStyle(
-              fontSize: _responsiveFontSize(screenWidth, 12),
+            style: const TextStyle(
+              fontSize: 12,
               fontWeight: FontWeight.w400,
               color: Colors.white70,
             ),
@@ -261,9 +221,9 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
     );
   }
 
-  Widget _buildDateTabsWidget(bool isSmallScreen, double screenWidth) {
+  Widget _buildDateTabsWidget() {
     return Container(
-      padding: EdgeInsets.all(isSmallScreen ? _responsiveFontSize(screenWidth, 8.0) : _responsiveFontSize(screenWidth, 16.0)),
+      padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -282,7 +242,7 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
               date.day == _currentSelectedDate.day;
           return Expanded(
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? _responsiveFontSize(screenWidth, 2.0) : _responsiveFontSize(screenWidth, 4.0)),
+              padding: const EdgeInsets.symmetric(horizontal: 4.0),
               child: Material(
                 color: Colors.transparent,
                 child: InkWell(
@@ -290,8 +250,8 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
                   borderRadius: BorderRadius.circular(16),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
-                    padding: EdgeInsets.symmetric(
-                        horizontal: _responsiveFontSize(screenWidth, 12), vertical: _responsiveFontSize(screenWidth, 16)),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 16),
                     decoration: BoxDecoration(
                       color: isSelected ? accentBlue : Colors.transparent,
                       borderRadius: BorderRadius.circular(16),
@@ -303,12 +263,12 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
                       ),
                       boxShadow: isSelected
                           ? [
-                        BoxShadow(
-                          color: accentBlue.withOpacity(0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ]
+                              BoxShadow(
+                                color: accentBlue.withOpacity(0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ]
                           : null,
                     ),
                     child: Column(
@@ -317,26 +277,26 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
                         Text(
                           DateFormat('EEE', 'id_ID').format(date).toUpperCase(),
                           style: TextStyle(
-                            fontSize: _responsiveFontSize(screenWidth, 11),
+                            fontSize: 11,
                             fontWeight: FontWeight.w600,
                             color: isSelected ? Colors.white : neutralGray,
                             letterSpacing: 0.5,
                           ),
                         ),
-                        SizedBox(height: _responsiveFontSize(screenWidth, 4)),
+                        const SizedBox(height: 4),
                         Text(
                           DateFormat('dd', 'id_ID').format(date),
                           style: TextStyle(
-                            fontSize: _responsiveFontSize(screenWidth, 18),
+                            fontSize: 18,
                             fontWeight: FontWeight.bold,
                             color: isSelected ? Colors.white : darkGray,
                           ),
                         ),
-                        SizedBox(height: _responsiveFontSize(screenWidth, 2)),
+                        const SizedBox(height: 2),
                         Text(
                           DateFormat('MMM', 'id_ID').format(date).toUpperCase(),
                           style: TextStyle(
-                            fontSize: _responsiveFontSize(screenWidth, 10),
+                            fontSize: 10,
                             fontWeight: FontWeight.w500,
                             color: isSelected ? Colors.white70 : neutralGray,
                           ),
@@ -353,29 +313,29 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
     );
   }
 
-  Widget _buildHeaderSection(bool isSmallScreen, double screenWidth) {
+  Widget _buildHeaderSection() {
     return Container(
-      padding: EdgeInsets.fromLTRB(_responsiveHorizontalPadding(screenWidth), _responsiveFontSize(screenWidth, 20), _responsiveHorizontalPadding(screenWidth), _responsiveFontSize(screenWidth, 12)),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
       child: Row(
         children: [
           Container(
-            padding: EdgeInsets.all(_responsiveFontSize(screenWidth, 12)),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: primaryRed.withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(
+            child: const Icon(
               Icons.train,
               color: primaryRed,
-              size: _responsiveIconSize(screenWidth, 24),
+              size: 24,
             ),
           ),
-          SizedBox(width: _responsiveFontSize(screenWidth, 16)),
-          Expanded(
+          const SizedBox(width: 16),
+          const Expanded(
             child: Text(
               "Pilih Kereta Berangkat",
               style: TextStyle(
-                fontSize: _responsiveFontSize(screenWidth, 20),
+                fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: darkGray,
                 letterSpacing: -0.5,
@@ -383,15 +343,15 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
             ),
           ),
           Container(
-            padding: EdgeInsets.symmetric(horizontal: _responsiveFontSize(screenWidth, 12), vertical: _responsiveFontSize(screenWidth, 6)),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
               color: lightBlue,
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
               "${_dateTabs.length} hari",
-              style: TextStyle(
-                fontSize: _responsiveFontSize(screenWidth, 12),
+              style: const TextStyle(
+                fontSize: 12,
                 fontWeight: FontWeight.w600,
                 color: accentBlue,
               ),
@@ -402,7 +362,7 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
     );
   }
 
-  Widget _buildJadwalList(bool isSmallScreen, double screenWidth) {
+  Widget _buildJadwalList() {
     return StreamBuilder<List<JadwalModel>>(
       stream: _jadwalStream,
       builder: (context, snapshot) {
@@ -411,15 +371,15 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
 
         if (snapshot.hasError) {
           print("Error: ${snapshot.error}");
-          return _buildErrorState(snapshot.error.toString(), screenWidth);
+          return _buildErrorState(snapshot.error.toString());
         }
 
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return _buildLoadingState(screenWidth);
+          return _buildLoadingState();
         }
 
         if (!snapshot.hasData || snapshot.data == null) {
-          return _buildEmptyState("Tidak ada data jadwal tersedia saat ini.", screenWidth);
+          return _buildEmptyState("Tidak ada data jadwal tersedia saat ini.");
         }
 
         final jadwalList = snapshot.data!;
@@ -428,18 +388,16 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
 
         if (jadwalList.isEmpty) {
           return _buildEmptyState(
-              "Tidak ada jadwal untuk rute dan tanggal ini.", screenWidth);
+              "Tidak ada jadwal untuk rute dan tanggal ini.");
         }
 
         return ListView.builder(
-          shrinkWrap: true, // Important for ListView inside SingleChildScrollView
-          physics: const NeverScrollableScrollPhysics(), // To prevent nested scrolling
-          padding: EdgeInsets.fromLTRB(_responsiveHorizontalPadding(screenWidth), 0, _responsiveHorizontalPadding(screenWidth), _responsiveFontSize(screenWidth, 20)),
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
           itemCount: jadwalList.length,
           itemBuilder: (context, index) {
             return AnimatedContainer(
               duration: Duration(milliseconds: 300 + (index * 100)),
-              child: _buildJadwalCard(jadwalList[index], index, screenWidth), // Pass screenWidth
+              child: _buildJadwalCard(jadwalList[index], index),
             );
           },
         );
@@ -447,13 +405,13 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
     );
   }
 
-  Widget _buildLoadingState(double screenWidth) {
+  Widget _buildLoadingState() {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            padding: EdgeInsets.all(_responsiveFontSize(screenWidth, 20)),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
@@ -470,11 +428,11 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
               strokeWidth: 3,
             ),
           ),
-          SizedBox(height: _responsiveFontSize(screenWidth, 16)),
-          Text(
+          const SizedBox(height: 16),
+          const Text(
             "Mencari jadwal kereta...",
             style: TextStyle(
-              fontSize: _responsiveFontSize(screenWidth, 16),
+              fontSize: 16,
               fontWeight: FontWeight.w500,
               color: neutralGray,
             ),
@@ -484,11 +442,11 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
     );
   }
 
-  Widget _buildEmptyState(String message, double screenWidth) {
+  Widget _buildEmptyState(String message) {
     return Center(
       child: Container(
-        margin: EdgeInsets.all(_responsiveFontSize(screenWidth, 32)),
-        padding: EdgeInsets.all(_responsiveFontSize(screenWidth, 32)),
+        margin: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(32),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
@@ -504,32 +462,32 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: EdgeInsets.all(_responsiveFontSize(screenWidth, 16)),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: lightRed,
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.train_outlined,
-                size: _responsiveIconSize(screenWidth, 48),
+                size: 48,
                 color: primaryRed,
               ),
             ),
-            SizedBox(height: _responsiveFontSize(screenWidth, 16)),
+            const SizedBox(height: 16),
             Text(
               "Tidak Ada Jadwal",
               style: TextStyle(
-                fontSize: _responsiveFontSize(screenWidth, 18),
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: darkGray,
               ),
             ),
-            SizedBox(height: _responsiveFontSize(screenWidth, 8)),
+            const SizedBox(height: 8),
             Text(
               message,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: _responsiveFontSize(screenWidth, 14),
+                fontSize: 14,
                 color: neutralGray,
                 height: 1.4,
               ),
@@ -540,11 +498,11 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
     );
   }
 
-  Widget _buildErrorState(String error, double screenWidth) {
+  Widget _buildErrorState(String error) {
     return Center(
       child: Container(
-        margin: EdgeInsets.all(_responsiveFontSize(screenWidth, 32)),
-        padding: EdgeInsets.all(_responsiveFontSize(screenWidth, 24)),
+        margin: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
@@ -560,26 +518,26 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
+            const Icon(
               Icons.error_outline,
-              size: _responsiveIconSize(screenWidth, 48),
+              size: 48,
               color: Colors.red,
             ),
-            SizedBox(height: _responsiveFontSize(screenWidth, 16)),
-            Text(
+            const SizedBox(height: 16),
+            const Text(
               "Terjadi Kesalahan",
               style: TextStyle(
-                fontSize: _responsiveFontSize(screenWidth, 18),
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: Colors.red,
               ),
             ),
-            SizedBox(height: _responsiveFontSize(screenWidth, 8)),
+            const SizedBox(height: 8),
             Text(
               error,
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: _responsiveFontSize(screenWidth, 14),
+              style: const TextStyle(
+                fontSize: 14,
                 color: neutralGray,
               ),
             ),
@@ -589,9 +547,9 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
     );
   }
 
-  Widget _buildJadwalCard(JadwalModel jadwal, int index, double screenWidth) {
+  Widget _buildJadwalCard(JadwalModel jadwal, int index) {
     return Container(
-      margin: EdgeInsets.only(bottom: _responsiveFontSize(screenWidth, 16.0)),
+      margin: const EdgeInsets.only(bottom: 16.0),
       child: Material(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16.0),
@@ -615,15 +573,15 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
           },
           borderRadius: BorderRadius.circular(16.0),
           child: Container(
-            padding: EdgeInsets.all(_responsiveFontSize(screenWidth, 20.0)),
+            padding: const EdgeInsets.all(20.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildTrainHeader(jadwal, screenWidth),
-                SizedBox(height: _responsiveFontSize(screenWidth, 20.0)),
-                _buildJourneyInfo(jadwal, screenWidth),
-                SizedBox(height: _responsiveFontSize(screenWidth, 16.0)),
-                _buildPriceInfo(jadwal, screenWidth),
+                _buildTrainHeader(jadwal),
+                const SizedBox(height: 20.0),
+                _buildJourneyInfo(jadwal),
+                const SizedBox(height: 16.0),
+                _buildPriceInfo(jadwal),
               ],
             ),
           ),
@@ -632,46 +590,46 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
     );
   }
 
-  Widget _buildTrainHeader(JadwalModel jadwal, double screenWidth) {
+  Widget _buildTrainHeader(JadwalModel jadwal) {
     return Row(
       children: [
         Container(
-          padding: EdgeInsets.all(_responsiveFontSize(screenWidth, 10)),
+          padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
             color: primaryRed.withOpacity(0.1),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(
+          child: const Icon(
             Icons.train,
             color: primaryRed,
-            size: _responsiveIconSize(screenWidth, 24),
+            size: 24,
           ),
         ),
-        SizedBox(width: _responsiveFontSize(screenWidth, 16)),
+        const SizedBox(width: 16),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 jadwal.namaKereta.toUpperCase(),
-                style: TextStyle(
-                  fontSize: _responsiveFontSize(screenWidth, 18),
+                style: const TextStyle(
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: darkGray,
                   letterSpacing: -0.5,
                 ),
               ),
-              SizedBox(height: _responsiveFontSize(screenWidth, 2)),
+              const SizedBox(height: 2),
               Container(
-                padding: EdgeInsets.symmetric(horizontal: _responsiveFontSize(screenWidth, 8), vertical: _responsiveFontSize(screenWidth, 4)),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: lightBlue,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   jadwal.idKereta,
-                  style: TextStyle(
-                    fontSize: _responsiveFontSize(screenWidth, 12),
+                  style: const TextStyle(
+                    fontSize: 12,
                     fontWeight: FontWeight.w600,
                     color: accentBlue,
                   ),
@@ -684,9 +642,9 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
     );
   }
 
-  Widget _buildJourneyInfo(JadwalModel jadwal, double screenWidth) {
+  Widget _buildJourneyInfo(JadwalModel jadwal) {
     return Container(
-      padding: EdgeInsets.all(_responsiveFontSize(screenWidth, 16)),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: lightGray,
         borderRadius: BorderRadius.circular(12),
@@ -699,17 +657,17 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
               children: [
                 Text(
                   jadwal.jamBerangkatFormatted,
-                  style: TextStyle(
-                    fontSize: _responsiveFontSize(screenWidth, 20),
+                  style: const TextStyle(
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: darkGray,
                   ),
                 ),
-                SizedBox(height: _responsiveFontSize(screenWidth, 4)),
+                const SizedBox(height: 4),
                 Text(
                   jadwal.idStasiunAsal,
-                  style: TextStyle(
-                    fontSize: _responsiveFontSize(screenWidth, 13),
+                  style: const TextStyle(
+                    fontSize: 13,
                     color: neutralGray,
                     fontWeight: FontWeight.w500,
                   ),
@@ -721,7 +679,7 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
             child: Column(
               children: [
                 Container(
-                  height: _responsiveFontSize(screenWidth, 2),
+                  height: 2,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
@@ -733,10 +691,10 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
                     borderRadius: BorderRadius.circular(1),
                   ),
                 ),
-                SizedBox(height: _responsiveFontSize(screenWidth, 8)),
+                const SizedBox(height: 8),
                 Container(
                   padding:
-                  EdgeInsets.symmetric(horizontal: _responsiveFontSize(screenWidth, 12), vertical: _responsiveFontSize(screenWidth, 6)),
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(16),
@@ -744,8 +702,8 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
                   ),
                   child: Text(
                     jadwal.durasiPerjalananTotal,
-                    style: TextStyle(
-                      fontSize: _responsiveFontSize(screenWidth, 11),
+                    style: const TextStyle(
+                      fontSize: 11,
                       fontWeight: FontWeight.w600,
                       color: primaryRed,
                     ),
@@ -760,17 +718,17 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
               children: [
                 Text(
                   jadwal.jamTibaFormatted,
-                  style: TextStyle(
-                    fontSize: _responsiveFontSize(screenWidth, 20),
+                  style: const TextStyle(
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: darkGray,
                   ),
                 ),
-                SizedBox(height: _responsiveFontSize(screenWidth, 4)),
+                const SizedBox(height: 4),
                 Text(
                   jadwal.idStasiunTujuan,
-                  style: TextStyle(
-                    fontSize: _responsiveFontSize(screenWidth, 13),
+                  style: const TextStyle(
+                    fontSize: 13,
                     color: neutralGray,
                     fontWeight: FontWeight.w500,
                   ),
@@ -783,9 +741,9 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
     );
   }
 
-  Widget _buildPriceInfo(JadwalModel jadwal, double screenWidth) {
+  Widget _buildPriceInfo(JadwalModel jadwal) {
     return Container(
-      padding: EdgeInsets.all(_responsiveFontSize(screenWidth, 16)),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [lightBlue, Colors.white],
@@ -801,19 +759,19 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              const Text(
                 "Harga mulai dari",
                 style: TextStyle(
-                  fontSize: _responsiveFontSize(screenWidth, 12),
+                  fontSize: 12,
                   color: neutralGray,
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              SizedBox(height: _responsiveFontSize(screenWidth, 4)),
+              const SizedBox(height: 4),
               Text(
                 currencyFormatter.format(jadwal.hargaMulaiDari),
-                style: TextStyle(
-                  fontSize: _responsiveFontSize(screenWidth, 18),
+                style: const TextStyle(
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: accentBlue,
                 ),
@@ -821,7 +779,7 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
             ],
           ),
           Container(
-            padding: EdgeInsets.symmetric(horizontal: _responsiveFontSize(screenWidth, 16), vertical: _responsiveFontSize(screenWidth, 8)),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
               color: accentBlue,
               borderRadius: BorderRadius.circular(20),
@@ -833,22 +791,22 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
                 ),
               ],
             ),
-            child: Row(
+            child: const Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   "Pilih",
                   style: TextStyle(
-                    fontSize: _responsiveFontSize(screenWidth, 14),
+                    fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
                   ),
                 ),
-                SizedBox(width: _responsiveFontSize(screenWidth, 4)),
+                SizedBox(width: 4),
                 Icon(
                   Icons.arrow_forward_ios,
                   color: Colors.white,
-                  size: _responsiveIconSize(screenWidth, 12),
+                  size: 12,
                 ),
               ],
             ),

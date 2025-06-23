@@ -105,7 +105,7 @@ class _FormStasiunScreenState extends State<FormStasiunScreen> {
   Widget build(BuildContext context) {
     // Define BorderSide dengan color scheme baru
     final BorderSide defaultBorderSide = BorderSide(
-      color: charcoalGray.withOpacity(0.3),
+      color: charcoalGray.withAlpha((255 * 0.3).round()),
       width: 1.5,
     );
     final BorderSide focusedBorderSide = BorderSide(
@@ -154,11 +154,6 @@ class _FormStasiunScreenState extends State<FormStasiunScreen> {
           ),
         ),
         iconTheme: const IconThemeData(color: pureWhite, size: 28),
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(20),
-          ),
-        ),
       ),
       body: Center(
         child: SingleChildScrollView(
@@ -166,7 +161,7 @@ class _FormStasiunScreenState extends State<FormStasiunScreen> {
             padding: const EdgeInsets.all(20.0),
             child: Card(
               elevation: 8.0,
-              shadowColor: charcoalGray.withOpacity(0.2),
+              shadowColor: charcoalGray.withAlpha((255 * 0.2).round()),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20.0),
               ),
@@ -186,7 +181,7 @@ class _FormStasiunScreenState extends State<FormStasiunScreen> {
                             Container(
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: electricBlue.withOpacity(0.1),
+                                color: electricBlue.withAlpha((255 * 0.1).round()),
                                 shape: BoxShape.circle,
                               ),
                               child: Icon(
@@ -212,7 +207,7 @@ class _FormStasiunScreenState extends State<FormStasiunScreen> {
                                 : 'Masukkan data stasiun kereta api baru',
                               style: TextStyle(
                                 fontSize: 14,
-                                color: charcoalGray.withOpacity(0.7),
+                                color: charcoalGray.withAlpha((255 * 0.7).round()),
                               ),
                               textAlign: TextAlign.center,
                             ),
@@ -231,12 +226,12 @@ class _FormStasiunScreenState extends State<FormStasiunScreen> {
                         decoration: InputDecoration(
                           labelText: 'Nama Stasiun',
                           labelStyle: TextStyle(
-                            color: charcoalGray.withOpacity(0.7),
+                            color: charcoalGray.withAlpha((255 * 0.7).round()),
                             fontSize: 16,
                           ),
                           hintText: 'Contoh: Stasiun Gambir',
                           hintStyle: TextStyle(
-                            color: charcoalGray.withOpacity(0.4),
+                            color: charcoalGray.withAlpha((255 * 0.4).round()),
                           ),
                           enabledBorder: defaultOutlineInputBorder,
                           focusedBorder: focusedOutlineInputBorder,
@@ -274,12 +269,12 @@ class _FormStasiunScreenState extends State<FormStasiunScreen> {
                         decoration: InputDecoration(
                           labelText: 'Kode Stasiun',
                           labelStyle: TextStyle(
-                            color: charcoalGray.withOpacity(0.7),
+                            color: charcoalGray.withAlpha((255 * 0.7).round()),
                             fontSize: 16,
                           ),
                           hintText: 'Contoh: GMR',
                           hintStyle: TextStyle(
-                            color: charcoalGray.withOpacity(0.4),
+                            color: charcoalGray.withAlpha((255 * 0.4).round()),
                           ),
                           enabledBorder: defaultOutlineInputBorder,
                           focusedBorder: focusedOutlineInputBorder,
@@ -319,12 +314,12 @@ class _FormStasiunScreenState extends State<FormStasiunScreen> {
                         decoration: InputDecoration(
                           labelText: 'Kota',
                           labelStyle: TextStyle(
-                            color: charcoalGray.withOpacity(0.7),
+                            color: charcoalGray.withAlpha((255 * 0.7).round()),
                             fontSize: 16,
                           ),
                           hintText: 'Contoh: Jakarta Pusat',
                           hintStyle: TextStyle(
-                            color: charcoalGray.withOpacity(0.4),
+                            color: charcoalGray.withAlpha((255 * 0.4).round()),
                           ),
                           enabledBorder: defaultOutlineInputBorder,
                           focusedBorder: focusedOutlineInputBorder,
@@ -357,14 +352,14 @@ class _FormStasiunScreenState extends State<FormStasiunScreen> {
                         height: 56,
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
-                            colors: [electricBlue, electricBlue.withOpacity(0.8)],
+                            colors: [electricBlue, electricBlue.withAlpha((255 * 0.8).round())],
                             begin: Alignment.centerLeft,
                             end: Alignment.centerRight,
                           ),
                           borderRadius: BorderRadius.circular(12.0),
                           boxShadow: [
                             BoxShadow(
-                              color: electricBlue.withOpacity(0.3),
+                              color: electricBlue.withAlpha((255 * 0.3).round()),
                               blurRadius: 8,
                               offset: const Offset(0, 4),
                             ),

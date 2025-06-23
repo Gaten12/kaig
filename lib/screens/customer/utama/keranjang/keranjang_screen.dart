@@ -31,10 +31,6 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
   static const Color darkGray = Color(0xFF424242);
   static const Color lightGray = Color(0xFFE0E0E0);
 
-  // Warna baru sesuai permintaan
-  static const Color royalBlue = Color(0xFF0000CD); // Warna background tanda centang & angka
-  static const Color checkoutButtonColor = Color(0xFF304FFE); // Warna tombol checkout
-
   @override
   void initState() {
     super.initState();
@@ -73,23 +69,20 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
   }
 
   void _checkout() {
-    final screenWidth = MediaQuery.of(context).size.width; // Get screen width for responsive SnackBar
-
     if (_selectedItemsIds.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Row(
+          content: const Row(
             children: [
-              Icon(Icons.warning_amber_rounded, color: Colors.white, size: _responsiveIconSize(screenWidth, 20)),
-              SizedBox(width: _responsiveFontSize(screenWidth, 12)),
-              Expanded(child: Text("Pilih minimal satu pesanan untuk di-checkout", style: TextStyle(fontSize: _responsiveFontSize(screenWidth, 14)))),
+              Icon(Icons.warning_amber_rounded, color: Colors.white),
+              SizedBox(width: 12),
+              Text("Pilih minimal satu pesanan untuk di-checkout"),
             ],
           ),
           backgroundColor: primaryRed,
           behavior: SnackBarBehavior.floating,
           shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(_responsiveFontSize(screenWidth, 12))),
-          margin: EdgeInsets.all(_responsiveFontSize(screenWidth, 16)),
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       );
       return;
@@ -107,59 +100,22 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
     );
   }
 
-  // Helper method for responsive font sizes
-  double _responsiveFontSize(double screenWidth, double baseSize) {
-    if (screenWidth < 360) {
-      return baseSize * 0.8; // Smaller for very small phones
-    } else if (screenWidth < 600) {
-      return baseSize; // Base size for phones
-    } else if (screenWidth < 900) {
-      return baseSize * 1.1; // Slightly larger for tablets
-    } else {
-      return baseSize * 1.2; // Even larger for desktops
-    }
-  }
-
-  // Helper method for responsive icon sizes
-  double _responsiveIconSize(double screenWidth, double baseSize) {
-    if (screenWidth < 600) {
-      return baseSize;
-    } else if (screenWidth < 900) {
-      return baseSize * 1.1;
-    } else {
-      return baseSize * 1.2;
-    }
-  }
-
-  // Helper method for responsive horizontal padding
-  double _responsiveHorizontalPadding(double screenWidth) {
-    if (screenWidth > 1200) {
-      return (screenWidth - 1000) / 2; // Center content for very large screens
-    } else if (screenWidth > 600) {
-      return 24.0; // Medium padding for tablets
-    } else {
-      return 16.0; // Standard padding for phones
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
     return Scaffold(
       backgroundColor: warmGray,
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           "Keranjang Belanja",
           style: TextStyle(
             fontWeight: FontWeight.w600,
             color: Colors.white,
-            fontSize: _responsiveFontSize(screenWidth, 20),
+            fontSize: 20,
           ),
         ),
         backgroundColor: primaryRed,
         elevation: 0,
-        iconTheme: IconThemeData(color: Colors.white, size: _responsiveIconSize(screenWidth, 24)),
+        iconTheme: const IconThemeData(color: Colors.white),
         centerTitle: true,
         flexibleSpace: Container(
           decoration: const BoxDecoration(
@@ -181,14 +137,14 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
                 children: [
                   CircularProgressIndicator(
                     valueColor: AlwaysStoppedAnimation<Color>(primaryRed),
-                    strokeWidth: _responsiveIconSize(screenWidth, 3),
+                    strokeWidth: 3,
                   ),
-                  SizedBox(height: _responsiveFontSize(screenWidth, 16)),
+                  const SizedBox(height: 16),
                   Text(
                     "Memuat keranjang...",
                     style: TextStyle(
                       color: darkGray,
-                      fontSize: _responsiveFontSize(screenWidth, 16),
+                      fontSize: 16,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -201,20 +157,20 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.error_outline, size: _responsiveIconSize(screenWidth, 64), color: primaryRed),
-                  SizedBox(height: _responsiveFontSize(screenWidth, 16)),
+                  Icon(Icons.error_outline, size: 64, color: primaryRed),
+                  const SizedBox(height: 16),
                   Text(
                     "Terjadi kesalahan",
                     style: TextStyle(
-                      fontSize: _responsiveFontSize(screenWidth, 18),
+                      fontSize: 18,
                       fontWeight: FontWeight.w600,
                       color: darkGray,
                     ),
                   ),
-                  SizedBox(height: _responsiveFontSize(screenWidth, 8)),
+                  const SizedBox(height: 8),
                   Text(
                     "Error: ${snapshot.error}",
-                    style: TextStyle(color: Colors.grey[600], fontSize: _responsiveFontSize(screenWidth, 14)),
+                    style: TextStyle(color: Colors.grey[600]),
                     textAlign: TextAlign.center,
                   ),
                 ],
@@ -225,7 +181,7 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
           if (snapshot.hasData) {
             _semuaItemKeranjang = snapshot.data!;
             _selectedItemsIds.removeWhere(
-                    (id) => !_semuaItemKeranjang.any((item) => item.id == id));
+                (id) => !_semuaItemKeranjang.any((item) => item.id == id));
           }
 
           if (_semuaItemKeranjang.isEmpty) {
@@ -234,38 +190,38 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                    padding: EdgeInsets.all(_responsiveFontSize(screenWidth, 24)),
+                    padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withOpacity(0.1),
-                          blurRadius: _responsiveFontSize(screenWidth, 20),
-                          offset: Offset(0, _responsiveFontSize(screenWidth, 10)),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
                         ),
                       ],
                     ),
                     child: Icon(
                       Icons.shopping_cart_outlined,
-                      size: _responsiveIconSize(screenWidth, 64),
+                      size: 64,
                       color: primaryRed,
                     ),
                   ),
-                  SizedBox(height: _responsiveFontSize(screenWidth, 24)),
+                  const SizedBox(height: 24),
                   Text(
                     "Keranjang Kosong",
                     style: TextStyle(
-                      fontSize: _responsiveFontSize(screenWidth, 22),
+                      fontSize: 22,
                       fontWeight: FontWeight.w600,
                       color: darkGray,
                     ),
                   ),
-                  SizedBox(height: _responsiveFontSize(screenWidth, 8)),
+                  const SizedBox(height: 8),
                   Text(
                     "Belum ada tiket kereta yang dipilih",
                     style: TextStyle(
-                      fontSize: _responsiveFontSize(screenWidth, 16),
+                      fontSize: 16,
                       color: Colors.grey[600],
                     ),
                   ),
@@ -278,58 +234,58 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
             children: [
               // Header dengan pilih semua
               Container(
-                margin: EdgeInsets.all(_responsiveHorizontalPadding(screenWidth)),
+                margin: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(_responsiveFontSize(screenWidth, 16)),
+                  borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.08),
-                      blurRadius: _responsiveFontSize(screenWidth, 10),
-                      offset: Offset(0, _responsiveFontSize(screenWidth, 4)),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
                     ),
                   ],
                 ),
                 child: Padding(
                   padding:
-                  EdgeInsets.symmetric(horizontal: _responsiveFontSize(screenWidth, 20), vertical: _responsiveFontSize(screenWidth, 16)),
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                   child: Row(
                     children: [
                       Transform.scale(
-                        scale: _responsiveFontSize(screenWidth, 1.2) / _responsiveFontSize(screenWidth, 1), // Adjust scale dynamically
+                        scale: 1.2,
                         child: Checkbox(
                           value: _pilihSemua,
                           onChanged: _onPilihSemua,
-                          activeColor: royalBlue, // Perubahan warna: background tanda centang
+                          activeColor: primaryRed,
                           checkColor: Colors.white,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(_responsiveFontSize(screenWidth, 4)),
+                            borderRadius: BorderRadius.circular(4),
                           ),
                         ),
                       ),
-                      SizedBox(width: _responsiveFontSize(screenWidth, 12)),
+                      const SizedBox(width: 12),
                       Text(
                         "Pilih Semua",
                         style: TextStyle(
-                          fontSize: _responsiveFontSize(screenWidth, 16),
+                          fontSize: 16,
                           fontWeight: FontWeight.w600,
                           color: darkGray,
                         ),
                       ),
                       const Spacer(),
                       Container(
-                        padding: EdgeInsets.symmetric(
-                            horizontal: _responsiveFontSize(screenWidth, 12), vertical: _responsiveFontSize(screenWidth, 6)),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
                           color: primaryRed.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(_responsiveFontSize(screenWidth, 20)),
+                          borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
                           "${_semuaItemKeranjang.length} item",
                           style: TextStyle(
                             color: primaryRed,
                             fontWeight: FontWeight.w600,
-                            fontSize: _responsiveFontSize(screenWidth, 12),
+                            fontSize: 12,
                           ),
                         ),
                       ),
@@ -340,11 +296,11 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
               // List items
               Expanded(
                 child: ListView.builder(
-                  padding: EdgeInsets.symmetric(horizontal: _responsiveHorizontalPadding(screenWidth)),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   itemCount: _semuaItemKeranjang.length,
                   itemBuilder: (context, index) {
                     final item = _semuaItemKeranjang[index];
-                    return _buildKeranjangItemCard(item, screenWidth);
+                    return _buildKeranjangItemCard(item);
                   },
                 ),
               ),
@@ -352,34 +308,34 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
           );
         },
       ),
-      bottomNavigationBar: _buildCheckoutButton(screenWidth),
+      bottomNavigationBar: _buildCheckoutButton(),
     );
   }
 
-  Widget _buildKeranjangItemCard(KeranjangModel item, double screenWidth) {
+  Widget _buildKeranjangItemCard(KeranjangModel item) {
     final isSelected = _selectedItemsIds.contains(item.id);
 
     return Container(
-      margin: EdgeInsets.only(bottom: _responsiveFontSize(screenWidth, 16)),
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(_responsiveFontSize(screenWidth, 20)),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: isSelected ? royalBlue : Colors.transparent, // Perubahan warna border saat terpilih
-          width: _responsiveFontSize(screenWidth, 2),
+          color: isSelected ? primaryRed : Colors.transparent,
+          width: 2,
         ),
         boxShadow: [
           BoxShadow(
             color: isSelected
-                ? royalBlue.withOpacity(0.15) // Perubahan warna shadow saat terpilih
+                ? primaryRed.withOpacity(0.15)
                 : Colors.black.withOpacity(0.08),
-            blurRadius: _responsiveFontSize(screenWidth, isSelected ? 15 : 10),
-            offset: Offset(0, _responsiveFontSize(screenWidth, 4)),
+            blurRadius: isSelected ? 15 : 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Padding(
-        padding: EdgeInsets.all(_responsiveFontSize(screenWidth, 20)),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -388,33 +344,33 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Transform.scale(
-                  scale: _responsiveFontSize(screenWidth, 1.2) / _responsiveFontSize(screenWidth, 1),
+                  scale: 1.2,
                   child: Checkbox(
                     value: isSelected,
                     onChanged: (_) => _onItemSelect(item.id!),
-                    activeColor: royalBlue, // Perubahan warna: background tanda centang
+                    activeColor: primaryRed,
                     checkColor: Colors.white,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(_responsiveFontSize(screenWidth, 4)),
+                      borderRadius: BorderRadius.circular(4),
                     ),
                   ),
                 ),
-                SizedBox(width: _responsiveFontSize(screenWidth, 12)),
+                const SizedBox(width: 12),
                 Expanded(
                   child: _SisaWaktuWidget(
-                      batasWaktu: item.batasWaktuPembayaran.toDate(), screenWidth: screenWidth),
+                      batasWaktu: item.batasWaktuPembayaran.toDate()),
                 ),
               ],
             ),
 
-            SizedBox(height: _responsiveFontSize(screenWidth, 16)),
+            const SizedBox(height: 16),
 
             // Info kereta
             Container(
-              padding: EdgeInsets.all(_responsiveFontSize(screenWidth, 16)),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: warmGray,
-                borderRadius: BorderRadius.circular(_responsiveFontSize(screenWidth, 12)),
+                borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: lightGray),
               ),
               child: Column(
@@ -423,27 +379,27 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
                   Row(
                     children: [
                       Container(
-                        padding: EdgeInsets.all(_responsiveFontSize(screenWidth, 8)),
+                        padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
                           color: primaryRed,
-                          borderRadius: BorderRadius.circular(_responsiveFontSize(screenWidth, 8)),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Icon(
+                        child: const Icon(
                           Icons.train,
                           color: Colors.white,
-                          size: _responsiveIconSize(screenWidth, 20),
+                          size: 20,
                         ),
                       ),
-                      SizedBox(width: _responsiveFontSize(screenWidth, 12)),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               "${item.jadwalDipesan.namaKereta}",
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontWeight: FontWeight.bold,
-                                fontSize: _responsiveFontSize(screenWidth, 16),
+                                fontSize: 16,
                                 color: Colors.black87,
                               ),
                             ),
@@ -451,7 +407,7 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
                               "ID: ${item.jadwalDipesan.idKereta}",
                               style: TextStyle(
                                 color: Colors.grey[600],
-                                fontSize: _responsiveFontSize(screenWidth, 12),
+                                fontSize: 12,
                               ),
                             ),
                           ],
@@ -460,14 +416,14 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
                     ],
                   ),
 
-                  SizedBox(height: _responsiveFontSize(screenWidth, 12)),
+                  const SizedBox(height: 12),
 
                   // Rute
                   Container(
-                    padding: EdgeInsets.all(_responsiveFontSize(screenWidth, 12)),
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(_responsiveFontSize(screenWidth, 10)),
+                      borderRadius: BorderRadius.circular(10),
                     ),
                     child: Row(
                       children: [
@@ -476,52 +432,52 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
                             children: [
                               Text(
                                 item.jadwalDipesan.idStasiunAsal,
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  fontSize: _responsiveFontSize(screenWidth, 14),
+                                  fontSize: 14,
                                 ),
                               ),
-                              SizedBox(height: _responsiveFontSize(screenWidth, 4)),
+                              const SizedBox(height: 4),
                               Text(
                                 "Asal",
                                 style: TextStyle(
                                   color: Colors.grey[600],
-                                  fontSize: _responsiveFontSize(screenWidth, 12),
+                                  fontSize: 12,
                                 ),
                               ),
                             ],
                           ),
                         ),
                         Container(
-                          padding: EdgeInsets.symmetric(horizontal: _responsiveFontSize(screenWidth, 12)),
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
                           child: Row(
                             children: [
                               Container(
-                                width: _responsiveFontSize(screenWidth, 8),
-                                height: _responsiveFontSize(screenWidth, 8),
+                                width: 8,
+                                height: 8,
                                 decoration: BoxDecoration(
                                   color: primaryRed,
                                   shape: BoxShape.circle,
                                 ),
                               ),
                               Container(
-                                width: _responsiveFontSize(screenWidth, 40),
-                                height: _responsiveFontSize(screenWidth, 2),
+                                width: 40,
+                                height: 2,
                                 color: primaryRed,
                               ),
                               Icon(
                                 Icons.arrow_forward,
                                 color: primaryRed,
-                                size: _responsiveIconSize(screenWidth, 16),
+                                size: 16,
                               ),
                               Container(
-                                width: _responsiveFontSize(screenWidth, 40),
-                                height: _responsiveFontSize(screenWidth, 2),
+                                width: 40,
+                                height: 2,
                                 color: primaryRed,
                               ),
                               Container(
-                                width: _responsiveFontSize(screenWidth, 8),
-                                height: _responsiveFontSize(screenWidth, 8),
+                                width: 8,
+                                height: 8,
                                 decoration: BoxDecoration(
                                   color: primaryRed,
                                   shape: BoxShape.circle,
@@ -535,17 +491,17 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
                             children: [
                               Text(
                                 item.jadwalDipesan.idStasiunTujuan,
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  fontSize: _responsiveFontSize(screenWidth, 14),
+                                  fontSize: 14,
                                 ),
                               ),
-                              SizedBox(height: _responsiveFontSize(screenWidth, 4)),
+                              const SizedBox(height: 4),
                               Text(
                                 "Tujuan",
                                 style: TextStyle(
                                   color: Colors.grey[600],
-                                  fontSize: _responsiveFontSize(screenWidth, 12),
+                                  fontSize: 12,
                                 ),
                               ),
                             ],
@@ -558,113 +514,108 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
               ),
             ),
 
-            SizedBox(height: _responsiveFontSize(screenWidth, 16)),
+            const SizedBox(height: 16),
 
             // Expansion tile untuk penumpang
             Container(
               decoration: BoxDecoration(
                 color: Colors.grey[50],
-                borderRadius: BorderRadius.circular(_responsiveFontSize(screenWidth, 12)),
+                borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: lightGray),
               ),
               child: ExpansionTile(
                 title: Row(
                   children: [
-                    Icon(Icons.people, color: primaryRed, size: _responsiveIconSize(screenWidth, 20)),
-                    SizedBox(width: _responsiveFontSize(screenWidth, 8)),
+                    Icon(Icons.people, color: primaryRed, size: 20),
+                    const SizedBox(width: 8),
                     Text(
                       "${item.penumpang.length} Penumpang",
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontWeight: FontWeight.w600,
-                        fontSize: _responsiveFontSize(screenWidth, 16),
+                        fontSize: 16,
                       ),
                     ),
                   ],
                 ),
                 tilePadding:
-                EdgeInsets.symmetric(horizontal: _responsiveFontSize(screenWidth, 16), vertical: _responsiveFontSize(screenWidth, 4)),
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 childrenPadding:
-                EdgeInsets.symmetric(horizontal: _responsiveFontSize(screenWidth, 16), vertical: _responsiveFontSize(screenWidth, 8)),
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 children: item.penumpang
                     .map((p) => Container(
-                  margin: EdgeInsets.only(bottom: _responsiveFontSize(screenWidth, 8)),
-                  padding: EdgeInsets.all(_responsiveFontSize(screenWidth, 12)),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(_responsiveFontSize(screenWidth, 10)),
-                    border: Border.all(color: Colors.grey[200]!),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: EdgeInsets.all(_responsiveFontSize(screenWidth, 6)),
-                        decoration: BoxDecoration(
-                          color: accentGold.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(_responsiveFontSize(screenWidth, 6)),
-                        ),
-                        child: Icon(
-                          Icons.person,
-                          color: accentGold.withOpacity(0.8),
-                          size: _responsiveIconSize(screenWidth, 16),
-                        ),
-                      ),
-                      SizedBox(width: _responsiveFontSize(screenWidth, 12)),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              p['nama']!,
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: _responsiveFontSize(screenWidth, 14),
-                              ),
-                            ),
-                            Text(
-                              "Kursi: ${p['kursi']!}",
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: _responsiveFontSize(screenWidth, 12),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      // FIX OVERFLOW HERE - Already had FittedBox
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                            horizontal: _responsiveFontSize(screenWidth, 8), vertical: _responsiveFontSize(screenWidth, 4)),
-                        decoration: BoxDecoration(
-                          color: primaryRed.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(_responsiveFontSize(screenWidth, 6)),
-                        ),
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          alignment: Alignment.centerRight,
-                          child: Text(
-                            NumberFormat.currency(
-                                locale: 'id_ID', symbol: 'Rp ')
-                                .format(item.kelasDipilih.harga),
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: _responsiveFontSize(screenWidth, 12),
-                              color: primaryRed,
-                            ),
+                          margin: const EdgeInsets.only(bottom: 8),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: Colors.grey[200]!),
                           ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ))
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: accentGold.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Icon(
+                                  Icons.person,
+                                  color: accentGold.withOpacity(0.8),
+                                  size: 16,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      p['nama']!,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                    Text(
+                                      "Kursi: ${p['kursi']!}",
+                                      style: TextStyle(
+                                        color: Colors.grey[600],
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: primaryRed.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  NumberFormat.currency(
+                                          locale: 'id_ID', symbol: 'Rp ')
+                                      .format(item.kelasDipilih.harga),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                    color: primaryRed,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ))
                     .toList(),
               ),
             ),
 
-            SizedBox(height: _responsiveFontSize(screenWidth, 16)),
+            const SizedBox(height: 16),
 
             // Total bayar
             Container(
-              padding: EdgeInsets.all(_responsiveFontSize(screenWidth, 16)),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
@@ -674,17 +625,17 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                borderRadius: BorderRadius.circular(_responsiveFontSize(screenWidth, 12)),
+                borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: primaryRed.withOpacity(0.3)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
+                  const Text(
                     "Total Pembayaran",
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
-                      fontSize: _responsiveFontSize(screenWidth, 16),
+                      fontSize: 16,
                     ),
                   ),
                   Text(
@@ -692,8 +643,8 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
                         .format(item.totalBayar),
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: _responsiveFontSize(screenWidth, 18),
-                      color: royalBlue, // Perubahan warna di sini
+                      fontSize: 18,
+                      color: primaryRed,
                     ),
                   ),
                 ],
@@ -705,58 +656,61 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
     );
   }
 
-  Widget _buildCheckoutButton(double screenWidth) {
+  Widget _buildCheckoutButton() {
     if (_selectedItemsIds.isEmpty) return const SizedBox.shrink();
 
     return Container(
-      padding: EdgeInsets.all(_responsiveHorizontalPadding(screenWidth)),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
-            blurRadius: _responsiveFontSize(screenWidth, 10),
-            offset: Offset(0, _responsiveFontSize(screenWidth, -5)),
+            blurRadius: 10,
+            offset: const Offset(0, -5),
           ),
         ],
       ),
       child: SafeArea(
         child: Container(
           decoration: BoxDecoration(
-            // Menghapus gradient dan menggunakan warna solid untuk tombol checkout
-            color: checkoutButtonColor, // Perubahan warna: tombol checkout
-            borderRadius: BorderRadius.circular(_responsiveFontSize(screenWidth, 16)),
+            gradient: const LinearGradient(
+              colors: [primaryRed, lightRed],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: checkoutButtonColor.withOpacity(0.3), // Perubahan warna shadow
-                blurRadius: _responsiveFontSize(screenWidth, 10),
-                offset: Offset(0, _responsiveFontSize(screenWidth, 4)),
+                color: primaryRed.withOpacity(0.3),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.transparent, // Tetap transparent agar warna dari container terlihat
+              backgroundColor: Colors.transparent,
               shadowColor: Colors.transparent,
-              minimumSize: Size(double.infinity, _responsiveFontSize(screenWidth, 56)),
+              minimumSize: const Size(double.infinity, 56),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(_responsiveFontSize(screenWidth, 16)),
+                borderRadius: BorderRadius.circular(16),
               ),
             ),
             onPressed: _checkout,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
+                const Icon(
                   Icons.payment,
                   color: Colors.white,
-                  size: _responsiveIconSize(screenWidth, 24),
+                  size: 24,
                 ),
-                SizedBox(width: _responsiveFontSize(screenWidth, 12)),
+                const SizedBox(width: 12),
                 Text(
                   "Checkout (${_selectedItemsIds.length} item)",
-                  style: TextStyle(
-                    fontSize: _responsiveFontSize(screenWidth, 18),
+                  style: const TextStyle(
+                    fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
@@ -772,8 +726,7 @@ class _KeranjangScreenState extends State<KeranjangScreen> {
 
 class _SisaWaktuWidget extends StatefulWidget {
   final DateTime batasWaktu;
-  final double screenWidth; // Pass screenWidth for responsiveness
-  const _SisaWaktuWidget({required this.batasWaktu, required this.screenWidth});
+  const _SisaWaktuWidget({required this.batasWaktu});
 
   @override
   State<_SisaWaktuWidget> createState() => _SisaWaktuWidgetState();
@@ -782,31 +735,6 @@ class _SisaWaktuWidget extends StatefulWidget {
 class _SisaWaktuWidgetState extends State<_SisaWaktuWidget> {
   late Timer _timer;
   Duration _sisaWaktu = Duration.zero;
-
-  // Helper method for responsive font sizes (copied for internal use)
-  double _responsiveFontSizeInternal(double screenWidth, double baseSize) {
-    if (screenWidth < 360) {
-      return baseSize * 0.8;
-    } else if (screenWidth < 600) {
-      return baseSize;
-    } else if (screenWidth < 900) {
-      return baseSize * 1.1;
-    } else {
-      return baseSize * 1.2;
-    }
-  }
-
-  // Helper method for responsive icon sizes (copied for internal use)
-  double _responsiveIconSizeInternal(double screenWidth, double baseSize) {
-    if (screenWidth < 600) {
-      return baseSize;
-    } else if (screenWidth < 900) {
-      return baseSize * 1.1;
-    } else {
-      return baseSize * 1.2;
-    }
-  }
-
 
   @override
   void initState() {
@@ -836,23 +764,23 @@ class _SisaWaktuWidgetState extends State<_SisaWaktuWidget> {
   Widget build(BuildContext context) {
     if (_sisaWaktu.isNegative) {
       return Container(
-        padding: EdgeInsets.symmetric(horizontal: _responsiveFontSizeInternal(widget.screenWidth, 16), vertical: _responsiveFontSizeInternal(widget.screenWidth, 8)),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           color: Colors.red.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(_responsiveFontSizeInternal(widget.screenWidth, 12)),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(color: Colors.red.withOpacity(0.3)),
         ),
-        child: Row(
+        child: const Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.error_outline, color: Colors.red, size: _responsiveIconSizeInternal(widget.screenWidth, 18)),
-            SizedBox(width: _responsiveFontSizeInternal(widget.screenWidth, 8)),
+            Icon(Icons.error_outline, color: Colors.red, size: 18),
+            SizedBox(width: 8),
             Text(
               "Waktu Habis",
               style: TextStyle(
                 color: Colors.red,
                 fontWeight: FontWeight.bold,
-                fontSize: _responsiveFontSizeInternal(widget.screenWidth, 14),
+                fontSize: 14,
               ),
             ),
           ],
@@ -865,7 +793,7 @@ class _SisaWaktuWidgetState extends State<_SisaWaktuWidget> {
     final minutes = twoDigits(_sisaWaktu.inMinutes.remainder(60));
     final seconds = twoDigits(_sisaWaktu.inSeconds.remainder(60));
 
-    Color timerColor = Colors.orange; // Perubahan warna: angka timer
+    Color timerColor = Colors.green;
     if (_sisaWaktu.inHours < 1) {
       timerColor = Colors.orange;
     }
@@ -874,37 +802,37 @@ class _SisaWaktuWidgetState extends State<_SisaWaktuWidget> {
     }
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: _responsiveFontSizeInternal(widget.screenWidth, 16), vertical: _responsiveFontSizeInternal(widget.screenWidth, 8)),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
         color: timerColor.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(_responsiveFontSizeInternal(widget.screenWidth, 12)),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: timerColor.withOpacity(0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.access_time, color: timerColor, size: _responsiveIconSizeInternal(widget.screenWidth, 18)),
-          SizedBox(width: _responsiveFontSizeInternal(widget.screenWidth, 8)),
+          Icon(Icons.access_time, color: timerColor, size: 18),
+          const SizedBox(width: 8),
           Text(
             "Sisa waktu:",
             style: TextStyle(
-              fontSize: _responsiveFontSizeInternal(widget.screenWidth, 12),
+              fontSize: 12,
               color: Colors.grey[700],
               fontWeight: FontWeight.w500,
             ),
           ),
-          SizedBox(width: _responsiveFontSizeInternal(widget.screenWidth, 6)),
+          const SizedBox(width: 6),
           Container(
-            padding: EdgeInsets.symmetric(horizontal: _responsiveFontSizeInternal(widget.screenWidth, 8), vertical: _responsiveFontSizeInternal(widget.screenWidth, 2)),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(
               color: timerColor,
-              borderRadius: BorderRadius.circular(_responsiveFontSizeInternal(widget.screenWidth, 6)),
+              borderRadius: BorderRadius.circular(6),
             ),
             child: Text(
               "$hours:$minutes:$seconds",
-              style: TextStyle(
+              style: const TextStyle(
                 fontWeight: FontWeight.bold,
-                fontSize: _responsiveFontSizeInternal(widget.screenWidth, 12),
+                fontSize: 12,
                 color: Colors.white,
                 fontFamily: 'monospace',
               ),

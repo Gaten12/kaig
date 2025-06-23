@@ -164,14 +164,17 @@ class _PilihStasiunScreenState extends State<PilihStasiunScreen>
         ),
         child: IconButton(
           icon:
-          const Icon(Icons.arrow_back_ios_new, color: primaryRed, size: 20),
+              const Icon(Icons.arrow_back_ios_new, color: primaryRed, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
       ),
       title: Container(
-        // The search bar will expand to fill available space
         height: 48,
-
+        decoration: BoxDecoration(
+          color: warmGray,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: primaryRed.withOpacity(0.2), width: 1.5),
+        ),
         child: TextField(
           controller: _searchController,
           autofocus: true,
@@ -180,24 +183,24 @@ class _PilihStasiunScreenState extends State<PilihStasiunScreen>
             hintStyle: TextStyle(color: textSecondary, fontSize: 16),
             border: InputBorder.none,
             contentPadding:
-            const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             prefixIcon: Container(
               padding: const EdgeInsets.all(12),
               child: Icon(Icons.search_rounded, color: primaryRed, size: 24),
             ),
             suffixIcon: isSearching
                 ? Container(
-              margin: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: primaryRed,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: IconButton(
-                icon: const Icon(Icons.close,
-                    color: Colors.white, size: 20),
-                onPressed: () => _searchController.clear(),
-              ),
-            )
+                    margin: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: primaryRed,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.close,
+                          color: Colors.white, size: 20),
+                      onPressed: () => _searchController.clear(),
+                    ),
+                  )
                 : null,
           ),
           style: TextStyle(
@@ -209,58 +212,42 @@ class _PilihStasiunScreenState extends State<PilihStasiunScreen>
   }
 
   Widget _buildMainContent(bool isSearching) {
-    // Use LayoutBuilder to get the available width and make decisions
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return SingleChildScrollView(
-          padding: EdgeInsets.only(top: 16, left: _responsivePadding(constraints.maxWidth), right: _responsivePadding(constraints.maxWidth)),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (!isSearching && _stasiunFavorit.isNotEmpty) ...[
-                _buildSectionTitle("Stasiun Favorit", Icons.star_rounded),
-                const SizedBox(height: 8),
-                _buildFavoritList(constraints.maxWidth), // Pass max width for responsiveness
-                const SizedBox(height: 24),
-              ],
-              if (!isSearching && _terakhirDicari.isNotEmpty) ...[
-                _buildSectionTitle("Terakhir Dicari", Icons.history_rounded),
-                const SizedBox(height: 8),
-                _buildTerakhirDicariList(),
-                const SizedBox(height: 24),
-              ],
-              if (_hasilPencarian.isNotEmpty || isSearching) ...[
-                _buildSectionTitle(
-                    isSearching ? "Hasil Pencarian" : "Semua Stasiun",
-                    isSearching ? Icons.search_rounded : Icons.train_rounded),
-                const SizedBox(height: 8),
-                _buildStasiunList(isSearching),
-              ] else if (!isSearching) ...[
-                _buildSectionTitle("🚉 Semua Stasiun", Icons.train_rounded),
-                const SizedBox(height: 8),
-                _buildStasiunList(isSearching),
-              ],
-            ],
-          ),
-        );
-      },
+    return SingleChildScrollView(
+      padding: const EdgeInsets.only(top: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (!isSearching && _stasiunFavorit.isNotEmpty) ...[
+            _buildSectionTitle("✨ Stasiun Favorit", Icons.star_rounded),
+            const SizedBox(height: 8),
+            _buildFavoritList(),
+            const SizedBox(height: 24),
+          ],
+          if (!isSearching && _terakhirDicari.isNotEmpty) ...[
+            _buildSectionTitle("🕒 Terakhir Dicari", Icons.history_rounded),
+            const SizedBox(height: 8),
+            _buildTerakhirDicariList(),
+            const SizedBox(height: 24),
+          ],
+          if (_hasilPencarian.isNotEmpty || isSearching) ...[
+            _buildSectionTitle(
+                isSearching ? "🔍 Hasil Pencarian" : "🚉 Semua Stasiun",
+                isSearching ? Icons.search_rounded : Icons.train_rounded),
+            const SizedBox(height: 8),
+            _buildStasiunList(isSearching),
+          ] else if (!isSearching) ...[
+            _buildSectionTitle("🚉 Semua Stasiun", Icons.train_rounded),
+            const SizedBox(height: 8),
+            _buildStasiunList(isSearching),
+          ],
+        ],
+      ),
     );
-  }
-
-  // Helper to determine responsive horizontal padding
-  double _responsivePadding(double screenWidth) {
-    if (screenWidth > 1200) {
-      return (screenWidth - 1000) / 2; // Max content width 1000, center it
-    } else if (screenWidth > 600) {
-      return 32.0; // Larger padding for tablets
-    } else {
-      return 16.0; // Default padding for phones
-    }
   }
 
   Widget _buildSectionTitle(String title, IconData icon) {
     return Container(
-      // Removed fixed horizontal margin from here, applied in _buildMainContent's padding
+      margin: const EdgeInsets.symmetric(horizontal: 20),
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -288,30 +275,16 @@ class _PilihStasiunScreenState extends State<PilihStasiunScreen>
     );
   }
 
-  Widget _buildFavoritList(double screenWidth) {
-    // Determine how many cards can fit per row based on screen width
-    // Minimum width for a card to look good is around 160-180.
-    // Let's target 2 cards on smaller screens, and more on larger screens.
-    final double itemWidth = screenWidth > 600 ? (screenWidth * 0.25) : (screenWidth * 0.45); // Adjust card width
-    final double aspectRatio = 1.0; // Adjust as needed, e.g., 1.2 for taller cards
-
+  Widget _buildFavoritList() {
     return SizedBox(
-      // Removed fixed height, letting GridView determine height based on items
-      // height: 120, // This fixed height made it less responsive
-      child: GridView.builder(
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: screenWidth > 600 ? (screenWidth ~/ itemWidth).toInt() : 2, // Number of columns
-          childAspectRatio: aspectRatio,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-        ),
-        shrinkWrap: true, // Allow content to dictate height
-        physics: const NeverScrollableScrollPhysics(), // Disable GridView's own scrolling
-        padding: const EdgeInsets.symmetric(horizontal: 0), // Padding handled by parent Column
+      height: 120,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         itemCount: _stasiunFavorit.length,
         itemBuilder: (context, index) {
           final stasiun = _stasiunFavorit[index];
-          return _buildFavoritCard(stasiun, itemWidth);
+          return _buildFavoritCard(stasiun);
         },
       ),
     );
@@ -319,7 +292,7 @@ class _PilihStasiunScreenState extends State<PilihStasiunScreen>
 
   Widget _buildTerakhirDicariList() {
     return Container(
-      // Removed fixed horizontal margin from here, applied in _buildMainContent's padding
+      margin: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -342,11 +315,10 @@ class _PilihStasiunScreenState extends State<PilihStasiunScreen>
     );
   }
 
-  Widget _buildFavoritCard(StasiunModel stasiun, double calculatedWidth) {
+  Widget _buildFavoritCard(StasiunModel stasiun) {
     return Container(
-      width: calculatedWidth, // Use calculated responsive width
-      // Removed fixed margin, spacing handled by GridView
-      // margin: const EdgeInsets.only(right: 12),
+      width: 180,
+      margin: const EdgeInsets.only(right: 12),
       child: Card(
         elevation: 4,
         shadowColor: cardShadow,
@@ -407,7 +379,7 @@ class _PilihStasiunScreenState extends State<PilihStasiunScreen>
                   const Spacer(),
                   Container(
                     padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: primaryRed.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
@@ -432,7 +404,7 @@ class _PilihStasiunScreenState extends State<PilihStasiunScreen>
 
   Widget _buildStasiunList(bool isSearching) {
     return Container(
-      // Removed fixed horizontal margin from here, applied in _buildMainContent's padding
+      margin: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -443,61 +415,60 @@ class _PilihStasiunScreenState extends State<PilihStasiunScreen>
       ),
       child: _hasilPencarian.isEmpty
           ? Container(
-        padding: const EdgeInsets.all(40),
-        child: Column(
-          children: [
-            Icon(
-              isSearching
-                  ? Icons.search_off_rounded
-                  : Icons.train_outlined,
-              size: 64,
-              color: textSecondary,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              isSearching
-                  ? "Stasiun tidak ditemukan"
-                  : "Tidak ada data stasiun",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: textSecondary,
+              padding: const EdgeInsets.all(40),
+              child: Column(
+                children: [
+                  Icon(
+                    isSearching
+                        ? Icons.search_off_rounded
+                        : Icons.train_outlined,
+                    size: 64,
+                    color: textSecondary,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    isSearching
+                        ? "Stasiun tidak ditemukan"
+                        : "Tidak ada data stasiun",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    isSearching
+                        ? "Coba kata kunci lain"
+                        : "Silakan coba lagi nanti",
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: textSecondary,
+                    ),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              isSearching
-                  ? "Coba kata kunci lain"
-                  : "Silakan coba lagi nanti",
-              style: TextStyle(
-                fontSize: 14,
-                color: textSecondary,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      )
+            )
           : ListView.separated(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: _hasilPencarian.length,
-        separatorBuilder: (context, index) =>
-            Divider(color: warmGray, height: 1),
-        itemBuilder: (context, index) {
-          final stasiun = _hasilPencarian[index];
-          if (!isSearching && _searchController.text.isEmpty) {
-            bool sudahAdaDiFavorit =
-            _stasiunFavorit.any((s) => s.id == stasiun.id);
-            bool sudahAdaDiTerakhirDicari =
-            _terakhirDicari.any((s) => s.id == stasiun.id);
-            if (sudahAdaDiFavorit || sudahAdaDiTerakhirDicari) {
-              return const SizedBox.shrink();
-            }
-          }
-          return _buildStasiunListItem(stasiun);
-        },
-      ),
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _hasilPencarian.length,
+              separatorBuilder: (context, index) =>
+                  Divider(color: warmGray, height: 1),
+              itemBuilder: (context, index) {
+                final stasiun = _hasilPencarian[index];
+                if (!isSearching && _searchController.text.isEmpty) {
+                  bool sudahAdaDiFavorit =
+                      _stasiunFavorit.any((s) => s.id == stasiun.id);
+                  bool sudahAdaDiTerakhirDicari =
+                      _terakhirDicari.any((s) => s.id == stasiun.id);
+                  if (sudahAdaDiFavorit || sudahAdaDiTerakhirDicari) {
+                    return const SizedBox.shrink();
+                  }
+                }
+                return _buildStasiunListItem(stasiun);
+              },
+            ),
     );
   }
 
@@ -559,32 +530,32 @@ class _PilihStasiunScreenState extends State<PilihStasiunScreen>
       ),
       trailing: showTrailing
           ? Container(
-        decoration: BoxDecoration(
-          color: stasiun.isFavorit
-              ? Colors.amber.withOpacity(0.1)
-              : Colors.grey.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: IconButton(
-          icon: Icon(
-            stasiun.isFavorit
-                ? Icons.star_rounded
-                : Icons.star_border_rounded,
-            color: stasiun.isFavorit ? Colors.amber : Colors.grey,
-            size: 28,
-          ),
-          onPressed: () => _toggleFavorit(stasiun),
-        ),
-      )
+              decoration: BoxDecoration(
+                color: stasiun.isFavorit
+                    ? Colors.amber.withOpacity(0.1)
+                    : Colors.grey.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: IconButton(
+                icon: Icon(
+                  stasiun.isFavorit
+                      ? Icons.star_rounded
+                      : Icons.star_border_rounded,
+                  color: stasiun.isFavorit ? Colors.amber : Colors.grey,
+                  size: 28,
+                ),
+                onPressed: () => _toggleFavorit(stasiun),
+              ),
+            )
           : Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: accentBlue.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: const Icon(Icons.access_time_rounded,
-            color: accentBlue, size: 20),
-      ),
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: accentBlue.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.access_time_rounded,
+                  color: accentBlue, size: 20),
+            ),
       onTap: () => _pilihStasiun(stasiun),
     );
   }
@@ -657,7 +628,7 @@ class _PilihStasiunScreenState extends State<PilihStasiunScreen>
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
                 padding:
-                const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               ),
               child: const Text("Coba Lagi",
                   style: TextStyle(fontWeight: FontWeight.bold)),
