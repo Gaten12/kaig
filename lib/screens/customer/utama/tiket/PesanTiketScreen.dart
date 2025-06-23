@@ -289,27 +289,6 @@ class _PesanTiketScreenState extends State<PesanTiketScreen> {
 
     return Scaffold(
       backgroundColor: backgroundGrey,
-      appBar: AppBar(
-        title: const Text(
-          'Pesan Tiket',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-            color: Colors.white,
-          ),
-        ),
-        centerTitle: false,
-        backgroundColor: primaryRed,
-        // Remove the leading IconButton to remove the back button
-        // leading: IconButton(
-        //   icon: const Icon(Icons.arrow_back, color: Colors.white),
-        //   onPressed: () {
-        //     Navigator.pop(context);
-        //   },
-        // ),
-        automaticallyImplyLeading: false, // This will remove the default back button
-        elevation: 0,
-      ),
       body: CustomScrollView(
         slivers: [
 

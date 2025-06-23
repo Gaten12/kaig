@@ -82,14 +82,14 @@ class _HomeScreenState extends State<HomeScreen> {
               ? 'Halo, $_userName!'
               : _getAppBarTitle(_selectedIndex),
           style: TextStyle(
+            color: Colors.white,
             fontWeight: FontWeight.bold,
-            color: Colors.grey[800],
             fontSize: 18,
             letterSpacing: 0.5,
           ),
         ),
         automaticallyImplyLeading: false,
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFFC50000),
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         systemOverlayStyle: const SystemUiOverlayStyle(
