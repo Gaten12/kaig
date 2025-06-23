@@ -1,158 +1,154 @@
 import 'package:flutter/material.dart';
-import '../../../../models/stasiun_model.dart';
-import '../../../admin/services/admin_firestore_service.dart';
+import 'package:intl/intl.dart';
+import '../../../../models/JadwalModel.dart';
+import 'DataPenumpangScreen.dart';
 
-class PilihStasiunScreen extends StatefulWidget {
-  final String? initialSearchQuery;
+class PilihKelasScreen extends StatefulWidget {
+  final JadwalModel jadwalDipesan;
+  final String stasiunAsalDisplay;
+  final String stasiunTujuanDisplay;
+  final DateTime tanggalBerangkat;
+  final int jumlahDewasa;
+  final int jumlahBayi;
 
-  const PilihStasiunScreen({super.key, this.initialSearchQuery});
+  const PilihKelasScreen({
+    super.key,
+    required this.jadwalDipesan,
+    required this.stasiunAsalDisplay,
+    required this.stasiunTujuanDisplay,
+    required this.tanggalBerangkat,
+    required this.jumlahDewasa,
+    required this.jumlahBayi,
+  });
 
   @override
-  State<PilihStasiunScreen> createState() => _PilihStasiunScreenState();
+  State<PilihKelasScreen> createState() => _PilihKelasScreenState();
 }
 
-class _PilihStasiunScreenState extends State<PilihStasiunScreen>
+class _PilihKelasScreenState extends State<PilihKelasScreen>
     with TickerProviderStateMixin {
-  final TextEditingController _searchController = TextEditingController();
-  final AdminFirestoreService _firestoreService = AdminFirestoreService();
   late AnimationController _fadeController;
+  late AnimationController _slideController;
   late Animation<double> _fadeAnimation;
-
-  List<StasiunModel> _semuaStasiunMaster = [];
-  List<StasiunModel> _hasilPencarian = [];
-  List<StasiunModel> _stasiunFavorit = [];
-  List<StasiunModel> _terakhirDicari = [];
-
-  Stream<List<StasiunModel>>? _stasiunStream;
+  late Animation<Offset> _slideAnimation;
 
   // Tema Warna Kereta Elegan
   static const Color primaryRed = Color(0xFFC50000);
   static const Color accentBlue = Color(0xFF1976D2);
   static const Color lightRed = Color(0xFFFFEBEE);
+  static const Color darkRed = Color(0xFF8B0000);
   static const Color warmGray = Color(0xFFF5F5F5);
   static const Color textPrimary = Color(0xFF212121);
   static const Color textSecondary = Color(0xFF757575);
   static const Color cardShadow = Color(0x1A000000);
+  static const Color successGreen = Color(0xFF2E7D32);
+  static const Color warningOrange = Color(0xFFE65100);
+  static const Color darkBlue = Color(0xFF0000CD); // New color for numbers
 
   @override
   void initState() {
     super.initState();
     _fadeController = AnimationController(
-        duration: const Duration(milliseconds: 300), vsync: this);
+        duration: const Duration(milliseconds: 500), vsync: this);
+    _slideController = AnimationController(
+        duration: const Duration(milliseconds: 600), vsync: this);
+
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
         CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut));
+
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+            CurvedAnimation(
+                parent: _slideController, curve: Curves.easeOutCubic));
+
     _fadeController.forward();
-
-    _stasiunStream = _firestoreService.getStasiunList();
-
-    if (widget.initialSearchQuery != null &&
-        widget.initialSearchQuery!.isNotEmpty) {
-      _searchController.text = widget.initialSearchQuery!;
-    }
-
-    _searchController.addListener(() {
-      _filterStasiunDariMaster(_searchController.text);
-    });
-  }
-
-  void _filterStasiunDariMaster(String query) {
-    if (!mounted) return;
-    List<StasiunModel> filtered;
-    if (query.isEmpty) {
-      filtered = _semuaStasiunMaster;
-    } else {
-      final queryLower = query.toLowerCase();
-      filtered = _semuaStasiunMaster.where((stasiun) {
-        final namaLower = stasiun.nama.toLowerCase();
-        final kodeLower = stasiun.kode.toLowerCase();
-        final kotaLower = stasiun.kota.toLowerCase();
-        final deskripsiLower = stasiun.deskripsiTambahan.toLowerCase();
-        return namaLower.contains(queryLower) ||
-            kodeLower.contains(queryLower) ||
-            kotaLower.contains(queryLower) ||
-            deskripsiLower.contains(queryLower);
-      }).toList();
-    }
-    setState(() {
-      _hasilPencarian = filtered;
-    });
-  }
-
-  void _pilihStasiun(StasiunModel stasiun) {
-    if (mounted) {
-      setState(() {
-        if (!_terakhirDicari.any((s) => s.id == stasiun.id)) {
-          _terakhirDicari.insert(0, stasiun);
-          if (_terakhirDicari.length > 5) _terakhirDicari.removeLast();
-        }
-      });
-    }
-    Navigator.pop(context, stasiun);
-  }
-
-  void _toggleFavorit(StasiunModel stasiun) {
-    if (!mounted) return;
-    setState(() {
-      stasiun.isFavorit = !stasiun.isFavorit;
-      if (stasiun.isFavorit) {
-        if (!_stasiunFavorit.any((s) => s.id == stasiun.id)) {
-          _stasiunFavorit.add(stasiun);
-        }
-      } else {
-        _stasiunFavorit.removeWhere((s) => s.id == stasiun.id);
-      }
-    });
+    _slideController.forward();
   }
 
   @override
   void dispose() {
-    _searchController.dispose();
     _fadeController.dispose();
+    _slideController.dispose();
     super.dispose();
+  }
+
+  // Helper method for responsive horizontal padding
+  double _responsiveHorizontalPadding(double screenWidth) {
+    if (screenWidth > 1200) {
+      return (screenWidth - 1000) / 2; // Center content for very large screens
+    } else if (screenWidth > 600) {
+      return 24.0; // Medium padding for tablets
+    } else {
+      return 16.0; // Standard padding for phones
+    }
+  }
+
+  // Helper method for responsive font sizes
+  double _responsiveFontSize(double screenWidth, double baseSize) {
+    if (screenWidth < 360) {
+      return baseSize * 0.8; // Smaller for very small phones
+    } else if (screenWidth < 600) {
+      return baseSize; // Base size for phones
+    } else if (screenWidth < 900) {
+      return baseSize * 1.1; // Slightly larger for tablets
+    } else {
+      return baseSize * 1.2; // Even larger for desktops
+    }
+  }
+
+  // Helper method for responsive icon sizes
+  double _responsiveIconSize(double screenWidth, double baseSize) {
+    if (screenWidth < 600) {
+      return baseSize;
+    } else if (screenWidth < 900) {
+      return baseSize * 1.1;
+    } else {
+      return baseSize * 1.2;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    bool isSearching = _searchController.text.isNotEmpty;
+    final currencyFormatter =
+    NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
+    String penumpangInfo = "${widget.jumlahDewasa} Dewasa";
+    if (widget.jumlahBayi > 0) {
+      penumpangInfo += ", ${widget.jumlahBayi} Bayi";
+    }
+    String tanggalInfo = DateFormat('EEE, dd MMM yy', 'id_ID')
+        .format(widget.jadwalDipesan.tanggalBerangkatUtama.toDate());
 
     return Scaffold(
       backgroundColor: warmGray,
-      appBar: _buildElegantAppBar(isSearching),
+      appBar: _buildElegantAppBar(tanggalInfo, penumpangInfo),
       body: FadeTransition(
         opacity: _fadeAnimation,
-        child: StreamBuilder<List<StasiunModel>>(
-          stream: _stasiunStream,
-          builder: (context, snapshot) {
-            if (snapshot.hasError) {
-              return _buildErrorState(snapshot.error.toString());
-            }
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return _buildLoadingState();
-            }
-            if (!snapshot.hasData ||
-                snapshot.data == null ||
-                snapshot.data!.isEmpty) {
-              return _buildEmptyState();
-            }
-
-            if (_semuaStasiunMaster != snapshot.data!) {
-              _semuaStasiunMaster = snapshot.data!;
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                _filterStasiunDariMaster(_searchController.text);
-              });
-            }
-
-            _stasiunFavorit =
-                _semuaStasiunMaster.where((s) => s.isFavorit).toList();
-
-            return _buildMainContent(isSearching);
-          },
+        child: SlideTransition(
+          position: _slideAnimation,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final double horizontalPadding = _responsiveHorizontalPadding(constraints.maxWidth);
+              final double screenWidth = constraints.maxWidth;
+              return SingleChildScrollView(
+                padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildRuteKeretaSection(screenWidth),
+                    SizedBox(height: _responsiveFontSize(screenWidth, 32.0)),
+                    _buildKelasSection(currencyFormatter, screenWidth),
+                  ],
+                ),
+              );
+            },
+          ),
         ),
       ),
     );
   }
 
-  PreferredSizeWidget _buildElegantAppBar(bool isSearching) {
+  PreferredSizeWidget _buildElegantAppBar(
+      String tanggalInfo, String penumpangInfo) {
     return AppBar(
       elevation: 0,
       backgroundColor: Colors.white,
@@ -164,247 +160,450 @@ class _PilihStasiunScreenState extends State<PilihStasiunScreen>
         ),
         child: IconButton(
           icon:
-              const Icon(Icons.arrow_back_ios_new, color: primaryRed, size: 20),
+          Icon(Icons.arrow_back_ios_new, color: primaryRed, size: _responsiveIconSize(MediaQuery.of(context).size.width, 20)),
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      title: Container(
-        height: 48,
-        decoration: BoxDecoration(
-          color: warmGray,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: primaryRed.withOpacity(0.2), width: 1.5),
-        ),
-        child: TextField(
-          controller: _searchController,
-          autofocus: true,
-          decoration: InputDecoration(
-            hintText: 'Cari stasiun atau kota...',
-            hintStyle: TextStyle(color: textSecondary, fontSize: 16),
-            border: InputBorder.none,
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            prefixIcon: Container(
-              padding: const EdgeInsets.all(12),
-              child: Icon(Icons.search_rounded, color: primaryRed, size: 24),
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: _responsiveFontSize(MediaQuery.of(context).size.width, 12), vertical: 4),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [primaryRed, darkRed],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+              ),
+              borderRadius: BorderRadius.circular(20),
             ),
-            suffixIcon: isSearching
-                ? Container(
-                    margin: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: primaryRed,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: IconButton(
-                      icon: const Icon(Icons.close,
-                          color: Colors.white, size: 20),
-                      onPressed: () => _searchController.clear(),
-                    ),
-                  )
-                : null,
+            child: Text(
+              "${widget.stasiunAsalDisplay} 🚂 ${widget.stasiunTujuanDisplay}",
+              style: TextStyle(
+                fontSize: _responsiveFontSize(MediaQuery.of(context).size.width, 14),
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
-          style: TextStyle(
-              color: textPrimary, fontSize: 16, fontWeight: FontWeight.w500),
-        ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Icon(Icons.calendar_today, size: _responsiveIconSize(MediaQuery.of(context).size.width, 12), color: textSecondary),
+              SizedBox(width: _responsiveFontSize(MediaQuery.of(context).size.width, 4)),
+              Text(
+                tanggalInfo,
+                style: TextStyle(
+                    fontSize: _responsiveFontSize(MediaQuery.of(context).size.width, 11),
+                    color: textSecondary,
+                    fontWeight: FontWeight.w500),
+              ),
+              SizedBox(width: _responsiveFontSize(MediaQuery.of(context).size.width, 12)),
+              Icon(Icons.people, size: _responsiveIconSize(MediaQuery.of(context).size.width, 12), color: textSecondary),
+              SizedBox(width: _responsiveFontSize(MediaQuery.of(context).size.width, 4)),
+              Text(
+                penumpangInfo,
+                style: TextStyle(
+                    fontSize: _responsiveFontSize(MediaQuery.of(context).size.width, 11),
+                    color: textSecondary,
+                    fontWeight: FontWeight.w500),
+              ),
+            ],
+          ),
+        ],
       ),
       titleSpacing: 0,
     );
   }
 
-  Widget _buildMainContent(bool isSearching) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.only(top: 16),
+  Widget _buildRuteKeretaSection(double screenWidth) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: cardShadow,
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (!isSearching && _stasiunFavorit.isNotEmpty) ...[
-            _buildSectionTitle("✨ Stasiun Favorit", Icons.star_rounded),
-            const SizedBox(height: 8),
-            _buildFavoritList(),
-            const SizedBox(height: 24),
-          ],
-          if (!isSearching && _terakhirDicari.isNotEmpty) ...[
-            _buildSectionTitle("🕒 Terakhir Dicari", Icons.history_rounded),
-            const SizedBox(height: 8),
-            _buildTerakhirDicariList(),
-            const SizedBox(height: 24),
-          ],
-          if (_hasilPencarian.isNotEmpty || isSearching) ...[
-            _buildSectionTitle(
-                isSearching ? "🔍 Hasil Pencarian" : "🚉 Semua Stasiun",
-                isSearching ? Icons.search_rounded : Icons.train_rounded),
-            const SizedBox(height: 8),
-            _buildStasiunList(isSearching),
-          ] else if (!isSearching) ...[
-            _buildSectionTitle("🚉 Semua Stasiun", Icons.train_rounded),
-            const SizedBox(height: 8),
-            _buildStasiunList(isSearching),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSectionTitle(String title, IconData icon) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [primaryRed.withOpacity(0.1), lightRed],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: primaryRed.withOpacity(0.3), width: 1),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: primaryRed, size: 24),
-          const SizedBox(width: 12),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: primaryRed,
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.all(_responsiveFontSize(screenWidth, 20)),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [primaryRed.withOpacity(0.1), lightRed],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+              ),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+              ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFavoritList() {
-    return SizedBox(
-      height: 120,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: _stasiunFavorit.length,
-        itemBuilder: (context, index) {
-          final stasiun = _stasiunFavorit[index];
-          return _buildFavoritCard(stasiun);
-        },
-      ),
-    );
-  }
-
-  Widget _buildTerakhirDicariList() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-              color: cardShadow, blurRadius: 8, offset: const Offset(0, 2))
-        ],
-      ),
-      child: ListView.separated(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: _terakhirDicari.length,
-        separatorBuilder: (context, index) =>
-            Divider(color: warmGray, height: 1),
-        itemBuilder: (context, index) {
-          final stasiun = _terakhirDicari[index];
-          return _buildStasiunListItem(stasiun, showTrailing: false);
-        },
-      ),
-    );
-  }
-
-  Widget _buildFavoritCard(StasiunModel stasiun) {
-    return Container(
-      width: 180,
-      margin: const EdgeInsets.only(right: 12),
-      child: Card(
-        elevation: 4,
-        shadowColor: cardShadow,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            gradient: LinearGradient(
-              colors: [Colors.white, lightRed.withOpacity(0.3)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            border: Border.all(color: primaryRed.withOpacity(0.2), width: 1),
-          ),
-          child: InkWell(
-            onTap: () => _pilihStasiun(stasiun),
-            borderRadius: BorderRadius.circular(16),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          stasiun.displayName,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                            color: textPrimary,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 2,
-                        ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(_responsiveFontSize(screenWidth, 8)),
+                      decoration: BoxDecoration(
+                        color: primaryRed,
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: Colors.amber,
-                          borderRadius: BorderRadius.circular(8),
+                      child: Icon(Icons.train_rounded,
+                          color: Colors.white, size: _responsiveIconSize(screenWidth, 24)),
+                    ),
+                    SizedBox(width: _responsiveFontSize(screenWidth, 12)),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.jadwalDipesan.namaKereta.toUpperCase(),
+                            style: TextStyle(
+                              fontSize: _responsiveFontSize(screenWidth, 18),
+                              fontWeight: FontWeight.bold,
+                              color: primaryRed,
+                            ),
+                          ),
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: _responsiveFontSize(screenWidth, 8), vertical: _responsiveFontSize(screenWidth, 2)),
+                            decoration: BoxDecoration(
+                              color: primaryRed.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              widget.jadwalDipesan.idKereta,
+                              style: TextStyle(
+                                fontSize: _responsiveFontSize(screenWidth, 12),
+                                fontWeight: FontWeight.bold,
+                                color: primaryRed,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: _responsiveFontSize(screenWidth, 12)),
+                Container(
+                  padding:
+                  EdgeInsets.symmetric(horizontal: _responsiveFontSize(screenWidth, 12), vertical: _responsiveFontSize(screenWidth, 6)),
+                  decoration: BoxDecoration(
+                    color: accentBlue.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: accentBlue.withOpacity(0.3)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.access_time, size: _responsiveIconSize(screenWidth, 16), color: accentBlue),
+                      SizedBox(width: _responsiveFontSize(screenWidth, 6)),
+                      Text(
+                        "Durasi: ${widget.jadwalDipesan.durasiPerjalananTotal}",
+                        style: TextStyle(
+                          fontSize: _responsiveFontSize(screenWidth, 13),
+                          fontWeight: FontWeight.w600,
+                          color: accentBlue,
                         ),
-                        child: const Icon(Icons.star_rounded,
-                            color: Colors.white, size: 16),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    stasiun.displayArea,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: textSecondary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const Spacer(),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: primaryRed.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      stasiun.kode,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: primaryRed,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
-        ),
+          Padding(
+            padding: EdgeInsets.all(_responsiveFontSize(screenWidth, 20)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "🛤️ Rute Perjalanan",
+                  style: TextStyle(
+                    fontSize: _responsiveFontSize(screenWidth, 16),
+                    fontWeight: FontWeight.bold,
+                    color: textPrimary,
+                  ),
+                ),
+                SizedBox(height: _responsiveFontSize(screenWidth, 16)),
+                _buildRuteTimeline(screenWidth),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildStasiunList(bool isSearching) {
+  Widget _buildRuteTimeline(double screenWidth) {
+    if (widget.jadwalDipesan.detailPerhentian.isEmpty) {
+      return Container(
+        padding: EdgeInsets.all(_responsiveFontSize(screenWidth, 20)),
+        decoration: BoxDecoration(
+          color: warmGray,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.info_outline, color: textSecondary),
+            SizedBox(width: _responsiveFontSize(screenWidth, 12)),
+            Text(
+              "Detail rute tidak tersedia",
+              style:
+              TextStyle(color: textSecondary, fontWeight: FontWeight.w500),
+            ),
+          ],
+        ),
+      );
+    }
+
+    List<Widget> ruteWidgets = [];
+    for (int i = 0; i < widget.jadwalDipesan.detailPerhentian.length; i++) {
+      final perhentian = widget.jadwalDipesan.detailPerhentian[i];
+      bool isStasiunAwal = i == 0;
+      bool isStasiunAkhir =
+          i == widget.jadwalDipesan.detailPerhentian.length - 1;
+
+      ruteWidgets.add(
+          _buildStationTimelineItem(perhentian, isStasiunAwal, isStasiunAkhir, screenWidth));
+    }
+
+    return Column(children: ruteWidgets);
+  }
+
+  Widget _buildStationTimelineItem(
+      dynamic perhentian, bool isStasiunAwal, bool isStasiunAkhir, double screenWidth) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
+      margin: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Time Column
+          Expanded(
+            flex: 2, // Give it a flex factor to occupy some space
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                if (!isStasiunAwal && perhentian.waktuTiba != null)
+                  Container(
+                    padding:
+                    EdgeInsets.symmetric(horizontal: _responsiveFontSize(screenWidth, 8), vertical: _responsiveFontSize(screenWidth, 2)),
+                    decoration: BoxDecoration(
+                      color: textSecondary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      DateFormat('HH:mm')
+                          .format(perhentian.waktuTiba!.toDate()),
+                      style: TextStyle(
+                          fontSize: _responsiveFontSize(screenWidth, 11),
+                          color: darkBlue, // Changed color to darkBlue
+                          fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                const SizedBox(height: 2),
+                if (!isStasiunAkhir && perhentian.waktuBerangkat != null)
+                  Container(
+                    padding:
+                    EdgeInsets.symmetric(horizontal: _responsiveFontSize(screenWidth, 8), vertical: _responsiveFontSize(screenWidth, 2)),
+                    decoration: BoxDecoration(
+                      color: primaryRed.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      DateFormat('HH:mm')
+                          .format(perhentian.waktuBerangkat!.toDate()),
+                      style: TextStyle(
+                        fontSize: _responsiveFontSize(screenWidth, 12),
+                        fontWeight: FontWeight.bold,
+                        color: darkBlue, // Changed color to darkBlue
+                      ),
+                    ),
+                  ),
+                if (isStasiunAwal && perhentian.waktuBerangkat != null)
+                  Container(
+                    padding:
+                    EdgeInsets.symmetric(horizontal: _responsiveFontSize(screenWidth, 8), vertical: _responsiveFontSize(screenWidth, 2)),
+                    decoration: BoxDecoration(
+                      color: successGreen.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      DateFormat('HH:mm')
+                          .format(perhentian.waktuBerangkat!.toDate()),
+                      style: TextStyle(
+                        fontSize: _responsiveFontSize(screenWidth, 12),
+                        fontWeight: FontWeight.bold,
+                        color: darkBlue, // Changed color to darkBlue
+                      ),
+                    ),
+                  ),
+                if (isStasiunAkhir &&
+                    perhentian.waktuTiba != null &&
+                    !isStasiunAwal)
+                  Container(
+                    padding:
+                    EdgeInsets.symmetric(horizontal: _responsiveFontSize(screenWidth, 8), vertical: _responsiveFontSize(screenWidth, 2)),
+                    decoration: BoxDecoration(
+                      color: warningOrange.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      DateFormat('HH:mm')
+                          .format(perhentian.waktuTiba!.toDate()),
+                      style: TextStyle(
+                        fontSize: _responsiveFontSize(screenWidth, 12),
+                        fontWeight: FontWeight.bold,
+                        color: darkBlue, // Changed color to darkBlue
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+
+          // Timeline Indicator
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: _responsiveFontSize(screenWidth, 16.0)),
+            child: Column(
+              children: [
+                Container(
+                  width: _responsiveIconSize(screenWidth, 24),
+                  height: _responsiveIconSize(screenWidth, 24),
+                  decoration: BoxDecoration(
+                    color: isStasiunAwal
+                        ? successGreen
+                        : (isStasiunAkhir
+                        ? warningOrange
+                        : primaryRed.withOpacity(0.3)),
+                    borderRadius: BorderRadius.circular(_responsiveIconSize(screenWidth, 12)),
+                    border: Border.all(
+                      color: isStasiunAwal
+                          ? successGreen
+                          : (isStasiunAkhir ? warningOrange : primaryRed),
+                      width: 2,
+                    ),
+                  ),
+                  child: Icon(
+                    isStasiunAwal
+                        ? Icons.play_arrow_rounded
+                        : (isStasiunAkhir
+                        ? Icons.location_on_rounded
+                        : Icons.fiber_manual_record),
+                    color: Colors.white,
+                    size: _responsiveIconSize(screenWidth, 14),
+                  ),
+                ),
+                if (!isStasiunAkhir)
+                  Container(
+                    height: _responsiveFontSize(screenWidth, 40),
+                    width: 2,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          primaryRed.withOpacity(0.6),
+                          primaryRed.withOpacity(0.3)
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
+                    ),
+                    margin: EdgeInsets.symmetric(vertical: _responsiveFontSize(screenWidth, 4)),
+                  ),
+              ],
+            ),
+          ),
+
+          // Station Name
+          Expanded(
+            flex: 3, // Give it more flex space for station name
+            child: Container(
+              padding: EdgeInsets.symmetric(vertical: _responsiveFontSize(screenWidth, 2)),
+              child: Text(
+                perhentian.namaStasiun.isNotEmpty
+                    ? perhentian.namaStasiun.toUpperCase()
+                    : perhentian.idStasiun.toUpperCase(),
+                style: TextStyle(
+                  fontWeight: (isStasiunAwal || isStasiunAkhir)
+                      ? FontWeight.bold
+                      : FontWeight.w600,
+                  fontSize: _responsiveFontSize(screenWidth, (isStasiunAwal || isStasiunAkhir) ? 15 : 14),
+                  color: (isStasiunAwal || isStasiunAkhir)
+                      ? textPrimary
+                      : textSecondary,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildKelasSection(NumberFormat currencyFormatter, double screenWidth) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: _responsiveFontSize(screenWidth, 20), vertical: _responsiveFontSize(screenWidth, 16)),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                accentBlue.withOpacity(0.1),
+                accentBlue.withOpacity(0.05)
+              ],
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+            ),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: accentBlue.withOpacity(0.3)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(_responsiveFontSize(screenWidth, 8)),
+                decoration: BoxDecoration(
+                  color: accentBlue,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(Icons.airline_seat_recline_normal,
+                    color: Colors.white, size: _responsiveIconSize(screenWidth, 20)),
+              ),
+              SizedBox(width: _responsiveFontSize(screenWidth, 12)),
+              Text(
+                "🎟️ Pilih Kelas & Harga",
+                style: TextStyle(
+                  fontSize: _responsiveFontSize(screenWidth, 18),
+                  fontWeight: FontWeight.bold,
+                  color: accentBlue,
+                ),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(height: _responsiveFontSize(screenWidth, 16)),
+        if (widget.jadwalDipesan.daftarKelasHarga.isEmpty)
+          _buildEmptyKelasState(screenWidth)
+        else
+          _buildKelasList(currencyFormatter, screenWidth),
+      ],
+    );
+  }
+
+  Widget _buildEmptyKelasState(double screenWidth) {
+    return Container(
+      padding: EdgeInsets.all(_responsiveFontSize(screenWidth, 32)),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -413,266 +612,225 @@ class _PilihStasiunScreenState extends State<PilihStasiunScreen>
               color: cardShadow, blurRadius: 8, offset: const Offset(0, 2))
         ],
       ),
-      child: _hasilPencarian.isEmpty
-          ? Container(
-              padding: const EdgeInsets.all(40),
-              child: Column(
-                children: [
-                  Icon(
-                    isSearching
-                        ? Icons.search_off_rounded
-                        : Icons.train_outlined,
-                    size: 64,
-                    color: textSecondary,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    isSearching
-                        ? "Stasiun tidak ditemukan"
-                        : "Tidak ada data stasiun",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    isSearching
-                        ? "Coba kata kunci lain"
-                        : "Silakan coba lagi nanti",
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            )
-          : ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _hasilPencarian.length,
-              separatorBuilder: (context, index) =>
-                  Divider(color: warmGray, height: 1),
-              itemBuilder: (context, index) {
-                final stasiun = _hasilPencarian[index];
-                if (!isSearching && _searchController.text.isEmpty) {
-                  bool sudahAdaDiFavorit =
-                      _stasiunFavorit.any((s) => s.id == stasiun.id);
-                  bool sudahAdaDiTerakhirDicari =
-                      _terakhirDicari.any((s) => s.id == stasiun.id);
-                  if (sudahAdaDiFavorit || sudahAdaDiTerakhirDicari) {
-                    return const SizedBox.shrink();
-                  }
-                }
-                return _buildStasiunListItem(stasiun);
-              },
-            ),
-    );
-  }
-
-  Widget _buildStasiunListItem(StasiunModel stasiun,
-      {bool showTrailing = true}) {
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      leading: Container(
-        width: 50,
-        height: 50,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [primaryRed.withOpacity(0.1), lightRed],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: primaryRed.withOpacity(0.3), width: 1),
-        ),
-        child: const Icon(Icons.train_rounded, color: primaryRed, size: 24),
-      ),
-      title: Text(
-        stasiun.displayName,
-        style: const TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 16,
-          color: textPrimary,
-        ),
-      ),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 4),
-          Text(
-            stasiun.displayArea,
-            style: TextStyle(
-              fontSize: 14,
-              color: textSecondary,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(
-              color: primaryRed.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Text(
-              stasiun.kode,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: primaryRed,
-              ),
-            ),
-          ),
-        ],
-      ),
-      trailing: showTrailing
-          ? Container(
-              decoration: BoxDecoration(
-                color: stasiun.isFavorit
-                    ? Colors.amber.withOpacity(0.1)
-                    : Colors.grey.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: IconButton(
-                icon: Icon(
-                  stasiun.isFavorit
-                      ? Icons.star_rounded
-                      : Icons.star_border_rounded,
-                  color: stasiun.isFavorit ? Colors.amber : Colors.grey,
-                  size: 28,
-                ),
-                onPressed: () => _toggleFavorit(stasiun),
-              ),
-            )
-          : Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: accentBlue.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.access_time_rounded,
-                  color: accentBlue, size: 20),
-            ),
-      onTap: () => _pilihStasiun(stasiun),
-    );
-  }
-
-  Widget _buildLoadingState() {
-    return Center(
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: lightRed,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: const CircularProgressIndicator(
-                color: primaryRed, strokeWidth: 3),
-          ),
-          const SizedBox(height: 24),
-          const Text(
-            "Memuat stasiun...",
+          Icon(Icons.event_seat_outlined, size: _responsiveIconSize(screenWidth, 64), color: textSecondary),
+          SizedBox(height: _responsiveFontSize(screenWidth, 16)),
+          Text(
+            "Tidak Ada Kelas Tersedia",
             style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: textSecondary),
+              fontSize: _responsiveFontSize(screenWidth, 18),
+              fontWeight: FontWeight.bold,
+              color: textSecondary,
+            ),
+          ),
+          SizedBox(height: _responsiveFontSize(screenWidth, 8)),
+          Text(
+            "Detail kelas tidak tersedia untuk jadwal ini",
+            style: TextStyle(fontSize: _responsiveFontSize(screenWidth, 14), color: textSecondary),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildErrorState(String error) {
-    return Center(
-      child: Container(
-        margin: const EdgeInsets.all(20),
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-                color: cardShadow, blurRadius: 8, offset: const Offset(0, 2))
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.error_outline_rounded,
-                size: 64, color: Colors.red.shade400),
-            const SizedBox(height: 16),
-            const Text(
-              "Terjadi Kesalahan",
-              style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: textPrimary),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              "Error: $error",
-              style: TextStyle(fontSize: 14, color: textSecondary),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () => setState(() {}),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: accentBlue,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+  Widget _buildKelasList(NumberFormat currencyFormatter, double screenWidth) {
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: widget.jadwalDipesan.daftarKelasHarga.length,
+      itemBuilder: (context, index) {
+        final kelas = widget.jadwalDipesan.daftarKelasHarga[index];
+        bool isTersedia = kelas.kuota > 0;
+        String ketersediaanText =
+        isTersedia ? "${kelas.kuota} kursi tersedia" : "Habis";
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: cardShadow,
+                blurRadius: 8,
+                offset: const Offset(0, 2),
               ),
-              child: const Text("Coba Lagi",
-                  style: TextStyle(fontWeight: FontWeight.bold)),
+            ],
+            border: Border.all(
+              color: isTersedia
+                  ? accentBlue.withOpacity(0.2)
+                  : Colors.grey.withOpacity(0.2),
+              width: 1,
             ),
-          ],
-        ),
-      ),
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(16),
+              onTap: !isTersedia
+                  ? null
+                  : () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => DataPenumpangScreen(
+                      jadwalDipesan: widget.jadwalDipesan,
+                      kelasDipilih: kelas,
+                      tanggalBerangkat: widget.tanggalBerangkat,
+                      jumlahDewasa: widget.jumlahDewasa,
+                      jumlahBayi: widget.jumlahBayi,
+                    ),
+                  ),
+                );
+              },
+              child: Padding(
+                padding: EdgeInsets.all(_responsiveFontSize(screenWidth, 20)),
+                child: Row(
+                  children: [
+                    // Class Icon
+                    Container(
+                      width: _responsiveIconSize(screenWidth, 60),
+                      height: _responsiveIconSize(screenWidth, 60),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: isTersedia
+                              ? [
+                            accentBlue.withOpacity(0.1),
+                            accentBlue.withOpacity(0.05)
+                          ]
+                              : [
+                            Colors.grey.withOpacity(0.1),
+                            Colors.grey.withOpacity(0.05)
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isTersedia
+                              ? accentBlue.withOpacity(0.3)
+                              : Colors.grey.withOpacity(0.3),
+                        ),
+                      ),
+                      child: Icon(
+                        _getClassIcon(kelas.displayKelasLengkap),
+                        color: isTersedia ? accentBlue : Colors.grey,
+                        size: _responsiveIconSize(screenWidth, 28),
+                      ),
+                    ),
+
+                    SizedBox(width: _responsiveFontSize(screenWidth, 16)),
+
+                    // Class Info
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            kelas.displayKelasLengkap,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: _responsiveFontSize(screenWidth, 16),
+                              color: isTersedia ? textPrimary : Colors.grey,
+                            ),
+                          ),
+                          SizedBox(height: _responsiveFontSize(screenWidth, 6)),
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: _responsiveFontSize(screenWidth, 10), vertical: _responsiveFontSize(screenWidth, 4)),
+                            decoration: BoxDecoration(
+                              color: isTersedia
+                                  ? successGreen.withOpacity(0.1)
+                                  : Colors.red.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+
+                              children: [
+                                Icon(
+                                  isTersedia
+                                      ? Icons.check_circle
+                                      : Icons.cancel,
+                                  size: _responsiveIconSize(screenWidth, 14),
+                                  color: isTersedia ? successGreen : Colors.red,
+                                ),
+                                SizedBox(width: _responsiveFontSize(screenWidth, 4)),
+                                Flexible(
+                                  child: Text(
+                                    ketersediaanText,
+                                    style: TextStyle(
+                                      fontSize: _responsiveFontSize(screenWidth, 12),
+                                      fontWeight: FontWeight.w600,
+                                      color:
+                                      isTersedia ? successGreen : Colors.red,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Price & Arrow
+                    Expanded(
+                      flex: 1,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerRight,
+                            child: Text(
+                              currencyFormatter.format(kelas.harga),
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: _responsiveFontSize(screenWidth, 16),
+                                color: darkBlue, // Changed color to darkBlue
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: _responsiveFontSize(screenWidth, 8)),
+                          Container(
+                            padding: EdgeInsets.all(_responsiveFontSize(screenWidth, 8)),
+                            decoration: BoxDecoration(
+                              color: isTersedia
+                                  ? accentBlue.withOpacity(0.1)
+                                  : Colors.grey.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(
+                              Icons.arrow_forward_ios,
+                              size: _responsiveIconSize(screenWidth, 16),
+                              color: isTersedia ? accentBlue : Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildEmptyState() {
-    return Center(
-      child: Container(
-        margin: const EdgeInsets.all(20),
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-                color: cardShadow, blurRadius: 8, offset: const Offset(0, 2))
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.train_outlined, size: 64, color: textSecondary),
-            const SizedBox(height: 16),
-            const Text(
-              "Belum Ada Data Stasiun",
-              style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: textPrimary),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              "Data stasiun belum tersedia saat ini",
-              style: TextStyle(fontSize: 14, color: textSecondary),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
+  IconData _getClassIcon(String className) {
+    String lowerName = className.toLowerCase();
+    if (lowerName.contains('eksekutif') || lowerName.contains('executive')) {
+      return Icons.star_rounded;
+    } else if (lowerName.contains('bisnis') || lowerName.contains('business')) {
+      return Icons.business_center_rounded;
+    } else if (lowerName.contains('ekonomi') || lowerName.contains('economy')) {
+      return Icons.airline_seat_recline_normal;
+    } else {
+      return Icons.train_rounded;
+    }
   }
 }

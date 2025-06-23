@@ -5,7 +5,7 @@ import 'package:kaig/models/jadwal_kelas_info_model.dart';
 import 'package:kaig/screens/customer/utama/pembayaran/pembayaran_screen.dart';
 import 'package:kaig/screens/customer/utama/tiket/pilih_gerbong_screen.dart';
 
-import 'DataPenumpangScreen.dart';
+import 'DataPenumpangScreen.dart'; // Import ini tetap diperlukan untuk PenumpangInputData
 
 
 class PilihKursiStepScreen extends StatefulWidget {
@@ -93,21 +93,23 @@ class _PilihKursiStepScreenState extends State<PilihKursiStepScreen>
   }
 
   void _lanjutkanKePembayaran() {
+    final screenWidth = MediaQuery.of(context).size.width; // Get screen width for responsive SnackBar
+
     if (_kursiTerpilih.length < widget.dataPenumpangList.length) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Row(
+          content: Row(
             children: [
-              Icon(Icons.warning_amber_rounded, color: Colors.white, size: 20),
-              SizedBox(width: 12),
-              Expanded(child: Text('Harap pilih kursi untuk semua penumpang.')),
+              Icon(Icons.warning_amber_rounded, color: Colors.white, size: _responsiveIconSize(screenWidth, 20)),
+              SizedBox(width: _responsiveFontSize(screenWidth, 12)),
+              Expanded(child: Text('Harap pilih kursi untuk semua penumpang.', style: TextStyle(fontSize: _responsiveFontSize(screenWidth, 14)))),
             ],
           ),
           backgroundColor: warningOrange,
           behavior: SnackBarBehavior.floating,
           shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          margin: const EdgeInsets.all(16),
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(_responsiveFontSize(screenWidth, 12))),
+          margin: EdgeInsets.all(_responsiveFontSize(screenWidth, 16)),
         ),
       );
       return;
@@ -127,34 +129,71 @@ class _PilihKursiStepScreenState extends State<PilihKursiStepScreen>
     );
   }
 
+  // Helper method for responsive font sizes
+  double _responsiveFontSize(double screenWidth, double baseSize) {
+    if (screenWidth < 360) {
+      return baseSize * 0.8; // Smaller for very small phones
+    } else if (screenWidth < 600) {
+      return baseSize; // Base size for phones
+    } else if (screenWidth < 900) {
+      return baseSize * 1.1; // Slightly larger for tablets
+    } else {
+      return baseSize * 1.2; // Even larger for desktops
+    }
+  }
+
+  // Helper method for responsive icon sizes
+  double _responsiveIconSize(double screenWidth, double baseSize) {
+    if (screenWidth < 600) {
+      return baseSize;
+    } else if (screenWidth < 900) {
+      return baseSize * 1.1;
+    } else {
+      return baseSize * 1.2;
+    }
+  }
+
+  // Helper method for responsive horizontal padding
+  double _responsiveHorizontalPadding(double screenWidth) {
+    if (screenWidth > 1200) {
+      return (screenWidth - 1000) / 2; // Center content for very large screens
+    } else if (screenWidth > 600) {
+      return 24.0; // Medium padding for tablets
+    } else {
+      return 16.0; // Standard padding for phones
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Scaffold(
       backgroundColor: backgroundGray,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white,
-        foregroundColor: textPrimary,
-        title: const Text(
+        backgroundColor: const Color(0xFFC50000), // Merah sesuai gambar
+        foregroundColor: Colors.white, // Teks putih
+        title: Text( // Judul "Pesan Tiket"
           "Pesan Tiket",
           style: TextStyle(
             fontWeight: FontWeight.w600,
-            fontSize: 18,
+            fontSize: _responsiveFontSize(screenWidth, 18), // Responsive font size
           ),
         ),
-        centerTitle: true,
+        // No centerTitle for app bar as per image
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(8.0),
+          preferredSize: Size.fromHeight(_responsiveFontSize(screenWidth, 8.0)), // Responsive height for progress bar
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: EdgeInsets.symmetric(horizontal: _responsiveHorizontalPadding(screenWidth)),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(_responsiveFontSize(screenWidth, 4)), // Responsive border radius
               child: LinearProgressIndicator(
                 value: 0.67, // Step 2 dari 3
                 backgroundColor: Colors.grey[200],
                 valueColor:
-                    const AlwaysStoppedAnimation<Color>(primaryTrainColor),
-                minHeight: 6,
+                const AlwaysStoppedAnimation<Color>(const Color(0xFF0000CD)), // Use orange for progress as per image
+                minHeight: _responsiveFontSize(screenWidth, 6), // Responsive min height
               ),
             ),
           ),
@@ -163,208 +202,171 @@ class _PilihKursiStepScreenState extends State<PilihKursiStepScreen>
       body: FadeTransition(
         opacity: _fadeAnimation,
         child: ListView(
-          padding: const EdgeInsets.all(20.0),
+          padding: EdgeInsets.all(_responsiveHorizontalPadding(screenWidth)), // Responsive padding
           children: [
-            _buildStepHeader(),
-            const SizedBox(height: 24.0),
-            _buildInfoKeretaCard(),
-            const SizedBox(height: 24.0),
-            _buildPenumpangSection(),
+            _buildStepHeader(screenWidth),
+            SizedBox(height: _responsiveFontSize(screenWidth, 24.0)), // Responsive spacing
+            _buildInfoKeretaCard(screenWidth),
+            SizedBox(height: _responsiveFontSize(screenWidth, 24.0)), // Responsive spacing
+            _buildPenumpangSection(screenWidth),
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomButton(),
+      bottomNavigationBar: _buildBottomButton(screenWidth),
     );
   }
 
-  Widget _buildStepHeader() {
+  Widget _buildStepHeader(double screenWidth) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+      padding: EdgeInsets.symmetric(vertical: _responsiveFontSize(screenWidth, 10.0), horizontal: _responsiveFontSize(screenWidth, 16.0)), // Responsive padding
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            primaryTrainColor.withOpacity(0.1),
-            primaryTrainColor.withOpacity(0.05)
-          ],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: primaryTrainColor.withOpacity(0.2)),
+        color: Colors.deepOrange, // Warna oranye sesuai gambar
+        borderRadius: BorderRadius.circular(_responsiveFontSize(screenWidth, 8.0)), // Responsive border radius
+        // Menghilangkan gradient, border, dan shadow
       ),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: const BoxDecoration(
-              color: primaryTrainColor,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.airline_seat_recline_normal,
-              color: Colors.white,
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 16),
-          const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Langkah 2 dari 3",
-                style: TextStyle(
-                  fontSize: 12,
-                  color: textSecondary,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              Text(
-                "Pilih Kursi",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: textPrimary,
-                ),
-              ),
-            ],
-          ),
-        ],
+      child: Text(
+        "2. Pilih Kursi", // Teks untuk langkah 2
+        style: TextStyle(
+          fontSize: _responsiveFontSize(screenWidth, 18), // Responsive font size
+          fontWeight: FontWeight.bold,
+          color: Colors.white, // Warna teks putih
+        ),
       ),
     );
   }
 
-  Widget _buildInfoKeretaCard() {
+  Widget _buildInfoKeretaCard(double screenWidth) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(_responsiveFontSize(screenWidth, 20)), // Responsive border radius
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.08),
-            blurRadius: 20,
+            blurRadius: _responsiveFontSize(screenWidth, 20), // Responsive blur radius
             offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: EdgeInsets.all(_responsiveFontSize(screenWidth, 24.0)), // Responsive padding
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: EdgeInsets.all(_responsiveFontSize(screenWidth, 8)), // Responsive padding
                   decoration: BoxDecoration(
                     color: primaryTrainColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(_responsiveFontSize(screenWidth, 12)), // Responsive border radius
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.train,
                     color: primaryTrainColor,
-                    size: 20,
+                    size: _responsiveIconSize(screenWidth, 20), // Responsive icon size
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: _responsiveFontSize(screenWidth, 12)), // Responsive spacing
                 Text(
                   "Kereta Pergi",
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: textPrimary,
-                      ),
+                    fontWeight: FontWeight.bold,
+                    color: textPrimary,
+                    fontSize: _responsiveFontSize(screenWidth, 16), // Responsive font size
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: _responsiveFontSize(screenWidth, 20)), // Responsive spacing
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(_responsiveFontSize(screenWidth, 16)), // Responsive padding
               decoration: BoxDecoration(
                 color: backgroundGray,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(_responsiveFontSize(screenWidth, 12)), // Responsive border radius
               ),
               child: Column(
                 children: [
                   Row(
                     children: [
                       Icon(Icons.calendar_today,
-                          size: 16, color: textSecondary),
-                      const SizedBox(width: 8),
+                          size: _responsiveIconSize(screenWidth, 16), color: textSecondary), // Responsive icon size
+                      SizedBox(width: _responsiveFontSize(screenWidth, 8)), // Responsive spacing
                       Text(
                         DateFormat('EEE, dd MMM yy', 'id_ID').format(widget
                             .jadwalDipesan.tanggalBerangkatUtama
                             .toDate()),
-                        style: const TextStyle(
-                            fontSize: 14,
+                        style: TextStyle(
+                            fontSize: _responsiveFontSize(screenWidth, 14), // Responsive font size
                             color: textSecondary,
                             fontWeight: FontWeight.w500),
                       ),
-                      const SizedBox(width: 16),
-                      Icon(Icons.access_time, size: 16, color: textSecondary),
-                      const SizedBox(width: 8),
+                      SizedBox(width: _responsiveFontSize(screenWidth, 16)), // Responsive spacing
+                      Icon(Icons.access_time, size: _responsiveIconSize(screenWidth, 16), color: textSecondary), // Responsive icon size
+                      SizedBox(width: _responsiveFontSize(screenWidth, 8)), // Responsive spacing
                       Text(
                         widget.jadwalDipesan.jamBerangkatFormatted,
-                        style: const TextStyle(
-                            fontSize: 14,
+                        style: TextStyle(
+                            fontSize: _responsiveFontSize(screenWidth, 14), // Responsive font size
                             color: textSecondary,
                             fontWeight: FontWeight.w500),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: _responsiveFontSize(screenWidth, 12)), // Responsive spacing
                   Row(
                     children: [
                       Expanded(
                         child: Text(
                           widget.jadwalDipesan.idStasiunAsal,
-                          style: const TextStyle(
-                              fontSize: 16,
+                          style: TextStyle(
+                              fontSize: _responsiveFontSize(screenWidth, 16), // Responsive font size
                               fontWeight: FontWeight.bold,
                               color: textPrimary),
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 4),
+                        padding: EdgeInsets.symmetric(
+                            horizontal: _responsiveFontSize(screenWidth, 12), vertical: _responsiveFontSize(screenWidth, 4)), // Responsive padding
                         decoration: BoxDecoration(
                           color: primaryTrainColor,
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(_responsiveFontSize(screenWidth, 20)), // Responsive border radius
                         ),
-                        child: const Icon(Icons.arrow_forward,
-                            color: Colors.white, size: 16),
+                        child: Icon(Icons.arrow_forward,
+                            color: Colors.white, size: _responsiveIconSize(screenWidth, 16)), // Responsive icon size
                       ),
                       Expanded(
                         child: Text(
                           widget.jadwalDipesan.idStasiunTujuan,
                           textAlign: TextAlign.right,
-                          style: const TextStyle(
-                              fontSize: 16,
+                          style: TextStyle(
+                              fontSize: _responsiveFontSize(screenWidth, 16), // Responsive font size
                               fontWeight: FontWeight.bold,
                               color: textPrimary),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: _responsiveFontSize(screenWidth, 12)), // Responsive spacing
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
                         widget.jadwalDipesan.namaKereta,
                         style:
-                            const TextStyle(fontSize: 14, color: textSecondary),
+                        TextStyle(fontSize: _responsiveFontSize(screenWidth, 14), color: textSecondary), // Responsive font size
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 6),
+                        padding: EdgeInsets.symmetric(
+                            horizontal: _responsiveFontSize(screenWidth, 12), vertical: _responsiveFontSize(screenWidth, 6)), // Responsive padding
                         decoration: BoxDecoration(
                           color: accentBlueColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(_responsiveFontSize(screenWidth, 20)), // Responsive border radius
                         ),
                         child: Text(
                           widget.kelasDipilih.displayKelasLengkap,
-                          style: const TextStyle(
-                            fontSize: 12,
+                          style: TextStyle(
+                            fontSize: _responsiveFontSize(screenWidth, 12), // Responsive font size
                             color: accentBlueColor,
                             fontWeight: FontWeight.w600,
                           ),
@@ -381,25 +383,25 @@ class _PilihKursiStepScreenState extends State<PilihKursiStepScreen>
     );
   }
 
-  Widget _buildPenumpangSection() {
+  Widget _buildPenumpangSection(double screenWidth) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           "Daftar Penumpang",
           style: TextStyle(
-            fontSize: 18,
+            fontSize: _responsiveFontSize(screenWidth, 18), // Responsive font size
             fontWeight: FontWeight.bold,
             color: textPrimary,
           ),
         ),
-        const SizedBox(height: 16),
-        ..._buildListPenumpang(),
+        SizedBox(height: _responsiveFontSize(screenWidth, 16)), // Responsive spacing
+        ..._buildListPenumpang(screenWidth),
       ],
     );
   }
 
-  List<Widget> _buildListPenumpang() {
+  List<Widget> _buildListPenumpang(double screenWidth) {
     return List.generate(widget.dataPenumpangList.length, (index) {
       final penumpang = widget.dataPenumpangList[index];
       final kursiDipilih = _kursiTerpilih[index];
@@ -407,10 +409,10 @@ class _PilihKursiStepScreenState extends State<PilihKursiStepScreen>
 
       return AnimatedContainer(
         duration: const Duration(milliseconds: 300),
-        margin: const EdgeInsets.only(bottom: 16.0),
+        margin: EdgeInsets.only(bottom: _responsiveFontSize(screenWidth, 16.0)), // Responsive margin
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(_responsiveFontSize(screenWidth, 16)), // Responsive border radius
           border: Border.all(
             color: hasSelectedSeat
                 ? successGreen.withOpacity(0.3)
@@ -420,20 +422,20 @@ class _PilihKursiStepScreenState extends State<PilihKursiStepScreen>
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.06),
-              blurRadius: 12,
+              blurRadius: _responsiveFontSize(screenWidth, 12), // Responsive blur radius
               offset: const Offset(0, 2),
             ),
           ],
         ),
         child: Padding(
-          padding: const EdgeInsets.all(20.0),
+          padding: EdgeInsets.all(_responsiveFontSize(screenWidth, 20.0)), // Responsive padding
           child: Column(
             children: [
               Row(
                 children: [
                   Container(
-                    width: 50,
-                    height: 50,
+                    width: _responsiveIconSize(screenWidth, 50), // Responsive size
+                    height: _responsiveIconSize(screenWidth, 50), // Responsive size
                     decoration: BoxDecoration(
                       color: hasSelectedSeat
                           ? successGreen.withOpacity(0.1)
@@ -444,7 +446,7 @@ class _PilihKursiStepScreenState extends State<PilihKursiStepScreen>
                       child: Text(
                         "${index + 1}",
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: _responsiveFontSize(screenWidth, 18), // Responsive font size
                           fontWeight: FontWeight.bold,
                           color: hasSelectedSeat
                               ? successGreen
@@ -453,7 +455,7 @@ class _PilihKursiStepScreenState extends State<PilihKursiStepScreen>
                       ),
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  SizedBox(width: _responsiveFontSize(screenWidth, 16)), // Responsive spacing
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -462,24 +464,24 @@ class _PilihKursiStepScreenState extends State<PilihKursiStepScreen>
                           children: [
                             Text(
                               "Penumpang ${index + 1}",
-                              style: const TextStyle(
-                                fontSize: 12,
+                              style: TextStyle(
+                                fontSize: _responsiveFontSize(screenWidth, 12), // Responsive font size
                                 color: textSecondary,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
-                            const SizedBox(width: 8),
+                            SizedBox(width: _responsiveFontSize(screenWidth, 8)), // Responsive spacing
                             Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 2),
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: _responsiveFontSize(screenWidth, 8), vertical: _responsiveFontSize(screenWidth, 2)), // Responsive padding
                               decoration: BoxDecoration(
                                 color: accentBlueColor.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(_responsiveFontSize(screenWidth, 12)), // Responsive border radius
                               ),
-                              child: const Text(
+                              child: Text(
                                 "Dewasa",
                                 style: TextStyle(
-                                  fontSize: 10,
+                                  fontSize: _responsiveFontSize(screenWidth, 10), // Responsive font size
                                   color: accentBlueColor,
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -487,11 +489,11 @@ class _PilihKursiStepScreenState extends State<PilihKursiStepScreen>
                             ),
                           ],
                         ),
-                        const SizedBox(height: 4),
+                        SizedBox(height: _responsiveFontSize(screenWidth, 4)), // Responsive spacing
                         Text(
                           penumpang.namaLengkap,
-                          style: const TextStyle(
-                            fontSize: 16,
+                          style: TextStyle(
+                            fontSize: _responsiveFontSize(screenWidth, 16), // Responsive font size
                             fontWeight: FontWeight.bold,
                             color: textPrimary,
                           ),
@@ -501,12 +503,12 @@ class _PilihKursiStepScreenState extends State<PilihKursiStepScreen>
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: _responsiveFontSize(screenWidth, 16)), // Responsive spacing
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(_responsiveFontSize(screenWidth, 16)), // Responsive padding
                 decoration: BoxDecoration(
                   color: backgroundGray,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(_responsiveFontSize(screenWidth, 12)), // Responsive border radius
                 ),
                 child: Row(
                   children: [
@@ -515,14 +517,14 @@ class _PilihKursiStepScreenState extends State<PilihKursiStepScreen>
                           ? Icons.event_seat
                           : Icons.event_seat_outlined,
                       color: hasSelectedSeat ? successGreen : textSecondary,
-                      size: 20,
+                      size: _responsiveIconSize(screenWidth, 20), // Responsive icon size
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: _responsiveFontSize(screenWidth, 12)), // Responsive spacing
                     Expanded(
                       child: Text(
                         kursiDipilih ?? "Belum memilih kursi",
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: _responsiveFontSize(screenWidth, 14), // Responsive font size
                           fontWeight: hasSelectedSeat
                               ? FontWeight.w600
                               : FontWeight.normal,
@@ -531,27 +533,27 @@ class _PilihKursiStepScreenState extends State<PilihKursiStepScreen>
                       ),
                     ),
                     SizedBox(
-                      height: 36,
+                      height: _responsiveFontSize(screenWidth, 36), // Responsive height
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor:
-                              hasSelectedSeat ? Colors.white : accentBlueColor,
+                          hasSelectedSeat ? Colors.white : accentBlueColor,
                           foregroundColor:
-                              hasSelectedSeat ? accentBlueColor : Colors.white,
+                          hasSelectedSeat ? accentBlueColor : Colors.white,
                           elevation: 0,
                           side: hasSelectedSeat
                               ? const BorderSide(color: accentBlueColor)
                               : null,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
+                            borderRadius: BorderRadius.circular(_responsiveFontSize(screenWidth, 20)), // Responsive border radius
                           ),
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          padding: EdgeInsets.symmetric(horizontal: _responsiveFontSize(screenWidth, 16)), // Responsive padding
                         ),
                         onPressed: () => _pilihKursiUntukPenumpang(index),
                         child: Text(
                           hasSelectedSeat ? "Ubah" : "Pilih Kursi",
-                          style: const TextStyle(
-                            fontSize: 12,
+                          style: TextStyle(
+                            fontSize: _responsiveFontSize(screenWidth, 12), // Responsive font size
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -564,10 +566,10 @@ class _PilihKursiStepScreenState extends State<PilihKursiStepScreen>
           ),
         ),
       );
-    });
+    }).toList();
   }
 
-  Widget _buildBottomButton() {
+  Widget _buildBottomButton(double screenWidth) {
     final allSeatsSelected =
         _kursiTerpilih.length == widget.dataPenumpangList.length;
 
@@ -577,35 +579,35 @@ class _PilihKursiStepScreenState extends State<PilihKursiStepScreen>
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
-            blurRadius: 20,
+            blurRadius: _responsiveFontSize(screenWidth, 20), // Responsive blur radius
             offset: const Offset(0, -4),
           ),
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(20.0),
+        padding: EdgeInsets.all(_responsiveFontSize(screenWidth, 20.0)), // Responsive padding
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             if (!allSeatsSelected)
               Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                margin: const EdgeInsets.only(bottom: 16),
+                EdgeInsets.symmetric(horizontal: _responsiveFontSize(screenWidth, 16), vertical: _responsiveFontSize(screenWidth, 12)), // Responsive padding
+                margin: EdgeInsets.only(bottom: _responsiveFontSize(screenWidth, 16)), // Responsive margin
                 decoration: BoxDecoration(
                   color: warningOrange.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(_responsiveFontSize(screenWidth, 12)), // Responsive border radius
                   border: Border.all(color: warningOrange.withOpacity(0.3)),
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.info_outline, color: warningOrange, size: 20),
-                    const SizedBox(width: 12),
+                    Icon(Icons.info_outline, color: warningOrange, size: _responsiveIconSize(screenWidth, 20)), // Responsive icon size
+                    SizedBox(width: _responsiveFontSize(screenWidth, 12)), // Responsive spacing
                     Expanded(
                       child: Text(
                         "Pilih kursi untuk ${widget.dataPenumpangList.length - _kursiTerpilih.length} penumpang lagi",
-                        style: const TextStyle(
-                          fontSize: 12,
+                        style: TextStyle(
+                          fontSize: _responsiveFontSize(screenWidth, 12), // Responsive font size
                           color: warningOrange,
                           fontWeight: FontWeight.w500,
                         ),
@@ -616,16 +618,16 @@ class _PilihKursiStepScreenState extends State<PilihKursiStepScreen>
               ),
             SizedBox(
               width: double.infinity,
-              height: 56,
+              height: _responsiveFontSize(screenWidth, 56), // Responsive height
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor:
-                      allSeatsSelected ? accentBlueColor : Colors.grey[400],
+                  allSeatsSelected ? accentBlueColor : Colors.grey[400],
                   foregroundColor: Colors.white,
                   elevation: allSeatsSelected ? 4 : 0,
                   shadowColor: accentBlueColor.withOpacity(0.3),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(28),
+                    borderRadius: BorderRadius.circular(_responsiveFontSize(screenWidth, 28)), // Responsive border radius
                   ),
                 ),
                 onPressed: allSeatsSelected ? _lanjutkanKePembayaran : null,
@@ -633,13 +635,13 @@ class _PilihKursiStepScreenState extends State<PilihKursiStepScreen>
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     if (allSeatsSelected) ...[
-                      const Icon(Icons.payment, size: 20),
-                      const SizedBox(width: 8),
+                      Icon(Icons.payment, size: _responsiveIconSize(screenWidth, 20)), // Responsive icon size
+                      SizedBox(width: _responsiveFontSize(screenWidth, 8)), // Responsive spacing
                     ],
-                    const Text(
+                    Text(
                       "LANJUTKAN KE PEMBAYARAN",
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: _responsiveFontSize(screenWidth, 16), // Responsive font size
                         fontWeight: FontWeight.bold,
                         letterSpacing: 0.5,
                       ),

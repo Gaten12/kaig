@@ -56,9 +56,9 @@ class _PromoScreenState extends State<PromoScreen> {
     },
   ];
 
-  Widget _buildPromoCard(Map<String, dynamic> promo) {
+  Widget _buildPromoCard(Map<String, dynamic> promo, bool isSmallScreen) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 20),
+      margin: EdgeInsets.only(bottom: isSmallScreen ? 16 : 20), // Responsive margin
       child: Stack(
         children: [
           Container(
@@ -68,12 +68,12 @@ class _PromoScreenState extends State<PromoScreen> {
                 end: Alignment.bottomRight,
                 colors: promo['colors'],
               ),
-              borderRadius: BorderRadius.circular(24.0),
+              borderRadius: BorderRadius.circular(isSmallScreen ? 16.0 : 24.0), // Responsive border radius
               boxShadow: [
                 BoxShadow(
-                  color: promo['colors'][0].withOpacity(0.3),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
+                  color: (promo['colors'][0] as Color).withOpacity(0.3),
+                  blurRadius: isSmallScreen ? 15 : 20, // Responsive blur
+                  offset: Offset(0, isSmallScreen ? 6 : 8), // Responsive offset
                   spreadRadius: 0,
                 ),
               ],
@@ -81,12 +81,14 @@ class _PromoScreenState extends State<PromoScreen> {
             child: Material(
               color: Colors.transparent,
               child: InkWell(
-                borderRadius: BorderRadius.circular(24.0),
-                onTap: promo['isActive'] ? () {
-                  _showPromoDetail(promo);
-                } : null,
+                borderRadius: BorderRadius.circular(isSmallScreen ? 16.0 : 24.0),
+                onTap: promo['isActive']
+                    ? () {
+                  _showPromoDetail(context, promo, isSmallScreen); // Pass context and isSmallScreen
+                }
+                    : null,
                 child: Container(
-                  padding: const EdgeInsets.all(24),
+                  padding: EdgeInsets.all(isSmallScreen ? 18 : 24), // Responsive padding
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -94,27 +96,27 @@ class _PromoScreenState extends State<PromoScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(12),
+                            padding: EdgeInsets.all(isSmallScreen ? 10 : 12), // Responsive padding
                             decoration: BoxDecoration(
                               color: Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(isSmallScreen ? 10 : 12), // Responsive border radius
                             ),
                             child: Icon(
                               promo['icon'],
                               color: Colors.white,
-                              size: 28,
+                              size: isSmallScreen ? 24 : 28, // Responsive icon size
                             ),
                           ),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 10 : 12, vertical: isSmallScreen ? 5 : 6), // Responsive padding
                             decoration: BoxDecoration(
                               color: Colors.white.withOpacity(0.9),
-                              borderRadius: BorderRadius.circular(20),
+                              borderRadius: BorderRadius.circular(isSmallScreen ? 16 : 20), // Responsive border radius
                             ),
                             child: Text(
                               promo['discount'],
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: isSmallScreen ? 14 : 16, // Responsive font size
                                 fontWeight: FontWeight.bold,
                                 color: promo['colors'][0],
                               ),
@@ -122,48 +124,48 @@ class _PromoScreenState extends State<PromoScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: isSmallScreen ? 12 : 16), // Responsive spacing
                       Text(
                         promo['title'],
-                        style: const TextStyle(
-                          fontSize: 20,
+                        style: TextStyle(
+                          fontSize: isSmallScreen ? 18 : 20, // Responsive font size
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                           letterSpacing: 0.5,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: isSmallScreen ? 6 : 8), // Responsive spacing
                       Text(
                         promo['description'],
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: isSmallScreen ? 12 : 14, // Responsive font size
                           color: Colors.white.withOpacity(0.9),
                           height: 1.4,
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: isSmallScreen ? 12 : 16), // Responsive spacing
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
                             'Berlaku hingga: ${promo['validUntil']}',
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: isSmallScreen ? 10 : 12, // Responsive font size
                               color: Colors.white.withOpacity(0.8),
                             ),
                           ),
                           if (!promo['isActive'])
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 6 : 8, vertical: isSmallScreen ? 3 : 4), // Responsive padding
                               decoration: BoxDecoration(
                                 color: Colors.red.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(isSmallScreen ? 10 : 12), // Responsive border radius
                                 border: Border.all(color: Colors.red.withOpacity(0.5)),
                               ),
-                              child: const Text(
+                              child: Text(
                                 'Berakhir',
                                 style: TextStyle(
-                                  fontSize: 11,
+                                  fontSize: isSmallScreen ? 10 : 11, // Responsive font size
                                   color: Colors.white,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -177,15 +179,27 @@ class _PromoScreenState extends State<PromoScreen> {
               ),
             ),
           ),
-          // Decorative elements
+          // Decorative elements (adjusted for responsiveness)
           Positioned(
-            top: -30,
-            right: -30,
+            top: isSmallScreen ? -20 : -30,
+            right: isSmallScreen ? -20 : -30,
             child: Container(
-              width: 80,
-              height: 80,
+              width: isSmallScreen ? 70 : 80,
+              height: isSmallScreen ? 70 : 80,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withOpacity(0.05),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: isSmallScreen ? -25 : -40,
+            left: isSmallScreen ? -25 : -40,
+            child: Container(
+              width: isSmallScreen ? 90 : 100,
+              height: isSmallScreen ? 90 : 100,
+              decoration: BoxDecoration(
+                color: (promo['colors'][0] as Color).withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
             ),
@@ -195,71 +209,72 @@ class _PromoScreenState extends State<PromoScreen> {
     );
   }
 
-  Widget _buildActivePromoSection() {
+  Widget _buildActivePromoSection(bool isSmallScreen) {
     final activePromos = _promoList.where((promo) => promo['isActive']).toList();
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Promo Aktif',
           style: TextStyle(
-            fontSize: 22,
+            fontSize: isSmallScreen ? 18 : 22, // Responsive font size
             fontWeight: FontWeight.bold,
             color: Colors.grey[800],
             letterSpacing: 0.5,
           ),
         ),
-        const SizedBox(height: 16),
-        ...activePromos.map((promo) => _buildPromoCard(promo)),
+        SizedBox(height: isSmallScreen ? 12 : 16), // Responsive spacing
+        ...activePromos.map((promo) => _buildPromoCard(promo, isSmallScreen)),
       ],
     );
   }
 
-  Widget _buildExpiredPromoSection() {
+  Widget _buildExpiredPromoSection(bool isSmallScreen) {
     final expiredPromos = _promoList.where((promo) => !promo['isActive']).toList();
-    
+
     if (expiredPromos.isEmpty) return const SizedBox.shrink();
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 20),
+        SizedBox(height: isSmallScreen ? 16 : 20), // Responsive spacing
         Text(
           'Promo Berakhir',
           style: TextStyle(
-            fontSize: 22,
+            fontSize: isSmallScreen ? 18 : 22, // Responsive font size
             fontWeight: FontWeight.bold,
             color: Colors.grey[800],
             letterSpacing: 0.5,
           ),
         ),
-        const SizedBox(height: 16),
-        ...expiredPromos.map((promo) => _buildPromoCard(promo)),
+        SizedBox(height: isSmallScreen ? 12 : 16), // Responsive spacing
+        ...expiredPromos.map((promo) => _buildPromoCard(promo, isSmallScreen)),
       ],
     );
   }
 
-  Widget _buildPromoHeader() {
+  Widget _buildPromoHeader(bool isSmallScreen) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 32),
-      padding: const EdgeInsets.all(24),
+      margin: EdgeInsets.only(bottom: isSmallScreen ? 24 : 32), // Responsive margin
+      padding: EdgeInsets.all(isSmallScreen ? 16 : 24), // Responsive padding
       decoration: BoxDecoration(
+        // Changed to red gradient
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.grey[50]!,
-            Colors.white,
+            Colors.red.shade700, // Start red
+            Colors.red.shade900, // End red
           ],
         ),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.grey[200]!, width: 1),
+        borderRadius: BorderRadius.circular(isSmallScreen ? 16 : 24), // Responsive border radius
+        border: Border.all(color: Colors.transparent, width: 1), // Border transparent
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
+            color: Colors.red.withOpacity(0.3), // Red shadow
+            blurRadius: isSmallScreen ? 10 : 20, // Responsive blur
+            offset: Offset(0, isSmallScreen ? 4 : 8), // Responsive offset
             spreadRadius: 0,
           ),
         ],
@@ -273,35 +288,35 @@ class _PromoScreenState extends State<PromoScreen> {
                 Text(
                   'Promo Spesial! 🎉',
                   style: TextStyle(
-                    fontSize: 20,
+                    fontSize: isSmallScreen ? 18 : 20, // Responsive font size
                     fontWeight: FontWeight.bold,
-                    color: Colors.grey[800],
+                    color: Colors.white, // Text color is white
                     letterSpacing: 0.5,
                   ),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: isSmallScreen ? 6 : 8), // Responsive spacing
                 Text(
                   'Dapatkan berbagai penawaran menarik untuk perjalanan kereta api Anda',
                   style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
+                    fontSize: isSmallScreen ? 12 : 14, // Responsive font size
+                    color: Colors.white.withOpacity(0.9), // Text color is white
                     height: 1.4,
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: isSmallScreen ? 12 : 16), // Responsive spacing
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(isSmallScreen ? 12 : 16), // Responsive padding
             decoration: BoxDecoration(
-              color: const Color(0xFF2196F3).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(20),
+              color: Colors.white.withOpacity(0.2), // Icon background is white with opacity
+              borderRadius: BorderRadius.circular(isSmallScreen ? 16 : 20), // Responsive border radius
             ),
-            child: const Icon(
+            child: Icon(
               Icons.local_offer_rounded,
-              size: 36,
-              color: Color(0xFF2196F3),
+              size: isSmallScreen ? 32 : 36, // Responsive icon size
+              color: Colors.white, // Icon color is white
             ),
           ),
         ],
@@ -309,13 +324,13 @@ class _PromoScreenState extends State<PromoScreen> {
     );
   }
 
-  void _showPromoDetail(Map<String, dynamic> promo) {
+  void _showPromoDetail(BuildContext context, Map<String, dynamic> promo, bool isSmallScreen) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(isSmallScreen ? 16 : 24), // Responsive padding
         decoration: const BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.only(
@@ -330,7 +345,7 @@ class _PromoScreenState extends State<PromoScreen> {
             // Handle bar
             Center(
               child: Container(
-                width: 40,
+                width: isSmallScreen ? 30 : 40, // Responsive width
                 height: 4,
                 decoration: BoxDecoration(
                   color: Colors.grey[300],
@@ -338,39 +353,39 @@ class _PromoScreenState extends State<PromoScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 24),
-            
+            SizedBox(height: isSmallScreen ? 16 : 24), // Responsive spacing
+
             // Header
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: EdgeInsets.all(isSmallScreen ? 8 : 12), // Responsive padding
                   decoration: BoxDecoration(
                     gradient: LinearGradient(colors: promo['colors']),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(isSmallScreen ? 10 : 12), // Responsive border radius
                   ),
                   child: Icon(
                     promo['icon'],
                     color: Colors.white,
-                    size: 24,
+                    size: isSmallScreen ? 20 : 24, // Responsive icon size
                   ),
                 ),
-                const SizedBox(width: 16),
+                SizedBox(width: isSmallScreen ? 12 : 16), // Responsive spacing
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         promo['title'],
-                        style: const TextStyle(
-                          fontSize: 18,
+                        style: TextStyle(
+                          fontSize: isSmallScreen ? 16 : 18, // Responsive font size
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       Text(
                         'Berlaku hingga: ${promo['validUntil']}',
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: isSmallScreen ? 12 : 14, // Responsive font size
                           color: Colors.grey[600],
                         ),
                       ),
@@ -378,15 +393,15 @@ class _PromoScreenState extends State<PromoScreen> {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 10 : 12, vertical: isSmallScreen ? 5 : 6), // Responsive padding
                   decoration: BoxDecoration(
                     gradient: LinearGradient(colors: promo['colors']),
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(isSmallScreen ? 16 : 20), // Responsive border radius
                   ),
                   child: Text(
                     promo['discount'],
-                    style: const TextStyle(
-                      fontSize: 14,
+                    style: TextStyle(
+                      fontSize: isSmallScreen ? 12 : 14, // Responsive font size
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
@@ -394,33 +409,34 @@ class _PromoScreenState extends State<PromoScreen> {
                 ),
               ],
             ),
-            
-            const SizedBox(height: 24),
-            
+
+            SizedBox(height: isSmallScreen ? 16 : 24), // Responsive spacing
+
             // Description
             Text(
               'Detail Promo',
               style: TextStyle(
-                fontSize: 16,
+                fontSize: isSmallScreen ? 14 : 16, // Responsive font size
                 fontWeight: FontWeight.bold,
                 color: Colors.grey[800],
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: isSmallScreen ? 6 : 8), // Responsive spacing
             Text(
               promo['description'],
               style: TextStyle(
-                fontSize: 14,
+                fontSize: isSmallScreen ? 12 : 14, // Responsive font size
                 color: Colors.grey[600],
                 height: 1.5,
               ),
             ),
-            
-            const SizedBox(height: 24),
-            
+
+            SizedBox(height: isSmallScreen ? 16 : 24), // Responsive spacing
+
             // Action button
             SizedBox(
               width: double.infinity,
+              height: isSmallScreen ? 45 : 56, // Responsive button height
               child: ElevatedButton(
                 onPressed: () {
                   Navigator.pop(context);
@@ -439,23 +455,23 @@ class _PromoScreenState extends State<PromoScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: promo['colors'][0],
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  padding: EdgeInsets.symmetric(vertical: isSmallScreen ? 12 : 16), // Responsive padding
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(isSmallScreen ? 10 : 12), // Responsive border radius
                   ),
                   elevation: 0,
                 ),
-                child: const Text(
+                child: Text(
                   'Gunakan Promo',
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: isSmallScreen ? 15 : 16, // Responsive font size
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
             ),
-            
-            const SizedBox(height: 16),
+
+            SizedBox(height: isSmallScreen ? 8 : 16), // Responsive spacing
           ],
         ),
       ),
@@ -464,6 +480,9 @@ class _PromoScreenState extends State<PromoScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 600;
+
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -476,12 +495,12 @@ class _PromoScreenState extends State<PromoScreen> {
         ),
       ),
       child: ListView(
-        padding: const EdgeInsets.all(20.0),
+        padding: EdgeInsets.fromLTRB(isSmallScreen ? 16.0 : 20.0, isSmallScreen ? 16.0 : 20.0, isSmallScreen ? 16.0 : 20.0, isSmallScreen ? 70.0 : 80.0), // Responsive padding
         children: [
-          _buildPromoHeader(),
-          _buildActivePromoSection(),
-          _buildExpiredPromoSection(),
-          const SizedBox(height: 24),
+          _buildPromoHeader(isSmallScreen),
+          _buildActivePromoSection(isSmallScreen),
+          _buildExpiredPromoSection(isSmallScreen),
+          SizedBox(height: isSmallScreen ? 16 : 24), // Responsive spacing
         ],
       ),
     );
