@@ -6,6 +6,7 @@ import '../../../models/perhentian_krl_model.dart';
 import 'package:kaig/models/jadwal_krl_model.dart';
 import '../../../models/kursi_model.dart';
 import '../../../models/stasiun_model.dart';
+import '../../../models/user_model.dart'; // Import the UserModel
 
 class AdminFirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -254,5 +255,24 @@ class AdminFirestoreService {
         return indexTujuan != -1 && indexAsal < indexTujuan;
       }).toList();
     });
+  }
+
+  // --- User CRUD ---
+  CollectionReference<UserModel> get userCollection =>
+      _db.collection('users').withConverter<UserModel>(
+        fromFirestore: (snapshots, _) => UserModel.fromFirestore(snapshots),
+        toFirestore: (user, _) => user.toFirestore(),
+      );
+
+  Stream<List<UserModel>> getUserList() {
+    return userCollection.orderBy('email').snapshots().map((snapshot) => snapshot.docs.map((doc) => doc.data()).toList());
+  }
+
+  Future<void> updateUser(UserModel user) {
+    return userCollection.doc(user.id).update(user.toFirestore());
+  }
+
+  Future<void> deleteUser(String userId) {
+    return userCollection.doc(userId).delete();
   }
 }

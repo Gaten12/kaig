@@ -10,6 +10,7 @@ import 'list_stasiun_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import '../../../models/transaksi_model.dart';
+import 'list_user_screen.dart';
 
 // Color constants
 const Color charcoalGray = Color(0xFF374151);
@@ -105,6 +106,16 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
         );
       },
     },
+    {
+      "title": "Kelola User",
+      "icon": Icons.people_alt_outlined, // Or any other suitable icon
+      "onTap": (BuildContext context) {
+        Navigator.push(
+           context,
+           MaterialPageRoute(builder: (context) => const ListUserScreen()), // You would create this screen
+         );
+      },
+    }
   ];
 
   Stream<List<TransaksiModel>> _getMonthlySalesStream(int year, int month) {
