@@ -1,12 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import '../../../../models/JadwalModel.dart';
 import '../../../../models/KeretaModel.dart';
 import '../../../../models/gerbong_tipe_model.dart';
 import '../../../../models/jadwal_kelas_info_model.dart';
 import '../../../../widgets/pilih_kursi_layout_screen.dart';
 import '../../../admin/services/admin_firestore_service.dart';
-import 'DataPenumpangScreen.dart'; // Untuk mengambil data tipe gerbong
+import 'DataPenumpangScreen.dart';
 
+class GerbongRangkaianInfo {
+  final int nomorGerbong;
+  final GerbongTipeModel tipeGerbong;
+  final bool isSelectable;
+
+  GerbongRangkaianInfo({
+    required this.nomorGerbong,
+    required this.tipeGerbong,
+    required this.isSelectable,
+  });
+}
 
 class PilihGerbongScreen extends StatefulWidget {
   final JadwalModel jadwalDipesan;
@@ -29,38 +41,41 @@ class PilihGerbongScreen extends StatefulWidget {
 class _PilihGerbongScreenState extends State<PilihGerbongScreen> {
   final AdminFirestoreService _service = AdminFirestoreService();
   KeretaModel? _kereta;
-  List<GerbongTipeModel> _gerbongTersediaUntukKelasIni = [];
+  List<GerbongRangkaianInfo> _seluruhRangkaianInfo = [];
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _fetchKeretaDanGerbong();
+    _fetchKeretaDanRangkaianLengkap();
   }
 
-  Future<void> _fetchKeretaDanGerbong() async {
+  Future<void> _fetchKeretaDanRangkaianLengkap() async {
     try {
       final keretaSnapshot = await _service.keretaCollection.doc(widget.jadwalDipesan.idKereta).get();
       if (keretaSnapshot.exists) {
         _kereta = keretaSnapshot.data();
         if (_kereta != null) {
-          // Ambil semua tipe gerbong
           final semuaTipeGerbong = await _service.getGerbongTipeList().first;
-          // Filter gerbong yang sesuai dengan kelas yang dipilih customer
-          _gerbongTersediaUntukKelasIni = _kereta!.rangkaian
-              .map((rangkaianItem) {
+
+          List<GerbongRangkaianInfo> rangkaianLengkap = [];
+          for (var rangkaianItem in _kereta!.rangkaian) {
             try {
               final tipeGerbong = semuaTipeGerbong.firstWhere((g) => g.id == rangkaianItem.idTipeGerbong);
-              // Cocokkan kelas gerbong dengan kelas yang dipilih customer
-              if (tipeGerbong.kelas.name == widget.kelasDipilih.namaKelas.toLowerCase()) {
-                return MapEntry(rangkaianItem.nomorGerbong, tipeGerbong);
-              }
-              return null;
-            } catch(e) { return null; }
-          })
-              .whereType<MapEntry<int, GerbongTipeModel>>()
-              .map((entry) => entry.value) // Hanya ambil GerbongTipeModel
-              .toList();
+              final bool bisaDipilih = tipeGerbong.kelas.name.toLowerCase() == widget.kelasDipilih.namaKelas.toLowerCase();
+
+              rangkaianLengkap.add(
+                  GerbongRangkaianInfo(
+                    nomorGerbong: rangkaianItem.nomorGerbong,
+                    tipeGerbong: tipeGerbong,
+                    isSelectable: bisaDipilih,
+                  )
+              );
+            } catch (e) {
+              // Abaikan jika tipe gerbong tidak ditemukan
+            }
+          }
+          _seluruhRangkaianInfo = rangkaianLengkap;
         }
       }
     } catch (e) {
@@ -70,10 +85,8 @@ class _PilihGerbongScreenState extends State<PilihGerbongScreen> {
     }
   }
 
-  void _pilihGerbong(GerbongTipeModel gerbong) {
-    // TODO: Cari nomor gerbong dari _kereta.rangkaian
-    int nomorGerbong = _kereta?.rangkaian.firstWhere((r) => r.idTipeGerbong == gerbong.id).nomorGerbong ?? 0;
-    if (nomorGerbong == 0) return; // Error handling
+  void _pilihGerbong(GerbongRangkaianInfo gerbongInfo) {
+    if (!gerbongInfo.isSelectable) return;
 
     Navigator.push(context, MaterialPageRoute(
         builder: (context) => PilihKursiLayoutScreen(
@@ -81,114 +94,145 @@ class _PilihGerbongScreenState extends State<PilihGerbongScreen> {
           kelasInfo: widget.kelasDipilih,
           penumpangSaatIni: widget.penumpangSaatIni,
           kursiYangSudahDipilihGrup: widget.kursiYangSudahDipilihGrup,
-          gerbong: gerbong, // Kirim GerbongTipeModel
-          nomorGerbong: nomorGerbong, // Kirim nomor gerbong
+          gerbong: gerbongInfo.tipeGerbong,
+          nomorGerbong: gerbongInfo.nomorGerbong,
         )
     )).then((hasilPilihKursi) {
       if (hasilPilihKursi != null) {
-        // Kembalikan hasil ke layar sebelumnya
         Navigator.pop(context, hasilPilihKursi);
       }
     });
   }
 
-  // Helper method for responsive font sizes
-  double _responsiveFontSize(double screenWidth, double baseSize) {
-    if (screenWidth < 360) {
-      return baseSize * 0.8; // Smaller for very small phones
-    } else if (screenWidth < 600) {
-      return baseSize; // Base size for phones
-    } else if (screenWidth < 900) {
-      return baseSize * 1.1; // Slightly larger for tablets
-    } else {
-      return baseSize * 1.2; // Even larger for desktops
-    }
-  }
-
-  // Helper method for responsive icon sizes
-  double _responsiveIconSize(double screenWidth, double baseSize) {
-    if (screenWidth < 600) {
-      return baseSize;
-    } else if (screenWidth < 900) {
-      return baseSize * 1.1;
-    } else {
-      return baseSize * 1.2;
-    }
-  }
-
-  // Helper method for responsive horizontal padding
-  double _responsiveHorizontalPadding(double screenWidth) {
-    if (screenWidth > 1200) {
-      return (screenWidth - 1000) / 2; // Center content for very large screens
-    } else if (screenWidth > 600) {
-      return 24.0; // Medium padding for tablets
-    } else {
-      return 16.0; // Standard padding for phones
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFFC50000),
-        foregroundColor: Colors.white,
-        title: Text(
-          "Pilih Gerbong - ${widget.kelasDipilih.namaKelas}",
-          style: TextStyle(fontSize: _responsiveFontSize(screenWidth, 20)),
-        ),
+          backgroundColor: const Color(0xFFC50000),
+          foregroundColor: Colors.white,
+          title: Text("Pilih Gerbong - ${widget.kelasDipilih.namaKelas}")
       ),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator(strokeWidth: _responsiveIconSize(screenWidth, 3)))
-          : _gerbongTersediaUntukKelasIni.isEmpty
-          ? Center(
-        child: Padding(
-          padding: EdgeInsets.all(_responsiveHorizontalPadding(screenWidth)),
-          child: Text(
-            "Tidak ada gerbong tersedia untuk kelas ini.",
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: _responsiveFontSize(screenWidth, 16), color: Colors.grey),
+          ? const Center(child: CircularProgressIndicator())
+          : _seluruhRangkaianInfo.isEmpty
+          ? const Center(child: Text("Rangkaian kereta tidak tersedia."))
+          : _buildTrainLayout(),
+    );
+  }
+
+  Widget _buildTrainLayout() {
+    return Container(
+      alignment: Alignment.center,
+      padding: const EdgeInsets.symmetric(vertical: 24.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("Denah Rangkaian Kereta", style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 4),
+                Text("Geser untuk melihat semua gerbong. Pilih gerbong berwarna untuk menentukan kursi.", style: TextStyle(color: Colors.grey.shade600)),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
+              children: [
+                _buildLocomotiveWidget(),
+                ..._seluruhRangkaianInfo.map((info) => _buildCarriageWidget(info)).toList(),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLocomotiveWidget() {
+    return Row(
+      children: [
+        Container(
+          width: 120,
+          height: 80,
+          decoration: BoxDecoration(
+              color: Colors.grey.shade800,
+              borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(15),
+                  bottomLeft: Radius.circular(15),
+                  topRight: Radius.circular(5),
+                  bottomRight: Radius.circular(5)
+              ),
+              border: Border.all(color: Colors.black54, width: 2)
+          ),
+          child: const Center(child: Text("LOKO\nMOTIF", textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
+        ),
+        _buildCoupler(),
+      ],
+    );
+  }
+
+  Widget _buildCarriageWidget(GerbongRangkaianInfo info) {
+    final bool isSelectable = info.isSelectable;
+    final Color primaryColor = isSelectable ? const Color(0xFFC50000) : Colors.grey.shade500;
+    final Color secondaryColor = isSelectable ? Colors.red.shade100 : Colors.grey.shade300;
+
+    return Row(
+      children: [
+        GestureDetector(
+          onTap: () => _pilihGerbong(info),
+          child: Container(
+            width: 120,
+            height: 80,
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: secondaryColor,
+              border: Border.all(color: primaryColor, width: 2),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  "${info.tipeGerbong.kelas.name.toUpperCase()} ${info.nomorGerbong}",
+                  style: TextStyle(
+                      color: primaryColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  info.tipeGerbong.subTipe,
+                  style: TextStyle(
+                    color: primaryColor.withOpacity(0.8),
+                    fontSize: 10,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                )
+              ],
+            ),
           ),
         ),
-      )
-          : ListView.builder(
-        padding: EdgeInsets.all(_responsiveHorizontalPadding(screenWidth)),
-        itemCount: _gerbongTersediaUntukKelasIni.length,
-        itemBuilder: (context, index) {
-          final gerbong = _gerbongTersediaUntukKelasIni[index];
-          // Cari nomor gerbong ini di dalam rangkaian
-          int nomorGerbong = _kereta?.rangkaian.firstWhere((r) => r.idTipeGerbong == gerbong.id).nomorGerbong ?? 0;
+        _buildCoupler(),
+      ],
+    );
+  }
 
-          return Card(
-            margin: EdgeInsets.only(bottom: _responsiveFontSize(screenWidth, 12)),
-            elevation: _responsiveFontSize(screenWidth, 2),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(_responsiveFontSize(screenWidth, 12))),
-            child: ListTile(
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: _responsiveFontSize(screenWidth, 16),
-                vertical: _responsiveFontSize(screenWidth, 8),
-              ),
-              title: Text(
-                "${widget.kelasDipilih.namaKelas} ${nomorGerbong}",
-                style: TextStyle(
-                  fontSize: _responsiveFontSize(screenWidth, 18),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              subtitle: Text(
-                "${gerbong.subTipe}, Layout: ${gerbong.tipeLayout.deskripsi}",
-                style: TextStyle(
-                  fontSize: _responsiveFontSize(screenWidth, 14),
-                  color: Colors.grey[700],
-                ),
-              ),
-              trailing: Icon(Icons.arrow_forward_ios, size: _responsiveIconSize(screenWidth, 20)),
-              onTap: () => _pilihGerbong(gerbong),
-            ),
-          );
-        },
+  Widget _buildCoupler() {
+    // KODE YANG SUDAH DIPERBAIKI (TANPA MARGIN NEGATIF)
+    return Container(
+      width: 10,
+      height: 20,
+      decoration: BoxDecoration(
+        color: Colors.grey.shade600,
+        border: Border.all(color: Colors.black54),
       ),
     );
   }
