@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:kaig/screens/customer/utama/tiket/jadwal_krl_viewer_screen.dart';
 
 class BerandaContent extends StatelessWidget {
   final Function(int) onNavigateToTab;
@@ -353,9 +352,17 @@ class BerandaContent extends StatelessWidget {
                   isPrimary: false,
                   isSmallScreen: isSmallScreen, // Pass isSmallScreen
                   onTap: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const JadwalKrlViewerScreen())
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: const Text(
+                            'Fitur Commuter Line sedang dalam pengembangan'),
+                        backgroundColor: Colors.grey[700],
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        margin: const EdgeInsets.all(16),
+                      ),
                     );
                   },
                 ),
