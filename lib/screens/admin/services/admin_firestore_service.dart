@@ -257,6 +257,7 @@ class AdminFirestoreService {
     });
   }
 
+
   // --- User CRUD ---
   CollectionReference<UserModel> get userCollection =>
       _db.collection('users').withConverter<UserModel>(
@@ -267,11 +268,13 @@ class AdminFirestoreService {
   Stream<List<UserModel>> getUserList() {
     return userCollection.orderBy('email').snapshots().map((snapshot) => snapshot.docs.map((doc) => doc.data()).toList());
   }
+  Future<void> addUser(UserModel user) {
+    return userCollection.add(user);
+  }
 
   Future<void> updateUser(UserModel user) {
     return userCollection.doc(user.id).update(user.toFirestore());
   }
-
   Future<void> deleteUser(String userId) {
     return userCollection.doc(userId).delete();
   }
