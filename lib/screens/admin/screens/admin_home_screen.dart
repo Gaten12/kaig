@@ -55,6 +55,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     }
   }
 
+  // --- MODIFIKASI DIMULAI DI SINI ---
   final List<Map<String, dynamic>> menuItems = [
     {
       "title": "Kelola Stasiun",
@@ -108,15 +109,26 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     },
     {
       "title": "Kelola User",
-      "icon": Icons.people_alt_outlined, // Or any other suitable icon
+      "icon": Icons.people_alt_outlined,
       "onTap": (BuildContext context) {
-        Navigator.push(
-           context,
-           MaterialPageRoute(builder: (context) => const ListUserScreen()), // You would create this screen
-         );
+        // Awalnya: Navigasi ke ListUserScreen
+        // Navigator.push(
+        //    context,
+        //    MaterialPageRoute(builder: (context) => const ListUserScreen()),
+        //  );
+
+        // Diubah menjadi: Tampilkan notifikasi
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Fitur dinonaktifkan sementara karena kendala teknis.'),
+            backgroundColor: Colors.orange,
+            duration: Duration(seconds: 3),
+          ),
+        );
       },
     }
   ];
+  // --- MODIFIKASI SELESAI DI SINI ---
 
   Stream<List<TransaksiModel>> _getMonthlySalesStream(int year, int month) {
     final startOfMonth = DateTime(year, month, 1);
