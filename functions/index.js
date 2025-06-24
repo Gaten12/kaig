@@ -17,7 +17,7 @@ exports.chatWithGemini = onCall(async (request) => {
     }
     const vertexAI = new VertexAI({ project: process.env.GCLOUD_PROJECT, location: 'asia-southeast1' });
     const generativeModel = vertexAI.getGenerativeModel({
-        model: 'gemini-1.0-pro',
+        model: 'gemini-1.5-pro',
     });
     try {
         const resp = await generativeModel.generateContent(prompt);

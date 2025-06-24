@@ -41,48 +41,49 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyCC_kI4_TGXlM9uXh7tI95z9Vb1UULXWC0',
-    appId: '1:433719632695:web:b2914b211ef716b5a6b0b2',
-    messagingSenderId: '433719632695',
-    projectId: 'kaig-28620',
-    authDomain: 'kaig-28620.firebaseapp.com',
-    storageBucket: 'kaig-28620.firebasestorage.app',
-    measurementId: 'G-SF38YB9L2R',
+    apiKey: 'AIzaSyA2oCJkPBKDQkNk0m-Kz7ipZSHJHZZh-Ds',
+    appId: '1:448649256528:web:2ec75786d35fbb790f7b55',
+    messagingSenderId: '448649256528',
+    projectId: 'kaig-demo1',
+    authDomain: 'kaig-demo1.firebaseapp.com',
+    storageBucket: 'kaig-demo1.firebasestorage.app',
+    measurementId: 'G-K37KTBSHRY',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyBSSb3XFAVPEWhiPOk1XHAzK04M6lELt5A',
-    appId: '1:433719632695:android:20881b590c7e51b3a6b0b2',
-    messagingSenderId: '433719632695',
-    projectId: 'kaig-28620',
-    storageBucket: 'kaig-28620.firebasestorage.app',
+    apiKey: 'AIzaSyDNoF9ZNQMGLo8FeHf_UpnUGO3gxIE_l5g',
+    appId: '1:448649256528:android:8c60c04faee715ec0f7b55',
+    messagingSenderId: '448649256528',
+    projectId: 'kaig-demo1',
+    storageBucket: 'kaig-demo1.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyBouj2I4y4SzV9jdx8Tkhqmzj-3CqEgHok',
-    appId: '1:433719632695:ios:faa051d7527aa634a6b0b2',
-    messagingSenderId: '433719632695',
-    projectId: 'kaig-28620',
-    storageBucket: 'kaig-28620.firebasestorage.app',
-    iosBundleId: 'com.CPD.kaig.kaig',
+    apiKey: 'AIzaSyD3tklNoDG4w3jEqDFG4QK-C282SVQ8-Bw',
+    appId: '1:448649256528:ios:7d7a0382482c5e410f7b55',
+    messagingSenderId: '448649256528',
+    projectId: 'kaig-demo1',
+    storageBucket: 'kaig-demo1.firebasestorage.app',
+    iosBundleId: 'com.cpd.kaig.kaig',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyBouj2I4y4SzV9jdx8Tkhqmzj-3CqEgHok',
-    appId: '1:433719632695:ios:faa051d7527aa634a6b0b2',
-    messagingSenderId: '433719632695',
-    projectId: 'kaig-28620',
-    storageBucket: 'kaig-28620.firebasestorage.app',
+    apiKey: 'AIzaSyD3tklNoDG4w3jEqDFG4QK-C282SVQ8-Bw',
+    appId: '1:448649256528:ios:33f671e3e358cec60f7b55',
+    messagingSenderId: '448649256528',
+    projectId: 'kaig-demo1',
+    storageBucket: 'kaig-demo1.firebasestorage.app',
     iosBundleId: 'com.CPD.kaig.kaig',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyCC_kI4_TGXlM9uXh7tI95z9Vb1UULXWC0',
-    appId: '1:433719632695:web:a199de801c534b10a6b0b2',
-    messagingSenderId: '433719632695',
-    projectId: 'kaig-28620',
-    authDomain: 'kaig-28620.firebaseapp.com',
-    storageBucket: 'kaig-28620.firebasestorage.app',
-    measurementId: 'G-YV39B7CBJ3',
+    apiKey: 'AIzaSyA2oCJkPBKDQkNk0m-Kz7ipZSHJHZZh-Ds',
+    appId: '1:448649256528:web:b22a7ba3bf6512920f7b55',
+    messagingSenderId: '448649256528',
+    projectId: 'kaig-demo1',
+    authDomain: 'kaig-demo1.firebaseapp.com',
+    storageBucket: 'kaig-demo1.firebasestorage.app',
+    measurementId: 'G-2RNJ8KZSJB',
   );
+
 }
