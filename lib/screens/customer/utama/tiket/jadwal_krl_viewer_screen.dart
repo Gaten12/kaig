@@ -53,7 +53,11 @@ class _JadwalKrlViewerScreenState extends State<JadwalKrlViewerScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Jadwal KRL Commuter Line"),
+        backgroundColor: Color(0xFFC50000),
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text("Jadwal KRL Commuter Line",
+          style: TextStyle(color: Colors.white),
+        ),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
