@@ -85,6 +85,7 @@ class _FormKeretaScreenState extends State<FormKeretaScreen> {
     super.dispose();
   }
 
+  // ============== DIALOG UNTUK MEMILIH TIPE GERBONG ==============
   Future<void> _showPilihGerbongDialog() async {
     final GerbongTipeModel? gerbongTerpilih = await showDialog<GerbongTipeModel>(
         context: context,
@@ -114,6 +115,77 @@ class _FormKeretaScreenState extends State<FormKeretaScreen> {
       _updateNomorGerbong();
     }
   }
+
+  // ============== [BARU] DIALOG UNTUK MENCARI & MEMILIH STASIUN ==============
+  Future<StasiunModel?> _showPilihStasiunDialog() async {
+    String searchQuery = '';
+    List<StasiunModel> filteredStasiun = _semuaStasiun;
+
+    return showDialog<StasiunModel>(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Pilih Stasiun'),
+              content: SizedBox(
+                width: double.maxFinite,
+                height: MediaQuery.of(context).size.height * 0.6,
+                child: Column(
+                  children: [
+                    TextField(
+                      autofocus: true,
+                      decoration: InputDecoration(
+                        labelText: 'Cari Stasiun',
+                        hintText: 'Ketik nama atau kode stasiun...',
+                        prefixIcon: const Icon(Icons.search),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                      ),
+                      onChanged: (value) {
+                        setDialogState(() {
+                          searchQuery = value.toLowerCase();
+                          filteredStasiun = _semuaStasiun.where((stasiun) {
+                            final nameMatch = stasiun.nama.toLowerCase().contains(searchQuery);
+                            final codeMatch = stasiun.kode.toLowerCase().contains(searchQuery);
+                            final cityMatch = stasiun.kota.toLowerCase().contains(searchQuery);
+                            return nameMatch || codeMatch || cityMatch;
+                          }).toList();
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    Expanded(
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: filteredStasiun.length,
+                        itemBuilder: (context, index) {
+                          final stasiun = filteredStasiun[index];
+                          return ListTile(
+                            title: Text(stasiun.nama),
+                            subtitle: Text("${stasiun.kode} - ${stasiun.kota}"),
+                            onTap: () => Navigator.of(context).pop(stasiun),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Batal'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
 
   void _addRuteField() {
     setState(() {
@@ -207,7 +279,6 @@ class _FormKeretaScreenState extends State<FormKeretaScreen> {
     );
 
     return Scaffold(
-      // --- PERUBAHAN AppBar ---
       appBar: AppBar(
         toolbarHeight: 80,
         backgroundColor: Colors.blueGrey,
@@ -221,14 +292,12 @@ class _FormKeretaScreenState extends State<FormKeretaScreen> {
         ),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      // --- PERUBAHAN Body ---
       body: _isLoadingData
           ? const Center(child: CircularProgressIndicator())
           : Center(
         child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
-            // --- Bungkus dengan Card ---
             child: Card(
               elevation: 4.0,
               shape: RoundedRectangleBorder(
@@ -242,7 +311,6 @@ class _FormKeretaScreenState extends State<FormKeretaScreen> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      // --- PERUBAHAN TextFormField Style ---
                       TextFormField(
                         controller: _namaController,
                         decoration: InputDecoration(
@@ -257,7 +325,7 @@ class _FormKeretaScreenState extends State<FormKeretaScreen> {
 
                       _buildSectionHeader("Template Rute & Waktu"),
                       const SizedBox(height: 8.0),
-                      _buildRuteList(),
+                      _buildRuteList(), // Widget ini sudah dimodifikasi
                       Align(
                         alignment: Alignment.centerRight,
                         child: TextButton.icon(
@@ -282,7 +350,6 @@ class _FormKeretaScreenState extends State<FormKeretaScreen> {
                         ),
                       ),
                       const SizedBox(height: 32.0),
-                      // --- PERUBAHAN ElevatedButton Style ---
                       ElevatedButton(
                         onPressed: _submitForm,
                         style: ElevatedButton.styleFrom(
@@ -368,6 +435,7 @@ class _FormKeretaScreenState extends State<FormKeretaScreen> {
     );
   }
 
+  // ============== [MODIFIKASI] LIST RUTE DENGAN PEMILIHAN STASIUN VIA DIALOG ==============
   Widget _buildRuteList() {
     return Container(
       decoration: BoxDecoration(
@@ -407,13 +475,43 @@ class _FormKeretaScreenState extends State<FormKeretaScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   flex: 5,
-                  child: DropdownButtonFormField<StasiunModel>(
-                    value: ruteInput.selectedStasiun,
-                    isExpanded: true,
-                    items: _semuaStasiun.map((s) => DropdownMenuItem(value: s, child: Text(s.displayName, overflow: TextOverflow.ellipsis))).toList(),
-                    onChanged: (value) => setState(() => ruteInput.selectedStasiun = value),
-                    decoration: InputDecoration(hintText: "Stasiun ${index + 1}", border: InputBorder.none, isDense: true, contentPadding: EdgeInsets.zero),
-                    validator: (v) => v == null ? "Pilih" : null,
+                  child: FormField<StasiunModel>(
+                    validator: (v) => ruteInput.selectedStasiun == null ? "Pilih" : null,
+                    builder: (formFieldState) {
+                      return InkWell(
+                        onTap: () async {
+                          final StasiunModel? stasiunTerpilih = await _showPilihStasiunDialog();
+                          if (stasiunTerpilih != null) {
+                            // Cek apakah stasiun sudah ada di rute lain
+                            if (_templateRuteInput.where((r) => r.urutan != ruteInput.urutan).any((r) => r.selectedStasiun?.id == stasiunTerpilih.id)) {
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('${stasiunTerpilih.nama} sudah ada di dalam rute.', style: const TextStyle(color: Colors.white)), backgroundColor: Colors.orange,)
+                                );
+                              }
+                            } else {
+                              setState(() => ruteInput.selectedStasiun = stasiunTerpilih);
+                            }
+                          }
+                        },
+                        child: InputDecorator(
+                          decoration: InputDecoration(
+                            hintText: "Stasiun ${index + 1}",
+                            border: InputBorder.none,
+                            isDense: true,
+                            contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                            errorText: formFieldState.errorText,
+                          ),
+                          child: Text(
+                            ruteInput.selectedStasiun?.displayName ?? 'Ketuk untuk memilih',
+                            style: TextStyle(
+                                color: ruteInput.selectedStasiun != null ? Colors.black87 : Colors.grey.shade600,
+                                overflow: TextOverflow.ellipsis
+                            ),
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -442,7 +540,7 @@ class _FormKeretaScreenState extends State<FormKeretaScreen> {
         final TimeOfDay? pickedTime = await showTimePicker(
           context: context,
           initialTime: currentTime ?? TimeOfDay.now(),
-          builder: (context, child) { // Optional: Theming the picker
+          builder: (context, child) {
             return Theme(
               data: Theme.of(context).copyWith(
                 colorScheme: const ColorScheme.light(
