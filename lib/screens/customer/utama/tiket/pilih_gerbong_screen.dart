@@ -50,26 +50,36 @@ class _PilihGerbongScreenState extends State<PilihGerbongScreen> {
     _fetchKeretaDanRangkaianLengkap();
   }
 
-  // Fungsi ini tidak perlu diubah
+  // Fungsi ini tidak perlu diubah, logikanya sudah benar
   Future<void> _fetchKeretaDanRangkaianLengkap() async {
     try {
-      final keretaSnapshot = await _service.keretaCollection.doc(widget.jadwalDipesan.idKereta).get();
+      final keretaSnapshot = await _service.keretaCollection.doc(
+          widget.jadwalDipesan.idKereta).get();
       if (keretaSnapshot.exists) {
         _kereta = keretaSnapshot.data();
         if (_kereta != null) {
-          final semuaTipeGerbong = await _service.getGerbongTipeList().first;
+          final semuaTipeGerbong = await _service
+              .getGerbongTipeList()
+              .first;
+
           List<GerbongRangkaianInfo> rangkaianLengkap = [];
           for (var rangkaianItem in _kereta!.rangkaian) {
             try {
-              final tipeGerbong = semuaTipeGerbong.firstWhere((g) => g.id == rangkaianItem.idTipeGerbong);
-              final bool bisaDipilih = tipeGerbong.kelas.toLowerCase() == widget.kelasDipilih.namaKelas.toLowerCase();
-              rangkaianLengkap.add(GerbongRangkaianInfo(
-                nomorGerbong: rangkaianItem.nomorGerbong,
-                tipeGerbong: tipeGerbong,
-                isSelectable: bisaDipilih,
-              ));
+              final tipeGerbong = semuaTipeGerbong.firstWhere((g) =>
+              g.id == rangkaianItem.idTipeGerbong);
+              final bool bisaDipilih = tipeGerbong.kelas.toLowerCase() ==
+                  widget.kelasDipilih.namaKelas.toLowerCase();
+
+              rangkaianLengkap.add(
+                  GerbongRangkaianInfo(
+                    nomorGerbong: rangkaianItem.nomorGerbong,
+                    tipeGerbong: tipeGerbong,
+                    isSelectable: bisaDipilih,
+                  )
+              );
             } catch (e) {
-              print('Tipe gerbong untuk ${rangkaianItem.idTipeGerbong} tidak ditemukan. Dilewati.');
+              print('Tipe gerbong untuk ${rangkaianItem
+                  .idTipeGerbong} tidak ditemukan. Dilewati.');
             }
           }
           if (mounted) setState(() => _seluruhRangkaianInfo = rangkaianLengkap);
@@ -82,22 +92,21 @@ class _PilihGerbongScreenState extends State<PilihGerbongScreen> {
     }
   }
 
-  // Fungsi ini tidak perlu diubah
+  // Fungsi ini tidak perlu diubah, navigasi sudah benar
   void _pilihGerbong(GerbongRangkaianInfo gerbongInfo) {
     if (!gerbongInfo.isSelectable) return;
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => PilihKursiLayoutScreen(
-          jadwalId: widget.jadwalDipesan.id,
-          kelasInfo: widget.kelasDipilih,
-          penumpangSaatIni: widget.penumpangSaatIni,
-          kursiYangSudahDipilihGrup: widget.kursiYangSudahDipilihGrup,
-          gerbong: gerbongInfo.tipeGerbong,
-          nomorGerbong: gerbongInfo.nomorGerbong,
-        ),
-      ),
-    ).then((hasilPilihKursi) {
+
+    Navigator.push(context, MaterialPageRoute(
+        builder: (context) =>
+            PilihKursiLayoutScreen(
+              jadwalId: widget.jadwalDipesan.id,
+              kelasInfo: widget.kelasDipilih,
+              penumpangSaatIni: widget.penumpangSaatIni,
+              kursiYangSudahDipilihGrup: widget.kursiYangSudahDipilihGrup,
+              gerbong: gerbongInfo.tipeGerbong,
+              nomorGerbong: gerbongInfo.nomorGerbong,
+            )
+    )).then((hasilPilihKursi) {
       if (hasilPilihKursi != null) {
         Navigator.pop(context, hasilPilihKursi);
       }
@@ -108,9 +117,9 @@ class _PilihGerbongScreenState extends State<PilihGerbongScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFFC50000),
-        foregroundColor: Colors.white,
-        title: Text("Pilih Gerbong - ${widget.kelasDipilih.namaKelas}"),
+          backgroundColor: const Color(0xFFC50000),
+          foregroundColor: Colors.white,
+          title: Text("Pilih Gerbong - ${widget.kelasDipilih.namaKelas}")
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -120,7 +129,6 @@ class _PilihGerbongScreenState extends State<PilihGerbongScreen> {
     );
   }
 
-  // WIDGET UTAMA UNTUK LAYOUT
   Widget _buildTrainLayoutVisual() {
     return Container(
       alignment: Alignment.center,
@@ -134,9 +142,15 @@ class _PilihGerbongScreenState extends State<PilihGerbongScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("Denah Rangkaian Kereta", style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                Text("Denah Rangkaian Kereta", style: Theme
+                    .of(context)
+                    .textTheme
+                    .titleLarge
+                    ?.copyWith(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
-                Text("Geser untuk melihat semua gerbong. Pilih gerbong yang menyala untuk menentukan kursi.", style: TextStyle(color: Colors.grey.shade700)),
+                Text(
+                    "Geser untuk melihat semua gerbong. Pilih gerbong yang menyala untuk menentukan kursi.",
+                    style: TextStyle(color: Colors.grey.shade700)),
               ],
             ),
           ),
@@ -145,13 +159,12 @@ class _PilihGerbongScreenState extends State<PilihGerbongScreen> {
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Row(
-              // FIX 1: Gunakan CrossAxisAlignment.end agar semua item rata di bagian bawah.
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                // FIX 2: Bungkus lokomotif dengan struktur yang sama seperti gerbong agar tingginya konsisten.
-                _buildLocomotiveWidget(),
+                _buildLocomotiveWidget(), // Widget lokomotif yang baru
                 const SizedBox(width: 8),
-                ..._seluruhRangkaianInfo.map((info) => _buildCarriageImageWidget(info)).toList(),
+                ..._seluruhRangkaianInfo.map((info) =>
+                    _buildCarriageImageWidget(info)).toList(),
               ],
             ),
           ),
@@ -160,32 +173,30 @@ class _PilihGerbongScreenState extends State<PilihGerbongScreen> {
     );
   }
 
-  // WIDGET BARU UNTUK LOKOMOTIF
   Widget _buildLocomotiveWidget() {
-    return Container(
-      width: 150,
-      margin: const EdgeInsets.symmetric(horizontal: 4),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 0),
       child: Column(
         children: [
-          Container(
-            height: 80,
-            width: 150,
-            child: Image.asset(
-              'images/lokomotif.png',
-              fit: BoxFit.contain, // Agar gambar tidak penyok
-            ),
+          Image.asset(
+            'images/lokomotif.png',
+            height: 80, // Tinggi konsisten
+            fit: BoxFit.contain, // Agar tidak penyok
+            gaplessPlayback: true, // Mencegah gambar berkedip saat dimuat
           ),
           const SizedBox(height: 8),
-          // Sediakan ruang kosong yang sama tingginya dengan area label gerbong
+          // Label di bawahnya.
           const SizedBox(
-            height: 35,
-            child: Text(
-              "Lokomotif",
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
-                color: Colors.black54, // Warna sedikit redup
+            height: 35, // Tinggi area teks sama dengan gerbong
+            child: Center(
+              child: Text(
+                "Lokomotif",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black54,
+                ),
               ),
             ),
           ),
@@ -194,7 +205,6 @@ class _PilihGerbongScreenState extends State<PilihGerbongScreen> {
     );
   }
 
-  // WIDGET YANG DISEMPURNAKAN UNTUK GERBONG
   Widget _buildCarriageImageWidget(GerbongRangkaianInfo info) {
     final bool isSelectable = info.isSelectable;
 
@@ -202,40 +212,41 @@ class _PilihGerbongScreenState extends State<PilihGerbongScreen> {
       onTap: () => _pilihGerbong(info),
       child: Opacity(
         opacity: isSelectable ? 1.0 : 0.5,
-        child: Container(
-          width: 150, // Konsisten untuk setiap item
-          margin: const EdgeInsets.symmetric(horizontal: 4),
+        child: Padding(
+          // [MODIFIKASI] Hapus padding/margin horizontal.
+          padding: const EdgeInsets.symmetric(horizontal: 0),
           child: Column(
             children: [
-              // FIX 3: Gunakan Container dengan tinggi dan lebar tetap.
-              // Lalu gunakan BoxFit.contain agar gambar pas tanpa distorsi.
-              Container(
-                height: 80,
-                width: 150,
-                child: Image.asset(
-                  'images/${info.tipeGerbong.imageAssetPath}',
-                  fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Image.asset('images/gerbong_default.png', fit: BoxFit.contain);
-                  },
-                ),
+              Image.asset(
+                'images/${info.tipeGerbong.imageAssetPath}',
+                height: 80, // Paksa tinggi gambar agar konsisten
+                fit: BoxFit.contain, // Jaga rasio aspek (tidak penyok)
+                gaplessPlayback: true, // Mencegah gambar berkedip saat dimuat
+                errorBuilder: (context, error, stackTrace) {
+                  // Gambar pengganti jika ada error
+                  return Container(
+                    height: 80,
+                    width: 120, // Beri ukuran default untuk error
+                    color: Colors.grey[300],
+                    child: const Icon(Icons.broken_image),
+                  );
+                },
               ),
               const SizedBox(height: 8),
-
-              // FIX 4: Bungkus Text dengan SizedBox bertinggi tetap.
-              // Ini mencegah label yang panjang mendorong gambar ke atas.
               SizedBox(
-                height: 35,
+                height: 35, // Tinggi area label dikunci
                 child: Center(
                   child: Text(
-                    "${info.tipeGerbong.kelas.toUpperCase()} ${info.nomorGerbong}",
+                    "${info.tipeGerbong.kelas.toUpperCase()} ${info
+                        .nomorGerbong}",
                     textAlign: TextAlign.center,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
-                      color: isSelectable ? Colors.black87 : Colors.grey.shade800,
+                      color: isSelectable ? Colors.black87 : Colors.grey
+                          .shade800,
                     ),
                   ),
                 ),
