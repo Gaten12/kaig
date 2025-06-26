@@ -155,7 +155,7 @@ class _PilihGerbongScreenState extends State<PilihGerbongScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 // [BARU] Widget lokomotif menggunakan gambar
-                Image.asset('assets/images/lokomotif.png', height: 80, fit: BoxFit.contain),
+                Image.asset('images/lokomotif.png', height: 80, fit: BoxFit.contain),
                 const SizedBox(width: 8),
                 // [MODIFIKASI] Mapping ke widget visual yang baru
                 ..._seluruhRangkaianInfo.map((info) => _buildCarriageImageWidget(info)).toList(),
@@ -186,11 +186,11 @@ class _PilihGerbongScreenState extends State<PilihGerbongScreen> {
               // Gambar Gerbong
               Expanded(
                 child: Image.asset(
-                  'assets/images/${info.tipeGerbong.imageAssetPath}',
+                  'images/${info.tipeGerbong.imageAssetPath}',
                   fit: BoxFit.contain,
                   errorBuilder: (context, error, stackTrace) {
                     // Fallback jika gambar tidak ditemukan
-                    return Image.asset('assets/images/gerbong_default.png');
+                    return Image.asset('images/gerbong_default.png');
                   },
                 ),
               ),

@@ -66,10 +66,10 @@ class AdminFirestoreService {
       );
 
   Stream<List<GerbongTipeModel>> getGerbongTipeList() {
-    // Membutuhkan indeks komposit: kelas (Asc), subTipe (Asc)
+    // [PERBAIKAN] Mengubah 'subTipe' menjadi 'nama_tipe' karena field 'subTipe' sudah tidak ada.
     return gerbongTipeCollection
         .orderBy('kelas')
-        .orderBy('subTipe')
+        .orderBy('nama_tipe') // Mengurutkan berdasarkan nama_tipe
         .snapshots()
         .map((snapshot) => snapshot.docs.map((doc) => doc.data()).toList());
   }
