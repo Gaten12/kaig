@@ -12,17 +12,13 @@ class ListGerbongController extends GetxController {
   final _searchQuery = ''.obs;
   final _allGerbong = <GerbongTipeModel>[].obs;
   final _filteredGerbong = <GerbongTipeModel>[].obs;
-  final _isLoading = false.obs;
 
   String get searchQuery => _searchQuery.value;
-  List<GerbongTipeModel> get allGerbong => _allGerbong;
   List<GerbongTipeModel> get filteredGerbong => _filteredGerbong;
-  bool get isLoading => _isLoading.value;
 
   @override
   void onInit() {
     super.onInit();
-    // Listen to search text changes
     searchController.addListener(() {
       _searchQuery.value = searchController.text;
       _filterGerbong();
@@ -36,7 +32,7 @@ class ListGerbongController extends GetxController {
   }
 
   void updateGerbongList(List<GerbongTipeModel> gerbongList) {
-    if (_allGerbong != gerbongList) {
+    if (_allGerbong.value != gerbongList) {
       _allGerbong.value = gerbongList;
       _filterGerbong();
     }
@@ -60,8 +56,43 @@ class ListGerbongController extends GetxController {
     searchController.clear();
   }
 
-  Stream<List<GerbongTipeModel>> get gerbongTipeStream =>
-      _adminService.getGerbongTipeList();
+  // [BARU] Fungsi untuk menghapus tipe gerbong
+  Future<void> deleteGerbong(String id, String namaGerbong) async {
+    try {
+      // Menampilkan dialog konfirmasi
+      await Get.defaultDialog(
+        title: "Konfirmasi Hapus",
+        middleText: "Apakah Anda yakin ingin menghapus tipe gerbong '$namaGerbong'? Tindakan ini tidak dapat dibatalkan.",
+        textConfirm: "Hapus",
+        textCancel: "Batal",
+        confirmTextColor: Colors.white,
+        buttonColor: Colors.red,
+        onConfirm: () async {
+          Get.back(); // Tutup dialog
+          // Panggil service untuk menghapus dari Firestore
+          await _adminService.deleteGerbongTipe(id);
+          Get.snackbar(
+            "Berhasil",
+            "Tipe gerbong '$namaGerbong' telah dihapus.",
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.green,
+            colorText: Colors.white,
+          );
+        },
+        onCancel: () {}, // Tidak melakukan apa-apa saat batal
+      );
+    } catch (e) {
+      Get.snackbar(
+        "Gagal Menghapus",
+        "Error: $e",
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
+  }
+
+  Stream<List<GerbongTipeModel>> get gerbongTipeStream => _adminService.getGerbongTipeList();
 }
 
 class ListGerbongScreen extends StatelessWidget {
@@ -171,10 +202,10 @@ class ListGerbongScreen extends StatelessWidget {
                 ),
                 suffixIcon: Obx(() => controller.searchQuery.isNotEmpty
                     ? IconButton(
-                        icon: Icon(Icons.clear_rounded,
-                            color: Colors.grey.shade600),
-                        onPressed: controller.clearSearch,
-                      )
+                  icon: Icon(Icons.clear_rounded,
+                      color: Colors.grey.shade600),
+                  onPressed: controller.clearSearch,
+                )
                     : const SizedBox.shrink()),
               ),
             ),
@@ -202,12 +233,10 @@ class ListGerbongScreen extends StatelessWidget {
           return _buildEmptyState("Belum ada data tipe gerbong");
         }
 
-        // Update controller data
         controller.updateGerbongList(snapshot.data!);
 
         return Obx(() {
-          if (controller.filteredGerbong.isEmpty &&
-              controller.searchQuery.isNotEmpty) {
+          if (controller.filteredGerbong.isEmpty && controller.searchQuery.isNotEmpty) {
             return _buildEmptyState("Tipe gerbong tidak ditemukan");
           }
 
@@ -221,7 +250,151 @@ class ListGerbongScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildLoadingState() {
+  Widget _buildGerbongListView(ListGerbongController controller) {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: controller.filteredGerbong.length,
+      itemBuilder: (context, index) {
+        final gerbong = controller.filteredGerbong[index];
+        return _buildGerbongCard(context, gerbong, controller);
+      },
+    );
+  }
+
+  Widget _buildGerbongCard(BuildContext context, GerbongTipeModel gerbong, ListGerbongController controller) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: pureWhite,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha((255 * 0.05).round()),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => _navigateToForm(context, gerbong),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: electricBlue.withAlpha((255 * 0.1).round()),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(Icons.view_comfortable_outlined, color: electricBlue, size: 28),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(gerbong.namaTipeLengkap, style: const TextStyle(color: charcoalGray, fontSize: 18, fontWeight: FontWeight.w700)),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Icon(Icons.dashboard_outlined, color: Colors.grey.shade600, size: 16),
+                          const SizedBox(width: 6),
+                          Expanded(child: Text("Layout: ${gerbong.tipeLayout.deskripsi}", style: TextStyle(color: Colors.grey.shade700, fontSize: 14, fontWeight: FontWeight.w500))),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(Icons.event_seat_outlined, color: Colors.grey.shade600, size: 16),
+                          const SizedBox(width: 6),
+                          Text("Kapasitas: ${gerbong.jumlahKursi} kursi", style: TextStyle(color: Colors.grey.shade700, fontSize: 14, fontWeight: FontWeight.w500)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                // --- [MODIFIKASI] Tombol Edit dan Hapus ---
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Tombol Edit
+                    _buildActionButton(
+                      icon: Icons.edit_outlined,
+                      color: electricBlue,
+                      onPressed: () => _navigateToForm(context, gerbong),
+                    ),
+                    const SizedBox(height: 8),
+                    // Tombol Hapus
+                    _buildActionButton(
+                      icon: Icons.delete_outline_rounded,
+                      color: Colors.red.shade400,
+                      onPressed: () => controller.deleteGerbong(gerbong.id, gerbong.namaTipeLengkap),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // [BARU] Helper widget untuk membuat tombol aksi (Edit/Hapus)
+  Widget _buildActionButton({required IconData icon, required Color color, required VoidCallback onPressed}) {
+    return Container(
+      width: 44,
+      height: 44,
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: IconButton(
+        icon: Icon(icon, color: color, size: 22),
+        onPressed: onPressed,
+        tooltip: icon == Icons.edit_outlined ? 'Edit' : 'Hapus',
+      ),
+    );
+  }
+
+  // --- Widget lain yang tidak berubah ---
+  Widget _buildFloatingActionButton(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: electricBlue.withAlpha((255 * 0.3).round()),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: FloatingActionButton.extended(
+        onPressed: () => _navigateToForm(context, null),
+        backgroundColor: electricBlue,
+        elevation: 0,
+        icon: const Icon(Icons.add_rounded, color: pureWhite),
+        label: const Text("Tambah Gerbong", style: TextStyle(color: pureWhite, fontWeight: FontWeight.w600)),
+      ),
+    );
+  }
+
+  void _navigateToForm(BuildContext context, GerbongTipeModel? gerbong) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => FormTipeGerbongScreen(tipeToEdit: gerbong),
+      ),
+    );
+  }
+
+  Widget _buildLoadingState() { //... (kode tidak berubah)
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -243,7 +416,7 @@ class ListGerbongScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildErrorState(String error) {
+  Widget _buildErrorState(String error) { //... (kode tidak berubah)
     return Center(
       child: Container(
         margin: const EdgeInsets.all(20),
@@ -282,7 +455,7 @@ class ListGerbongScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyState(String message) {
+  Widget _buildEmptyState(String message) { //... (kode tidak berubah)
     return Center(
       child: Container(
         margin: const EdgeInsets.all(20),
@@ -318,167 +491,6 @@ class ListGerbongScreen extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildGerbongListView(ListGerbongController controller) {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: controller.filteredGerbong.length,
-      itemBuilder: (context, index) {
-        final gerbong = controller.filteredGerbong[index];
-        return _buildGerbongCard(context, gerbong, index);
-      },
-    );
-  }
-
-  Widget _buildGerbongCard(
-      BuildContext context, GerbongTipeModel gerbong, int index) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: pureWhite,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha((255 * 0.05).round()),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: () => _navigateToForm(context, gerbong),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                // Icon Container
-                Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    color: electricBlue.withAlpha((255 * 0.1).round()),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    Icons.view_comfortable_outlined,
-                    color: electricBlue,
-                    size: 28,
-                  ),
-                ),
-                const SizedBox(width: 16),
-
-                // Content
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        gerbong.namaTipeLengkap,
-                        style: const TextStyle(
-                          color: charcoalGray,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Icon(Icons.dashboard_outlined,
-                              color: Colors.grey.shade600, size: 16),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              "Layout: ${gerbong.tipeLayout.deskripsi}",
-                              style: TextStyle(
-                                color: Colors.grey.shade700,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Icon(Icons.event_seat_outlined,
-                              color: Colors.grey.shade600, size: 16),
-                          const SizedBox(width: 6),
-                          Text(
-                            "Kapasitas: ${gerbong.jumlahKursi} kursi",
-                            style: TextStyle(
-                              color: Colors.grey.shade700,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Edit Button
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: electricBlue.withAlpha((255 * 0.1).round()),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: IconButton(
-                    icon: Icon(Icons.edit_outlined,
-                        color: electricBlue, size: 20),
-                    onPressed: () => _navigateToForm(context, gerbong),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFloatingActionButton(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: electricBlue.withAlpha((255 * 0.3).round()),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: FloatingActionButton.extended(
-        onPressed: () => _navigateToForm(context, null),
-        backgroundColor: electricBlue,
-        elevation: 0,
-        icon: const Icon(Icons.add_rounded, color: pureWhite),
-        label: const Text(
-          "Tambah Gerbong",
-          style: TextStyle(
-            color: pureWhite,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _navigateToForm(BuildContext context, GerbongTipeModel? gerbong) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => FormGerbongScreen(gerbongToEdit: gerbong),
       ),
     );
   }
