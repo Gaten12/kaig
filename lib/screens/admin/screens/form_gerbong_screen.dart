@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import '../../../models/gerbong_tipe_model.dart';
 import '../services/admin_firestore_service.dart';
 
-
 class FormTipeGerbongScreen extends StatefulWidget {
   final GerbongTipeModel? tipeToEdit;
 
@@ -17,13 +16,12 @@ class _FormTipeGerbongScreenState extends State<FormTipeGerbongScreen> {
   final _formKey = GlobalKey<FormState>();
   final _adminService = AdminFirestoreService();
 
-  // Controllers untuk setiap field
+  // [DIHAPUS] Controller untuk subkelas tidak diperlukan lagi
   late final TextEditingController _namaController;
   late final TextEditingController _jumlahKursiController;
   late final TextEditingController _kelasController;
-  late final TextEditingController _subkelasController;
   late final TextEditingController _imageAssetController;
-  TipeLayoutGerbong _selectedLayout = TipeLayoutGerbong.layout_2_2; // Nilai default
+  TipeLayoutGerbong _selectedLayout = TipeLayoutGerbong.layout_2_2;
 
   bool get _isEditing => widget.tipeToEdit != null;
 
@@ -31,11 +29,9 @@ class _FormTipeGerbongScreenState extends State<FormTipeGerbongScreen> {
   void initState() {
     super.initState();
     final tipe = widget.tipeToEdit;
-    // Inisialisasi controller dengan data yang ada jika sedang mengedit
     _namaController = TextEditingController(text: tipe?.namaTipe ?? '');
     _jumlahKursiController = TextEditingController(text: tipe?.jumlahKursi.toString() ?? '');
     _kelasController = TextEditingController(text: tipe?.kelas ?? '');
-    _subkelasController = TextEditingController(text: tipe?.subkelas.toString() ?? '');
     _imageAssetController = TextEditingController(text: tipe?.imageAssetPath ?? '');
     if (tipe != null) {
       _selectedLayout = tipe.tipeLayout;
@@ -44,34 +40,29 @@ class _FormTipeGerbongScreenState extends State<FormTipeGerbongScreen> {
 
   @override
   void dispose() {
-    // Selalu dispose controller untuk menghindari memory leak
     _namaController.dispose();
     _jumlahKursiController.dispose();
     _kelasController.dispose();
-    _subkelasController.dispose();
     _imageAssetController.dispose();
+    // [DIHAPUS] _subkelasController.dispose();
     super.dispose();
   }
 
   Future<void> _submitForm() async {
-    // Validasi form sebelum submit
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
-    // Tampilkan loading indicator
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => const Center(child: CircularProgressIndicator()),
     );
 
+    // [MODIFIKASI] Membuat objek tanpa subkelas
     final gerbongTipe = GerbongTipeModel(
-      id: widget.tipeToEdit?.id ?? '', // Gunakan id lama jika edit, atau kosong jika baru
+      id: widget.tipeToEdit?.id ?? '',
       namaTipe: _namaController.text,
       jumlahKursi: int.parse(_jumlahKursiController.text),
       kelas: _kelasController.text,
-      subkelas: int.parse(_subkelasController.text),
       tipeLayout: _selectedLayout,
       imageAssetPath: _imageAssetController.text,
     );
@@ -83,28 +74,18 @@ class _FormTipeGerbongScreenState extends State<FormTipeGerbongScreen> {
         await _adminService.addGerbongTipe(gerbongTipe);
       }
 
-      // Tutup loading indicator
-      if (mounted) Navigator.of(context, rootNavigator: true).pop();
-      // Tampilkan notifikasi sukses
       if (mounted) {
+        Navigator.of(context, rootNavigator: true).pop(); // Close loading dialog
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Tipe gerbong berhasil ${_isEditing ? 'diperbarui' : 'ditambahkan'}'),
-            backgroundColor: Colors.green,
-          ),
+          SnackBar(content: Text('Tipe gerbong berhasil ${_isEditing ? 'diperbarui' : 'ditambahkan'}'), backgroundColor: Colors.green),
         );
-        Navigator.of(context).pop(true); // Kembali ke halaman sebelumnya dan kirim sinyal sukses
+        Navigator.of(context).pop(true);
       }
     } catch (e) {
-      // Tutup loading indicator
-      if (mounted) Navigator.of(context, rootNavigator: true).pop();
-      // Tampilkan notifikasi error
       if (mounted) {
+        Navigator.of(context, rootNavigator: true).pop(); // Close loading dialog
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gagal menyimpan: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('Gagal menyimpan: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -144,6 +125,14 @@ class _FormTipeGerbongScreenState extends State<FormTipeGerbongScreen> {
                       icon: Icons.image_outlined,
                     ),
                     const SizedBox(height: 16),
+                    // [MODIFIKASI] Field Kelas dan Jumlah Kursi dipisah agar lebih jelas
+                    _buildTextFormField(
+                      controller: _kelasController,
+                      label: 'Kelas',
+                      hint: 'e.g., Eksekutif, Bisnis, Ekonomi',
+                      icon: Icons.star_border_outlined,
+                    ),
+                    const SizedBox(height: 16),
                     _buildTextFormField(
                       controller: _jumlahKursiController,
                       label: 'Jumlah Kursi',
@@ -153,30 +142,7 @@ class _FormTipeGerbongScreenState extends State<FormTipeGerbongScreen> {
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     ),
                     const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildTextFormField(
-                            controller: _kelasController,
-                            label: 'Kelas',
-                            hint: 'e.g., Eksekutif',
-                            icon: Icons.star_border_outlined,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: _buildTextFormField(
-                            controller: _subkelasController,
-                            label: 'Subkelas',
-                            hint: 'e.g., 1',
-                            icon: Icons.looks_one_outlined,
-                            keyboardType: TextInputType.number,
-                            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
+                    // [DIHAPUS] Baris yang berisi TextFormField untuk Subkelas dihilangkan
                     _buildDropdownLayout(),
                     const SizedBox(height: 32),
                     ElevatedButton.icon(
@@ -214,9 +180,7 @@ class _FormTipeGerbongScreenState extends State<FormTipeGerbongScreen> {
         labelText: label,
         hintText: hint,
         prefixIcon: Icon(icon),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.0),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
       ),
       keyboardType: keyboardType,
       inputFormatters: inputFormatters,
@@ -235,14 +199,12 @@ class _FormTipeGerbongScreenState extends State<FormTipeGerbongScreen> {
       decoration: InputDecoration(
         labelText: 'Tipe Layout Kursi',
         prefixIcon: const Icon(Icons.grid_on_outlined),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.0),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
       ),
       items: TipeLayoutGerbong.values.map((TipeLayoutGerbong layout) {
         return DropdownMenuItem<TipeLayoutGerbong>(
           value: layout,
-          child: Text(layout.deskripsi), // Menggunakan getter 'deskripsi'
+          child: Text(layout.deskripsi),
         );
       }).toList(),
       onChanged: (TipeLayoutGerbong? newValue) {
