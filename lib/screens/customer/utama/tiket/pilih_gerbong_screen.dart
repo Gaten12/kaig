@@ -226,7 +226,6 @@ class _PilihGerbongScreenState extends State<PilihGerbongScreen> {
   }
 
   Widget _buildCoupler() {
-    // KODE YANG SUDAH DIPERBAIKI (TANPA MARGIN NEGATIF)
     return Container(
       width: 10,
       height: 20,
