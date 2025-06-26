@@ -1,9 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-// Enum untuk menstandarisasi kelas utama
-enum KelasUtama { eksekutif, ekonomi, bisnis, luxury, panoramic }
-
-// Enum untuk menstandarisasi tipe layout gerbong
 enum TipeLayoutGerbong {
   layout_2_2, // 2 kursi di kiri, 2 di kanan
   layout_3_2, // 3 di kiri, 2 di kanan
@@ -27,52 +23,55 @@ enum TipeLayoutGerbong {
   }
 }
 
+
 class GerbongTipeModel {
-  final String id; // ID Dokumen Firestore
-  final KelasUtama kelas;
-  final String subTipe; // Nama spesifik: "New Generation 2024", "Premium", "Subsidi"
-  final TipeLayoutGerbong tipeLayout;
+  final String id;
+  final String namaTipe;
   final int jumlahKursi;
+  final TipeLayoutGerbong tipeLayout;
+  final String kelas;
+  final int subkelas;
+  final String imageAssetPath;
+
+  String get namaTipeLengkap => '$namaTipe ($kelas - $subkelas)';
 
   GerbongTipeModel({
     required this.id,
-    required this.kelas,
-    required this.subTipe,
-    required this.tipeLayout,
+    required this.namaTipe,
     required this.jumlahKursi,
+    required this.tipeLayout,
+    required this.kelas,
+    required this.subkelas,
+    this.imageAssetPath = 'gerbong_default.png', // Fallback nama file gambar
   });
 
-  // Getter untuk menampilkan nama lengkap di UI
-  String get namaTipeLengkap {
-    String kelasStr = kelas.name[0].toUpperCase() + kelas.name.substring(1);
-    return "$kelasStr - $subTipe".trim();
-  }
-
-  factory GerbongTipeModel.fromFirestore(DocumentSnapshot<Map<String, dynamic>> snapshot) {
-    final data = snapshot.data();
-    if (data == null) throw Exception("Data Tipe Gerbong null untuk ID: ${snapshot.id}");
-
+  factory GerbongTipeModel.fromFirestore(DocumentSnapshot doc) {
+    Map data = doc.data() as Map<String, dynamic>;
     return GerbongTipeModel(
-      id: snapshot.id,
-      kelas: KelasUtama.values.firstWhere(
-            (e) => e.name == data['kelas'],
-        orElse: () => KelasUtama.ekonomi, // Fallback
-      ),
-      subTipe: data['subTipe'] ?? 'Tanpa Sub-tipe',
+      id: doc.id,
+      namaTipe: data['nama_tipe'] ?? '',
+      jumlahKursi: data['jumlah_kursi'] ?? 0,
+      // [FIXED] Logika parsing dari Firestore disesuaikan dengan enum Anda
       tipeLayout: TipeLayoutGerbong.values.firstWhere(
-            (e) => e.name == data['tipeLayout'],
-        orElse: () => TipeLayoutGerbong.lainnya, // Fallback
+            (e) => e.name == data['tipe_layout'],
+        // Fallback ke nilai pertama dari enum jika data tidak valid
+        orElse: () => TipeLayoutGerbong.values.first,
       ),
-      jumlahKursi: data['jumlahKursi'] as int? ?? 0,
+      kelas: data['kelas'] ?? '',
+      subkelas: data['subkelas'] ?? 0,
+      imageAssetPath: data['image_asset_path'] ?? 'gerbong_default.png',
     );
   }
 
   Map<String, dynamic> toFirestore() {
     return {
-      'kelas': kelas.name, // Simpan nama enum sebagai string
-      'subTipe': subTipe,
-      'tipeLayout': tipeLayout.name,
-      'jumlahKursi': jumlahKursi,
+      'nama_tipe': namaTipe,
+      'jumlah_kursi': jumlahKursi,
+      // Menyimpan nama enum sebagai String, e.g., 'layout_2_2'
+      'tipe_layout': tipeLayout.name,
+      'kelas': kelas,
+      'subkelas': subkelas,
+      'image_asset_path': imageAssetPath,
     };
   }
 }
