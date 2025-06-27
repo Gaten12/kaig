@@ -179,11 +179,26 @@ class ListGerbongScreen extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
           child: Row(
             children: [
+              // --- MODIFIKASI DIMULAI DI SINI ---
               Container(
-                width: 56, height: 56,
-                decoration: BoxDecoration(color: electricBlue.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
-                child: const Icon(Icons.view_comfortable_outlined, color: electricBlue, size: 28),
+                width: 64, // Beri lebar agar gambar tidak terlalu besar
+                height: 64, // Beri tinggi
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  image: DecorationImage(
+                    // Muat gambar dari assets
+                    image: AssetImage('images/${gerbong.imageAssetPath}'),
+                    fit: BoxFit.cover, // Sesuaikan gambar agar pas
+                    // Tambahkan fallback jika gambar tidak ditemukan
+                    onError: (exception, stackTrace) {
+                      // Ini akan menampilkan ikon jika gambar gagal dimuat
+                      // Anda bisa menggantinya dengan widget lain
+                      const Icon(Icons.broken_image, color: Colors.grey);
+                    },
+                  ),
+                ),
               ),
+              // --- MODIFIKASI SELESAI DI SINI ---
               const SizedBox(width: 16),
               Expanded(
                 child: Column(

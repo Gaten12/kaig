@@ -101,6 +101,17 @@ class _FormKeretaScreenState extends State<FormKeretaScreen> {
                 itemBuilder: (context, index) {
                   final gerbong = _semuaTipeGerbong[index];
                   return ListTile(
+                    // --- MODIFIKASI DIMULAI DI SINI ---
+                    leading: Image.asset(
+                      'images/${gerbong.imageAssetPath}',
+                      width: 50,
+                      height: 50,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Icon(Icons.image_not_supported, size: 50, color: Colors.grey);
+                      },
+                    ),
+                    // --- MODIFIKASI SELESAI DI SINI ---
                     title: Text(gerbong.namaTipeLengkap),
                     subtitle: Text("Layout: ${gerbong.tipeLayout.deskripsi}, Kursi: ${gerbong.jumlahKursi}"),
                     onTap: () => Navigator.of(context).pop(gerbong),
