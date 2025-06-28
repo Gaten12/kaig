@@ -162,7 +162,6 @@ class _PilihGerbongScreenState extends State<PilihGerbongScreen> {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 _buildLocomotiveWidget(), // Widget lokomotif yang baru
-                const SizedBox(width: 8),
                 ..._seluruhRangkaianInfo.map((info) =>
                     _buildCarriageImageWidget(info)).toList(),
               ],
