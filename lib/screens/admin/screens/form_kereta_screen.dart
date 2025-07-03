@@ -7,9 +7,14 @@ import '../../../models/kereta_rute_template_model.dart';
 import '../services/admin_firestore_service.dart';
 
 class FormKeretaScreen extends StatefulWidget {
-  final KeretaModel? keretaToEdit;
+  final KeretaModel? kereta;
+  final bool isDuplicating;
 
-  const FormKeretaScreen({super.key, this.keretaToEdit});
+  const FormKeretaScreen({
+    super.key,
+    this.kereta,
+    this.isDuplicating = false,
+  });
 
   @override
   State<FormKeretaScreen> createState() => _FormKeretaScreenState();
@@ -27,13 +32,14 @@ class _FormKeretaScreenState extends State<FormKeretaScreen> {
   List<GerbongTipeModel> _semuaTipeGerbong = [];
   List<StasiunModel> _semuaStasiun = [];
 
-  bool get _isEditing => widget.keretaToEdit != null;
+  // Logika _isEditing diubah untuk menangani kasus duplikasi
+  bool get _isEditing => widget.kereta != null && !widget.isDuplicating;
   bool _isLoadingData = true;
 
   @override
   void initState() {
     super.initState();
-    _namaController = TextEditingController(text: widget.keretaToEdit?.nama ?? '');
+    _namaController = TextEditingController(); // Inisialisasi kosong dulu
     _fetchInitialData();
   }
 
@@ -46,8 +52,15 @@ class _FormKeretaScreenState extends State<FormKeretaScreen> {
       _semuaTipeGerbong = results[0] as List<GerbongTipeModel>;
       _semuaStasiun = results[1] as List<StasiunModel>;
 
-      if (_isEditing && widget.keretaToEdit != null) {
-        final kereta = widget.keretaToEdit!;
+      if (widget.kereta != null) {
+        final kereta = widget.kereta!;
+
+        // Jika tidak sedang menyalin, isi nama kereta. Jika menyalin, biarkan kosong.
+        if (!widget.isDuplicating) {
+          _namaController.text = kereta.nama;
+        }
+
+        // Salin rangkaian gerbong dan rute untuk kedua kasus (edit dan salin)
         _rangkaianGerbongInput = kereta.rangkaian.map((rg) {
           try {
             return RangkaianGerbongInput(
@@ -101,7 +114,6 @@ class _FormKeretaScreenState extends State<FormKeretaScreen> {
                 itemBuilder: (context, index) {
                   final gerbong = _semuaTipeGerbong[index];
                   return ListTile(
-                    // --- MODIFIKASI DIMULAI DI SINI ---
                     leading: Image.asset(
                       'images/${gerbong.imageAssetPath}',
                       width: 50,
@@ -111,14 +123,13 @@ class _FormKeretaScreenState extends State<FormKeretaScreen> {
                         return const Icon(Icons.image_not_supported, size: 50, color: Colors.grey);
                       },
                     ),
-                    // --- MODIFIKASI SELESAI DI SINI ---
                     title: Text(gerbong.namaTipeLengkap),
                     subtitle: Text("Layout: ${gerbong.tipeLayout.deskripsi}, Kursi: ${gerbong.jumlahKursi}"),
                     onTap: () => Navigator.of(context).pop(gerbong),
                   );
                 },
               )),
-          actions: [ TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text("Batal")) ],
+          actions: [ TextButton(onPressed: () => Navigator.of(context)  .pop(), child: const Text("Batal")) ],
         )
     );
     if (gerbongTerpilih != null) {
@@ -127,7 +138,7 @@ class _FormKeretaScreenState extends State<FormKeretaScreen> {
     }
   }
 
-  // ============== [BARU] DIALOG UNTUK MENCARI & MEMILIH STASIUN ==============
+  // ============== DIALOG UNTUK MENCARI & MEMILIH STASIUN ==============
   Future<StasiunModel?> _showPilihStasiunDialog() async {
     String searchQuery = '';
     List<StasiunModel> filteredStasiun = _semuaStasiun;
@@ -244,7 +255,7 @@ class _FormKeretaScreenState extends State<FormKeretaScreen> {
     final totalKursi = _rangkaianGerbongInput.fold<int>(0, (sum, item) => sum + (item.selectedTipeGerbong?.jumlahKursi ?? 0));
 
     final kereta = KeretaModel(
-      id: _isEditing ? widget.keretaToEdit!.id : '',
+      id: _isEditing ? widget.kereta!.id : '', // Hanya gunakan ID jika sedang mengedit
       nama: _namaController.text,
       rangkaian: _rangkaianGerbongInput.map((input) => RangkaianGerbongModel(
         nomorGerbong: input.nomorGerbong,
@@ -264,10 +275,11 @@ class _FormKeretaScreenState extends State<FormKeretaScreen> {
       if (_isEditing) {
         await _adminService.updateKereta(kereta);
       } else {
+        // Kasus ini berlaku untuk menambah baru dan menyalin
         await _adminService.addKereta(kereta);
       }
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Kereta berhasil ${ _isEditing ? "diperbarui" : "ditambahkan"}!')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Kereta berhasil ${ _isEditing ? "diperbarui" : "disimpan"}!')));
         Navigator.pop(context);
       }
     } catch (e) {
@@ -289,12 +301,26 @@ class _FormKeretaScreenState extends State<FormKeretaScreen> {
       borderRadius: BorderRadius.circular(8.0),
     );
 
+    // --- MENENTUKAN JUDUL DAN TEKS TOMBOL SECARA DINAMIS ---
+    String appBarTitle;
+    String submitButtonText;
+    if (widget.isDuplicating) {
+      appBarTitle = "Salin Data Kereta";
+      submitButtonText = "Simpan Salinan";
+    } else if (_isEditing) {
+      appBarTitle = "Edit Kereta";
+      submitButtonText = "Simpan Perubahan";
+    } else {
+      appBarTitle = "Tambah Kereta Baru";
+      submitButtonText = "Tambah Kereta";
+    }
+
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 80,
         backgroundColor: Colors.blueGrey,
         title: Text(
-          _isEditing ? "Edit Kereta" : "Tambah Kereta Baru",
+          appBarTitle,
           style: const TextStyle(
             color: Colors.white,
             fontSize: 24,
@@ -326,6 +352,7 @@ class _FormKeretaScreenState extends State<FormKeretaScreen> {
                         controller: _namaController,
                         decoration: InputDecoration(
                           labelText: 'Nama Kereta (e.g., KA Taksaka)',
+                          hintText: widget.isDuplicating ? 'Wajib isi nama kereta baru' : 'Nama kereta',
                           enabledBorder: defaultOutlineInputBorder,
                           focusedBorder: focusedOutlineInputBorder,
                           prefixIcon: Icon(Icons.train_outlined, color: Colors.blueGrey.shade700),
@@ -336,7 +363,7 @@ class _FormKeretaScreenState extends State<FormKeretaScreen> {
 
                       _buildSectionHeader("Template Rute & Waktu"),
                       const SizedBox(height: 8.0),
-                      _buildRuteList(), // Widget ini sudah dimodifikasi
+                      _buildRuteList(),
                       Align(
                         alignment: Alignment.centerRight,
                         child: TextButton.icon(
@@ -373,7 +400,7 @@ class _FormKeretaScreenState extends State<FormKeretaScreen> {
                           ),
                         ),
                         child: Text(
-                          _isEditing ? 'Simpan Perubahan' : 'Tambah Kereta',
+                          submitButtonText,
                           style: const TextStyle(fontSize: 16),
                         ),
                       ),
@@ -446,7 +473,6 @@ class _FormKeretaScreenState extends State<FormKeretaScreen> {
     );
   }
 
-  // ============== [MODIFIKASI] LIST RUTE DENGAN PEMILIHAN STASIUN VIA DIALOG ==============
   Widget _buildRuteList() {
     return Container(
       decoration: BoxDecoration(
@@ -493,7 +519,6 @@ class _FormKeretaScreenState extends State<FormKeretaScreen> {
                         onTap: () async {
                           final StasiunModel? stasiunTerpilih = await _showPilihStasiunDialog();
                           if (stasiunTerpilih != null) {
-                            // Cek apakah stasiun sudah ada di rute lain
                             if (_templateRuteInput.where((r) => r.urutan != ruteInput.urutan).any((r) => r.selectedStasiun?.id == stasiunTerpilih.id)) {
                               if (mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(

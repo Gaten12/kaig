@@ -65,8 +65,8 @@ class ListKeretaController extends GetxController {
     searchQuery.value = "";
   }
 
-  void navigateToForm({KeretaModel? keretaToEdit}) {
-    Get.to(() => FormKeretaScreen(keretaToEdit: keretaToEdit));
+  void navigateToForm({KeretaModel? kereta, bool isDuplicating = false}) {
+    Get.to(() => FormKeretaScreen(kereta: kereta, isDuplicating: isDuplicating));
   }
 }
 
@@ -165,10 +165,10 @@ class ListKeretaScreen extends StatelessWidget {
                       ),
                       suffixIcon: controller.searchQuery.value.isNotEmpty
                           ? IconButton(
-                              icon: Icon(Icons.clear_rounded,
-                                  color: Colors.grey.shade600),
-                              onPressed: controller.clearSearch,
-                            )
+                        icon: Icon(Icons.clear_rounded,
+                            color: Colors.grey.shade600),
+                        onPressed: controller.clearSearch,
+                      )
                           : const SizedBox.shrink(),
                     ),
                   )),
@@ -201,7 +201,7 @@ class ListKeretaScreen extends StatelessWidget {
                   if (controller.searchQuery.value.isNotEmpty) {
                     filteredKereta = allKereta
                         .where((kereta) => kereta.nama.toLowerCase().contains(
-                            controller.searchQuery.value.toLowerCase()))
+                        controller.searchQuery.value.toLowerCase()))
                         .toList();
                   }
 
@@ -235,7 +235,7 @@ class ListKeretaScreen extends StatelessWidget {
           ],
         ),
         child: FloatingActionButton.extended(
-          onPressed: () => controller.navigateToForm(),
+          onPressed: () => controller.navigateToForm(), // Navigasi untuk menambah baru
           backgroundColor: const Color(0xFF3B82F6),
           foregroundColor: Colors.white,
           elevation: 0,
@@ -284,7 +284,7 @@ class ListKeretaScreen extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: () => controller.navigateToForm(keretaToEdit: kereta),
+          onTap: () => controller.navigateToForm(kereta: kereta), // Navigasi untuk mengedit
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
@@ -354,12 +354,30 @@ class ListKeretaScreen extends StatelessWidget {
                 ),
 
                 const SizedBox(height: 16),
-
                 // Action buttons
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    // Edit button
+                    // Tombol Salin
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.green.withAlpha((255 * 0.1).round()),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.copy_outlined,
+                          color: Colors.green,
+                          size: 20,
+                        ),
+                        onPressed: () => controller.navigateToForm(kereta: kereta, isDuplicating: true),
+                        tooltip: 'Salin Kereta',
+                      ),
+                    ),
+
+                    const SizedBox(width: 8),
+
+                    // Tombol Edit
                     Container(
                       decoration: BoxDecoration(
                         color: const Color(0xFF3B82F6).withAlpha((255 * 0.1).round()),
@@ -372,14 +390,14 @@ class ListKeretaScreen extends StatelessWidget {
                           size: 20,
                         ),
                         onPressed: () =>
-                            controller.navigateToForm(keretaToEdit: kereta),
+                            controller.navigateToForm(kereta: kereta),
                         tooltip: 'Edit Kereta',
                       ),
                     ),
 
                     const SizedBox(width: 8),
 
-                    // Delete button
+                    // Tombol Hapus
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.red.withAlpha((255 * 0.1).round()),
