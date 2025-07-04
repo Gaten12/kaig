@@ -2,11 +2,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../models/JadwalModel.dart';
 import '../../../models/KeretaModel.dart';
 import '../../../models/gerbong_tipe_model.dart';
-import '../../../models/perhentian_krl_model.dart';
 import 'package:kaig/models/jadwal_krl_model.dart';
 import '../../../models/kursi_model.dart';
 import '../../../models/stasiun_model.dart';
-import '../../../models/user_model.dart'; // Import the UserModel
+import '../../../models/user_model.dart';
 
 class AdminFirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -98,43 +97,52 @@ class AdminFirestoreService {
     Query<JadwalModel> query = jadwalCollection;
 
     if (tanggal != null && kodeAsal != null && kodeTujuan != null) {
-      // Query untuk customer
-      DateTime startOfDayDate = DateTime(tanggal.year, tanggal.month, tanggal.day, 0, 0, 0);
-      DateTime endOfDayDate = DateTime(tanggal.year, tanggal.month, tanggal.day, 23, 59, 59, 999);
-      Timestamp startOfDayTimestamp = Timestamp.fromDate(startOfDayDate);
-      Timestamp endOfDayTimestamp = Timestamp.fromDate(endOfDayDate);
+      // Query untuk pelanggan (Customer)
+      final now = DateTime.now();
+      final isToday = tanggal.year == now.year && tanggal.month == now.month && tanggal.day == now.day;
+      final startOfDay = DateTime(tanggal.year, tanggal.month, tanggal.day);
+      final waktuMulaiQuery = isToday ? now : startOfDay;
+      final startTimestamp = Timestamp.fromDate(waktuMulaiQuery);
+      final endOfDay = DateTime(tanggal.year, tanggal.month, tanggal.day, 23, 59, 59);
+      final endTimestamp = Timestamp.fromDate(endOfDay);
 
       query = query
-          .where('queryWaktuBerangkatUtama', isGreaterThanOrEqualTo: startOfDayTimestamp)
-          .where('queryWaktuBerangkatUtama', isLessThanOrEqualTo: endOfDayTimestamp)
+          .where('queryWaktuBerangkatUtama', isGreaterThanOrEqualTo: startTimestamp)
+          .where('queryWaktuBerangkatUtama', isLessThanOrEqualTo: endTimestamp)
           .where('ruteLengkapKodeStasiun', arrayContains: kodeAsal.toUpperCase());
     } else {
       // Query default untuk admin
       query = query.orderBy('queryWaktuBerangkatUtama', descending: true);
     }
 
-    return query
-        .snapshots()
-        .map((snapshot) {
+    return query.snapshots().map((snapshot) {
+      // 1. Ambil semua data dulu
       List<JadwalModel> jadwalList = snapshot.docs.map((doc) {
-        try { return doc.data(); }
-        catch (e) { print("Error parsing dokumen jadwal ID: ${doc.id}. Error: $e"); return null; }
+        try {
+          return doc.data();
+        } catch (e) {
+          print("Error parsing dokumen jadwal ID: ${doc.id}. Error: $e");
+          return null;
+        }
       }).whereType<JadwalModel>().toList();
 
+      // 2. JIKA ini adalah query untuk pelanggan, LAKUKAN FILTER TAMBAHAN
       if (tanggal != null && kodeAsal != null && kodeTujuan != null) {
-        // Filter tambahan di client
         jadwalList = jadwalList.where((jadwal) {
           final rute = jadwal.ruteLengkapKodeStasiun.map((k) => k.toUpperCase()).toList();
+          // Pastikan stasiun tujuan ada di dalam rute
           if (!rute.contains(kodeTujuan.toUpperCase())) return false;
+
           int indexAsal = rute.indexOf(kodeAsal.toUpperCase());
           int indexTujuan = rute.indexOf(kodeTujuan.toUpperCase());
-          return indexAsal < indexTujuan;
+
+          return indexAsal != -1 && indexTujuan != -1 && indexAsal < indexTujuan;
         }).toList();
       }
+
       return jadwalList;
     });
   }
-
   Future<DocumentReference<JadwalModel>> addJadwal(JadwalModel jadwal) {
     return jadwalCollection.add(jadwal);
   }
