@@ -84,6 +84,16 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
     }
   }
 
+  // --- ✨ FUNGSI BARU UNTUK MENDAPATKAN KODE STASIUN ---
+  /// Helper untuk mengekstrak kode stasiun dari display name, contoh: "GAMBIR (GMR)" -> "GMR"
+  String _getKodeFromDisplayName(String displayName) {
+    if (displayName.contains("(") && displayName.contains(")")) {
+      return displayName.substring(displayName.indexOf("(") + 1, displayName.indexOf(")"));
+    }
+    // Jika format tidak sesuai, kembalikan string asli sebagai fallback
+    return displayName;
+  }
+
   void _onDateTabSelected(DateTime selectedDate) {
     if (!mounted) return;
     setState(() {
@@ -93,17 +103,9 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
   }
 
   void _updateJadwalStream() {
-    String kodeAsal =
-    widget.stasiunAsal.contains("(") && widget.stasiunAsal.contains(")")
-        ? widget.stasiunAsal.substring(widget.stasiunAsal.indexOf("(") + 1,
-        widget.stasiunAsal.indexOf(")"))
-        : widget.stasiunAsal;
-    String kodeTujuan =
-    widget.stasiunTujuan.contains("(") && widget.stasiunTujuan.contains(")")
-        ? widget.stasiunTujuan.substring(
-        widget.stasiunTujuan.indexOf("(") + 1,
-        widget.stasiunTujuan.indexOf(")"))
-        : widget.stasiunTujuan;
+    // Gunakan helper yang sudah dibuat
+    String kodeAsal = _getKodeFromDisplayName(widget.stasiunAsal);
+    String kodeTujuan = _getKodeFromDisplayName(widget.stasiunTujuan);
 
     print(
         "[PilihJadwalScreen] Memperbarui stream untuk tanggal: ${DateFormat('yyyy-MM-dd').format(_currentSelectedDate)}");
@@ -130,13 +132,13 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
   // Helper method for responsive font sizes
   double _responsiveFontSize(double screenWidth, double baseSize) {
     if (screenWidth < 360) {
-      return baseSize * 0.8; // Smaller for very small phones
+      return baseSize * 0.8;
     } else if (screenWidth < 600) {
-      return baseSize; // Base size for phones
+      return baseSize;
     } else if (screenWidth < 900) {
-      return baseSize * 1.1; // Slightly larger for tablets
+      return baseSize * 1.1;
     } else {
-      return baseSize * 1.2; // Even larger for desktops
+      return baseSize * 1.2;
     }
   }
 
@@ -154,11 +156,11 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
   // Helper method for responsive horizontal padding
   double _responsiveHorizontalPadding(double screenWidth) {
     if (screenWidth > 1200) {
-      return (screenWidth - 1000) / 2; // Center content for very large screens
+      return (screenWidth - 1000) / 2;
     } else if (screenWidth > 600) {
-      return 24.0; // Medium padding for tablets
+      return 24.0;
     } else {
-      return 16.0; // Standard padding for phones
+      return 16.0;
     }
   }
 
@@ -166,19 +168,19 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
   Widget build(BuildContext context) {
     print("[PilihJadwalScreen] Build method dipanggil.");
     final screenWidth = MediaQuery.of(context).size.width;
-    final isSmallScreen = screenWidth < 600; // Contoh breakpoint untuk layar kecil
+    final isSmallScreen = screenWidth < 600;
 
     return Scaffold(
       backgroundColor: lightGray,
       appBar: _buildAppBar(screenWidth),
       body: FadeTransition(
         opacity: _fadeAnimation,
-        child: SingleChildScrollView( // Made the entire body scrollable
+        child: SingleChildScrollView(
           child: Column(
             children: [
               _buildDateTabsWidget(isSmallScreen, screenWidth),
               _buildHeaderSection(isSmallScreen, screenWidth),
-              _buildJadwalList(isSmallScreen, screenWidth), // Pass screenWidth
+              _buildJadwalList(isSmallScreen, screenWidth),
             ],
           ),
         ),
@@ -432,14 +434,14 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
         }
 
         return ListView.builder(
-          shrinkWrap: true, // Important for ListView inside SingleChildScrollView
-          physics: const NeverScrollableScrollPhysics(), // To prevent nested scrolling
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
           padding: EdgeInsets.fromLTRB(_responsiveHorizontalPadding(screenWidth), 0, _responsiveHorizontalPadding(screenWidth), _responsiveFontSize(screenWidth, 20)),
           itemCount: jadwalList.length,
           itemBuilder: (context, index) {
             return AnimatedContainer(
               duration: Duration(milliseconds: 300 + (index * 100)),
-              child: _buildJadwalCard(jadwalList[index], index, screenWidth), // Pass screenWidth
+              child: _buildJadwalCard(jadwalList[index], index, screenWidth),
             );
           },
         );
@@ -589,7 +591,12 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
     );
   }
 
+  // --- ✨ PERUBAHAN UTAMA ADA DI SINI ✨ ---
   Widget _buildJadwalCard(JadwalModel jadwal, int index, double screenWidth) {
+    // Ambil kode stasiun dari widget untuk digunakan di dalam card
+    final String kodeAsal = _getKodeFromDisplayName(widget.stasiunAsal);
+    final String kodeTujuan = _getKodeFromDisplayName(widget.stasiunTujuan);
+
     return Container(
       margin: EdgeInsets.only(bottom: _responsiveFontSize(screenWidth, 16.0)),
       child: Material(
@@ -621,7 +628,8 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
               children: [
                 _buildTrainHeader(jadwal, screenWidth),
                 SizedBox(height: _responsiveFontSize(screenWidth, 20.0)),
-                _buildJourneyInfo(jadwal, screenWidth),
+                // Kirim kode asal dan tujuan ke _buildJourneyInfo
+                _buildJourneyInfo(jadwal, screenWidth, kodeAsal, kodeTujuan),
                 SizedBox(height: _responsiveFontSize(screenWidth, 16.0)),
                 _buildPriceInfo(jadwal, screenWidth),
               ],
@@ -684,7 +692,8 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
     );
   }
 
-  Widget _buildJourneyInfo(JadwalModel jadwal, double screenWidth) {
+  // --- ✨ PERUBAHAN UTAMA ADA DI SINI ✨ ---
+  Widget _buildJourneyInfo(JadwalModel jadwal, double screenWidth, String kodeAsal, String kodeTujuan) {
     return Container(
       padding: EdgeInsets.all(_responsiveFontSize(screenWidth, 16)),
       decoration: BoxDecoration(
@@ -698,7 +707,8 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  jadwal.jamBerangkatFormatted,
+                  // Gunakan method baru untuk mendapatkan jam berangkat dari stasiun yang dicari
+                  jadwal.getJamBerangkatUntukSegmen(kodeAsal),
                   style: TextStyle(
                     fontSize: _responsiveFontSize(screenWidth, 20),
                     fontWeight: FontWeight.bold,
@@ -707,7 +717,8 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
                 ),
                 SizedBox(height: _responsiveFontSize(screenWidth, 4)),
                 Text(
-                  jadwal.idStasiunAsal,
+                  // Tampilkan kode stasiun yang dicari
+                  kodeAsal,
                   style: TextStyle(
                     fontSize: _responsiveFontSize(screenWidth, 13),
                     color: neutralGray,
@@ -743,7 +754,8 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
                     border: Border.all(color: primaryRed.withOpacity(0.2)),
                   ),
                   child: Text(
-                    jadwal.durasiPerjalananTotal,
+                    // Gunakan method baru untuk mendapatkan durasi sesuai rute yang dicari
+                    jadwal.getDurasiUntukSegmen(kodeAsal, kodeTujuan),
                     style: TextStyle(
                       fontSize: _responsiveFontSize(screenWidth, 11),
                       fontWeight: FontWeight.w600,
@@ -759,7 +771,8 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  jadwal.jamTibaFormatted,
+                  // Gunakan method baru untuk mendapatkan jam tiba di stasiun yang dicari
+                  jadwal.getJamTibaUntukSegmen(kodeTujuan),
                   style: TextStyle(
                     fontSize: _responsiveFontSize(screenWidth, 20),
                     fontWeight: FontWeight.bold,
@@ -768,7 +781,8 @@ class _PilihJadwalScreenState extends State<PilihJadwalScreen>
                 ),
                 SizedBox(height: _responsiveFontSize(screenWidth, 4)),
                 Text(
-                  jadwal.idStasiunTujuan,
+                  // Tampilkan kode stasiun yang dicari
+                  kodeTujuan,
                   style: TextStyle(
                     fontSize: _responsiveFontSize(screenWidth, 13),
                     color: neutralGray,

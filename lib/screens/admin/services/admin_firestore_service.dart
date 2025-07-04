@@ -97,18 +97,17 @@ class AdminFirestoreService {
     Query<JadwalModel> query = jadwalCollection;
 
     if (tanggal != null && kodeAsal != null && kodeTujuan != null) {
-      // Query untuk pelanggan (Customer)
-      final now = DateTime.now();
-      final isToday = tanggal.year == now.year && tanggal.month == now.month && tanggal.day == now.day;
       final startOfDay = DateTime(tanggal.year, tanggal.month, tanggal.day);
-      final waktuMulaiQuery = isToday ? now : startOfDay;
-      final startTimestamp = Timestamp.fromDate(waktuMulaiQuery);
+      final startTimestamp = Timestamp.fromDate(startOfDay);
+
       final endOfDay = DateTime(tanggal.year, tanggal.month, tanggal.day, 23, 59, 59);
       final endTimestamp = Timestamp.fromDate(endOfDay);
 
       query = query
+      // Hanya filter berdasarkan rentang TANGGAL, bukan lagi jam.
           .where('queryWaktuBerangkatUtama', isGreaterThanOrEqualTo: startTimestamp)
           .where('queryWaktuBerangkatUtama', isLessThanOrEqualTo: endTimestamp)
+      // Tetap filter berdasarkan stasiun yang ada di rute.
           .where('ruteLengkapKodeStasiun', arrayContains: kodeAsal.toUpperCase());
     } else {
       // Query default untuk admin
@@ -116,7 +115,6 @@ class AdminFirestoreService {
     }
 
     return query.snapshots().map((snapshot) {
-      // 1. Ambil semua data dulu
       List<JadwalModel> jadwalList = snapshot.docs.map((doc) {
         try {
           return doc.data();
@@ -126,20 +124,47 @@ class AdminFirestoreService {
         }
       }).whereType<JadwalModel>().toList();
 
-      // 2. JIKA ini adalah query untuk pelanggan, LAKUKAN FILTER TAMBAHAN
+      // Jika ini adalah query untuk pelanggan, lakukan filter lanjutan di sini.
       if (tanggal != null && kodeAsal != null && kodeTujuan != null) {
+        final now = DateTime.now();
+        // Cek apakah tanggal yang dipilih adalah hari ini.
+        final isToday = tanggal.year == now.year && tanggal.month == now.month && tanggal.day == now.day;
+
         jadwalList = jadwalList.where((jadwal) {
           final rute = jadwal.ruteLengkapKodeStasiun.map((k) => k.toUpperCase()).toList();
-          // Pastikan stasiun tujuan ada di dalam rute
-          if (!rute.contains(kodeTujuan.toUpperCase())) return false;
+          final indexAsal = rute.indexOf(kodeAsal.toUpperCase());
+          final indexTujuan = rute.indexOf(kodeTujuan.toUpperCase());
 
-          int indexAsal = rute.indexOf(kodeAsal.toUpperCase());
-          int indexTujuan = rute.indexOf(kodeTujuan.toUpperCase());
+          // Filter 1: Pastikan rute valid (tujuan setelah asal).
+          final ruteValid = indexAsal != -1 && indexTujuan != -1 && indexAsal < indexTujuan;
+          if (!ruteValid) return false;
 
-          return indexAsal != -1 && indexTujuan != -1 && indexAsal < indexTujuan;
+          // Filter 2: Jika pencarian untuk hari ini, terapkan aturan 2 jam.
+          if (isToday) {
+            // Dapatkan detail perhentian di stasiun asal yang dipilih pengguna.
+            final perhentianAsal = jadwal.getPerhentianByKode(kodeAsal);
+
+            // Pastikan data perhentian ditemukan dan memiliki waktu berangkat.
+            if (perhentianAsal?.waktuBerangkat != null) {
+              final waktuBerangkatDariStasiunPilihan = perhentianAsal!.waktuBerangkat!.toDate();
+
+              // Hitung batas akhir pemesanan (2 jam sebelum berangkat dari stasiun itu).
+              final batasPemesanan = waktuBerangkatDariStasiunPilihan.subtract(const Duration(hours: 2));
+
+              // Jika waktu sekarang sudah melewati batas pemesanan, jangan tampilkan jadwal ini.
+              if (now.isAfter(batasPemesanan)) {
+                return false;
+              }
+            } else {
+              // Jika data waktu berangkat di stasiun pilihan tidak ada, jangan tampilkan.
+              return false;
+            }
+          }
+
+          // Jika semua filter lolos, tampilkan jadwal.
+          return true;
         }).toList();
       }
-
       return jadwalList;
     });
   }
