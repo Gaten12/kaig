@@ -23,16 +23,22 @@ class PenumpangInputData {
 }
 
 class DataPenumpangScreen extends StatefulWidget {
-  final JadwalModel jadwalDipesan;
-  final JadwalKelasInfoModel kelasDipilih;
+  // --- ✨ PARAMETER DIPERBARUI UNTUK MENDUKUNG PP DENGAN KELAS BERBEDA ✨ ---
+  final JadwalModel jadwalPergi;
+  final JadwalModel? jadwalPulang;
+  final JadwalKelasInfoModel kelasDipilihPergi;
+  final JadwalKelasInfoModel? kelasDipilihPulang;
+
   final DateTime tanggalBerangkat;
   final int jumlahDewasa;
   final int jumlahBayi;
 
   const DataPenumpangScreen({
     super.key,
-    required this.jadwalDipesan,
-    required this.kelasDipilih,
+    required this.jadwalPergi,
+    this.jadwalPulang,
+    required this.kelasDipilihPergi,
+    this.kelasDipilihPulang,
     required this.tanggalBerangkat,
     required this.jumlahDewasa,
     required this.jumlahBayi,
@@ -79,14 +85,16 @@ class _DataPenumpangScreenState extends State<DataPenumpangScreen> {
 
       _emailPemesanController.text = firebaseUser.email ?? '';
       _teleponPemesanController.text = userModel?.noTelepon ?? '';
-      _namaPemesanController.text = primaryPassenger?.namaLengkap ?? firebaseUser.displayName ?? (firebaseUser.email?.split('@')[0] ?? '');
+      _namaPemesanController.text = primaryPassenger?.namaLengkap ??
+          firebaseUser.displayName ??
+          (firebaseUser.email?.split('@')[0] ?? '');
       _primaryPassenger = primaryPassenger;
 
       if (_pemesanSebagaiPenumpang) {
         _updatePenumpangPertamaDenganDataPrimaryPassenger();
       }
     } catch (e) {
-      if(mounted) {
+      if (mounted) {
         _emailPemesanController.text = firebaseUser.email ?? '';
         _namaPemesanController.text = firebaseUser.displayName ?? '';
       }
@@ -105,9 +113,12 @@ class _DataPenumpangScreenState extends State<DataPenumpangScreen> {
   }
 
   void _updatePenumpangPertamaDenganDataPrimaryPassenger() {
-    if (widget.jumlahDewasa > 0 && _dataPenumpangList.isNotEmpty && _primaryPassenger != null) {
+    if (widget.jumlahDewasa > 0 &&
+        _dataPenumpangList.isNotEmpty &&
+        _primaryPassenger != null) {
       setState(() {
-        _dataPenumpangList[0] = PenumpangInputData(passenger: _primaryPassenger);
+        _dataPenumpangList[0] =
+            PenumpangInputData(passenger: _primaryPassenger);
       });
     }
   }
@@ -120,7 +131,6 @@ class _DataPenumpangScreenState extends State<DataPenumpangScreen> {
     }
   }
 
-
   @override
   void dispose() {
     _namaPemesanController.dispose();
@@ -130,7 +140,8 @@ class _DataPenumpangScreenState extends State<DataPenumpangScreen> {
   }
 
   void _showPilihPenumpangSheet(int indexPenumpangForm) async {
-    final PassengerModel? selectedPassenger = await showModalBottomSheet<PassengerModel>(
+    final PassengerModel? selectedPassenger =
+    await showModalBottomSheet<PassengerModel>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -154,20 +165,23 @@ class _DataPenumpangScreenState extends State<DataPenumpangScreen> {
 
     if (selectedPassenger != null && mounted) {
       setState(() {
-        _dataPenumpangList[indexPenumpangForm] = PenumpangInputData(passenger: selectedPassenger);
+        _dataPenumpangList[indexPenumpangForm] =
+            PenumpangInputData(passenger: selectedPassenger);
 
         if (indexPenumpangForm == 0) {
-          _pemesanSebagaiPenumpang = selectedPassenger.id == _primaryPassenger?.id;
+          _pemesanSebagaiPenumpang =
+              selectedPassenger.id == _primaryPassenger?.id;
         }
       });
     }
   }
 
-  // --- FUNGSI YANG DIPERBARUI ---
+  // --- ✨ FUNGSI LANJUTKAN DIPERBARUI UNTUK MENGIRIM DATA PP ✨ ---
   void _lanjutkan() {
     if (!(_formKeyPemesanan.currentState?.validate() ?? false)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Harap lengkapi Detail Pemesan dengan benar.')),
+        const SnackBar(
+            content: Text('Harap lengkapi Detail Pemesan dengan benar.')),
       );
       return;
     }
@@ -175,7 +189,9 @@ class _DataPenumpangScreenState extends State<DataPenumpangScreen> {
     for (int i = 0; i < _dataPenumpangList.length; i++) {
       if (!_dataPenumpangList[i].isFilled) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Harap lengkapi data untuk Penumpang Dewasa ${i + 1}.')),
+          SnackBar(
+              content: Text(
+                  'Harap lengkapi data untuk Penumpang Dewasa ${i + 1}.')),
         );
         return;
       }
@@ -185,15 +201,21 @@ class _DataPenumpangScreenState extends State<DataPenumpangScreen> {
       context,
       MaterialPageRoute(
         builder: (context) => PilihKursiStepScreen(
-          jadwalDipesan: widget.jadwalDipesan,
-          kelasDipilih: widget.kelasDipilih,
+          // Kirim data pergi
+          jadwalPergi: widget.jadwalPergi,
+          kelasDipilihPergi: widget.kelasDipilihPergi,
+
+          // Kirim data pulang (bisa null)
+          jadwalPulang: widget.jadwalPulang,
+          kelasDipilihPulang: widget.kelasDipilihPulang,
+
+          // Data penumpang
           dataPenumpangList: _dataPenumpangList,
-          jumlahBayi: widget.jumlahBayi, // Mengirimkan data jumlahBayi
+          jumlahBayi: widget.jumlahBayi,
         ),
       ),
     );
   }
-  // --- AKHIR PERUBAHAN ---
 
   @override
   Widget build(BuildContext context) {
@@ -201,13 +223,14 @@ class _DataPenumpangScreenState extends State<DataPenumpangScreen> {
       appBar: AppBar(
         backgroundColor: const Color(0xFFC50000),
         foregroundColor: Colors.white,
-        title: const Text("Pesan Tiket"),
+        title: const Text("Isi Data Penumpang"),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(4.0),
           child: LinearProgressIndicator(
-            value: 0.5,
+            value: 0.75, // Langkah 3 dari 4
             backgroundColor: Colors.grey[300],
-            valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).primaryColor),
+            valueColor:
+            AlwaysStoppedAnimation<Color>(Theme.of(context).primaryColor),
           ),
         ),
       ),
@@ -217,13 +240,14 @@ class _DataPenumpangScreenState extends State<DataPenumpangScreen> {
           padding: const EdgeInsets.all(16.0),
           children: [
             Container(
-              padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 16.0),
+              padding:
+              const EdgeInsets.symmetric(vertical: 10.0, horizontal: 16.0),
               decoration: BoxDecoration(
                 color: Colors.deepOrange,
                 borderRadius: BorderRadius.circular(8.0),
               ),
               child: const Text(
-                "1. Data Penumpang",
+                "2. Data Pemesan & Penumpang",
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -271,13 +295,16 @@ class _DataPenumpangScreenState extends State<DataPenumpangScreen> {
             const SizedBox(height: 16.0),
             TextFormField(
               controller: _namaPemesanController,
-              decoration: const InputDecoration(labelText: "Nama Lengkap", border: OutlineInputBorder()),
-              validator: (value) => (value == null || value.isEmpty) ? "Nama tidak boleh kosong" : null,
+              decoration: const InputDecoration(
+                  labelText: "Nama Lengkap", border: OutlineInputBorder()),
+              validator: (value) =>
+              (value == null || value.isEmpty) ? "Nama tidak boleh kosong" : null,
             ),
             const SizedBox(height: 12.0),
             TextFormField(
               controller: _emailPemesanController,
-              decoration: const InputDecoration(labelText: "Email", border: OutlineInputBorder()),
+              decoration: const InputDecoration(
+                  labelText: "Email", border: OutlineInputBorder()),
               keyboardType: TextInputType.emailAddress,
               validator: (value) {
                 if (value == null || value.isEmpty) return "Email tidak boleh kosong";
@@ -288,7 +315,8 @@ class _DataPenumpangScreenState extends State<DataPenumpangScreen> {
             const SizedBox(height: 12.0),
             TextFormField(
               controller: _teleponPemesanController,
-              decoration: const InputDecoration(labelText: "No. Telepon", border: OutlineInputBorder()),
+              decoration: const InputDecoration(
+                  labelText: "No. Telepon", border: OutlineInputBorder()),
               keyboardType: TextInputType.phone,
               validator: (value) => (value == null || value.isEmpty) ? "No. telepon tidak boleh kosong" : null,
             ),
@@ -360,13 +388,24 @@ class _DataPenumpangScreenState extends State<DataPenumpangScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("Penumpang ${index + 1} (Dewasa)", style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                  Text("Penumpang ${index + 1} (Dewasa)",
+                      style:
+                      const TextStyle(fontSize: 12, color: Colors.grey)),
                   const SizedBox(height: 4),
                   if (isDataFilled) ...[
-                    Text(penumpangData.namaLengkap, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                    Text("${penumpangData.tipeId} - ${penumpangData.nomorId}", style: const TextStyle(fontSize: 14, color: Colors.black54)),
+                    Text(penumpangData.namaLengkap,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 16)),
+                    Text(
+                        "${penumpangData.tipeId} - ${penumpangData.nomorId}",
+                        style: const TextStyle(
+                            fontSize: 14, color: Colors.black54)),
                   ] else ...[
-                    const Text("Informasi Penumpang", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.grey)),
+                    const Text("Informasi Penumpang",
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: Colors.grey)),
                   ]
                 ],
               ),
