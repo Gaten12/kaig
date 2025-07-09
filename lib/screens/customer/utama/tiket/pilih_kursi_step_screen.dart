@@ -321,12 +321,18 @@ class _PilihKursiStepScreenState extends State<PilihKursiStepScreen>
                   ),
                   SizedBox(height: _responsiveFontSize(screenWidth, 12)),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        jadwal.namaKereta,
-                        style: TextStyle(fontSize: _responsiveFontSize(screenWidth, 14), color: textSecondary),
+                      // 1. Bungkus Text nama kereta dengan Expanded
+                      Expanded(
+                        child: Text(
+                          jadwal.namaKereta,
+                          style: TextStyle(fontSize: _responsiveFontSize(screenWidth, 14), color: textSecondary),
+                          overflow: TextOverflow.ellipsis, // Tambahkan ini agar ada "..." jika terlalu panjang
+                        ),
                       ),
+                      const SizedBox(width: 8), // Beri sedikit jarak antar teks
+
+                      // 2. Container untuk kelas tidak perlu diubah, karena isinya sudah fleksibel
                       Container(
                         padding: EdgeInsets.symmetric(horizontal: _responsiveFontSize(screenWidth, 12), vertical: _responsiveFontSize(screenWidth, 6)),
                         decoration: BoxDecoration(
