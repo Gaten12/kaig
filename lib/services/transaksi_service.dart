@@ -18,33 +18,47 @@ class TransaksiService {
         snapshot.docs.map((doc) => TransaksiModel.fromFirestore(doc)).toList());
   }
 
-  // --- ✨ METODE BARU UNTUK TRANSAKSI PULANG PERGI (PP) ✨ ---
+  // --- ✨ FUNGSI YANG DIPERBAIKI ✨ ---
   Future<void> buatTransaksiBatch({
     required TransaksiModel transaksiPergi,
-    TransaksiModel? transaksiPulang, // Nullable, karena bisa jadi hanya sekali jalan
+    TransaksiModel? transaksiPulang,
   }) async {
     final batch = _db.batch();
 
     // --- PROSES TIKET PERGI ---
     final docPergiRef = _db.collection('transaksi').doc(transaksiPergi.kodeBooking);
     batch.set(docPergiRef, transaksiPergi.toFirestore());
-
     final jadwalPergiRef = _db.collection('jadwal').doc(transaksiPergi.idJadwal);
-    // Di sini Anda bisa menambahkan logika untuk mengurangi kuota kelas di jadwalPergi
-    // Contoh: batch.update(jadwalPergiRef, {'...'});
 
     // Update status kursi untuk tiket pergi
     for (var penumpang in transaksiPergi.penumpang) {
-      final kursiId = penumpang['kursi']; // Asumsi formatnya adalah "Gerbong 1 - Kursi 1A"
-      if (kursiId != null && kursiId.isNotEmpty) {
-        // Anda memerlukan cara untuk mengubah string kursi menjadi ID dokumen kursi
-        // Untuk contoh ini, kita asumsikan ID dokumen kursi sama dengan stringnya
-        // Dalam implementasi nyata, Anda mungkin memerlukan query
-        final kursiRef = jadwalPergiRef.collection('kursi').doc(kursiId);
-        batch.update(kursiRef, {'status': 'terisi'});
+      final kursiIdString = penumpang['kursi']; // Format: "Gerbong 4 - Kursi 9B"
+      if (kursiIdString != null && kursiIdString.isNotEmpty) {
+        final parts = kursiIdString.split(' - Kursi ');
+        final gerbongStr = parts[0].replaceAll('Gerbong ', '');
+        final nomorGerbong = int.tryParse(gerbongStr);
+        final nomorKursi = parts[1];
+
+        if (nomorGerbong != null) {
+          // Lakukan query untuk mencari dokumen kursi yang benar
+          final kursiQuery = await jadwalPergiRef
+              .collection('kursi')
+              .where('nomor_gerbong', isEqualTo: nomorGerbong)
+              .where('nomor_kursi', isEqualTo: nomorKursi)
+              .limit(1)
+              .get();
+
+          if (kursiQuery.docs.isNotEmpty) {
+            // Jika dokumen ditemukan, gunakan referensinya untuk update
+            final kursiDocRef = kursiQuery.docs.first.reference;
+            batch.update(kursiDocRef, {'status': 'terisi'});
+          } else {
+            // Jika tidak ditemukan, lempar error agar transaksi gagal
+            throw Exception("Kursi tidak ditemukan: $kursiIdString");
+          }
+        }
       }
     }
-
 
     // --- PROSES TIKET PULANG (JIKA ADA) ---
     if (transaksiPulang != null) {
@@ -52,26 +66,40 @@ class TransaksiService {
       batch.set(docPulangRef, transaksiPulang.toFirestore());
 
       final jadwalPulangRef = _db.collection('jadwal').doc(transaksiPulang.idJadwal);
-      // Tambahkan logika untuk mengurangi kuota kelas di jadwalPulang
-      // Contoh: batch.update(jadwalPulangRef, {'...'});
 
-      // Update status kursi untuk tiket pulang
       for (var penumpang in transaksiPulang.penumpang) {
-        final kursiId = penumpang['kursi'];
-        if (kursiId != null && kursiId.isNotEmpty) {
-          final kursiRef = jadwalPulangRef.collection('kursi').doc(kursiId);
-          batch.update(kursiRef, {'status': 'terisi'});
+        final kursiIdString = penumpang['kursi'];
+        if (kursiIdString != null && kursiIdString.isNotEmpty) {
+          final parts = kursiIdString.split(' - Kursi ');
+          final gerbongStr = parts[0].replaceAll('Gerbong ', '');
+          final nomorGerbong = int.tryParse(gerbongStr);
+          final nomorKursi = parts[1];
+
+          if (nomorGerbong != null) {
+            final kursiQuery = await jadwalPulangRef
+                .collection('kursi')
+                .where('nomor_gerbong', isEqualTo: nomorGerbong)
+                .where('nomor_kursi', isEqualTo: nomorKursi)
+                .limit(1)
+                .get();
+
+            if (kursiQuery.docs.isNotEmpty) {
+              final kursiDocRef = kursiQuery.docs.first.reference;
+              batch.update(kursiDocRef, {'status': 'terisi'});
+            } else {
+              throw Exception("Kursi pulang tidak ditemukan: $kursiIdString");
+            }
+          }
         }
       }
     }
 
-    // --- COMMIT SEMUA OPERASI SEKALIGUS ---
-    // Jika salah satu operasi gagal, semua operasi dalam batch ini akan dibatalkan.
     await batch.commit();
   }
 
 
-  // --- FUNGSI LAMA (buatTransaksi) TETAP ADA UNTUK KEPERLUAN LAIN ---
+  // --- Fungsi lama dan lainnya tidak diubah ---
+
   Future<void> buatTransaksi({
     required TransaksiModel transaksi,
     required JadwalKelasInfoModel kelasDipilih,
