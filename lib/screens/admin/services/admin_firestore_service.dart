@@ -2,10 +2,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../models/JadwalModel.dart';
 import '../../../models/KeretaModel.dart';
 import '../../../models/gerbong_tipe_model.dart';
+import '../../../models/perhentian_krl_model.dart';
 import 'package:kaig/models/jadwal_krl_model.dart';
 import '../../../models/kursi_model.dart';
 import '../../../models/stasiun_model.dart';
-import '../../../models/user_model.dart';
+import '../../../models/user_model.dart'; // Import the UserModel
 
 class AdminFirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -101,13 +102,17 @@ class AdminFirestoreService {
       );
 
   Stream<List<JadwalModel>> getJadwalList(
-      {DateTime? tanggal, String? kodeAsal, String? kodeTujuan}) {
+      {DateTime? tanggal,
+        String? kodeAsal,
+        String? kodeTujuan,
+        DateTime? berangkatSetelah}) { // Parameter ditambahkan
     Query<JadwalModel> query = jadwalCollection;
 
     if (tanggal != null && kodeAsal != null && kodeTujuan != null) {
       // Query untuk customer
+      // Menggunakan berangkatSetelah jika ada, jika tidak, mulai dari awal hari
       DateTime startOfDayDate =
-      DateTime(tanggal.year, tanggal.month, tanggal.day, 0, 0, 0);
+          berangkatSetelah ?? DateTime(tanggal.year, tanggal.month, tanggal.day, 0, 0, 0);
       DateTime endOfDayDate =
       DateTime(tanggal.year, tanggal.month, tanggal.day, 23, 59, 59, 999);
       Timestamp startOfDayTimestamp = Timestamp.fromDate(startOfDayDate);
@@ -158,6 +163,11 @@ class AdminFirestoreService {
     return jadwalCollection.doc(jadwal.id).update(jadwal.toFirestore());
   }
 
+  /// ## Menghapus Jadwal Beserta Sub-Koleksi Kursi 🗑️
+  ///
+  /// Fungsi ini pertama-tama akan menghapus semua dokumen di dalam sub-koleksi `kursi`
+  /// sebelum akhirnya menghapus dokumen `jadwal` itu sendiri. Proses ini
+  /// menggunakan `WriteBatch` untuk efisiensi.
   Future<void> deleteJadwal(String jadwalId) async {
     final jadwalRef = _db.collection('jadwal').doc(jadwalId);
     final kursiCollectionRef = jadwalRef.collection('kursi');
