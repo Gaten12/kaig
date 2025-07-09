@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:kaig/services/auth_service.dart';
 
 class GantiNomorTeleponScreen extends StatefulWidget {
@@ -54,6 +55,10 @@ class _GantiNomorTeleponScreenState extends State<GantiNomorTeleponScreen> {
               controller: _controller,
               decoration: const InputDecoration(labelText: "No. Telepon", border: OutlineInputBorder()),
               keyboardType: TextInputType.phone,
+              // Add these lines to only allow numbers
+              inputFormatters: <TextInputFormatter>[
+                FilteringTextInputFormatter.digitsOnly
+              ],
               validator: (v) => (v == null || v.isEmpty) ? "Wajib diisi" : null,
             ),
             const SizedBox(height: 24),
@@ -62,8 +67,8 @@ class _GantiNomorTeleponScreenState extends State<GantiNomorTeleponScreen> {
                 : ElevatedButton(
               onPressed: _simpan,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF304FFE),
-                minimumSize: const Size(double.infinity, 50)),
+                  backgroundColor: const Color(0xFF304FFE),
+                  minimumSize: const Size(double.infinity, 50)),
               child: const Text("SIMPAN"),
             )
           ],

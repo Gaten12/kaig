@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // 1. Tambahkan import ini
 import 'package:intl/intl.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; // Untuk Timestamp
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../../models/passenger_model.dart';
@@ -72,7 +73,6 @@ class _FormPenumpangScreenState extends State<FormPenumpangScreen> {
 
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) {
-      // Show error if any field is invalid
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Harap lengkapi semua field yang wajib diisi.')),
       );
@@ -83,7 +83,6 @@ class _FormPenumpangScreenState extends State<FormPenumpangScreen> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Harap lengkapi semua field.')));
       return;
     }
-
 
     _formKey.currentState!.save();
     final user = FirebaseAuth.instance.currentUser;
@@ -113,7 +112,7 @@ class _FormPenumpangScreenState extends State<FormPenumpangScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Penumpang berhasil ${ _isEditing ? "diperbarui" : "ditambahkan"}!')),
         );
-        Navigator.pop(context, true); // Kirim true untuk menandakan ada perubahan
+        Navigator.pop(context, true);
       }
     } catch (e) {
       if (mounted) {
@@ -155,7 +154,7 @@ class _FormPenumpangScreenState extends State<FormPenumpangScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Penumpang berhasil dihapus!')),
           );
-          Navigator.pop(context, true); // Kirim true untuk menandakan ada perubahan
+          Navigator.pop(context, true);
         }
       } catch (e) {
         if (mounted) {
@@ -183,85 +182,98 @@ class _FormPenumpangScreenState extends State<FormPenumpangScreen> {
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: isSmallScreen ? 18 : 20),
         ),
       ),
-      body: SingleChildScrollView( // Added SingleChildScrollView to make it scrollable
-        padding: EdgeInsets.all(isSmallScreen ? 16.0 : 20.0), // Responsive padding
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(isSmallScreen ? 16.0 : 20.0),
         child: Form(
           key: _formKey,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch, // Stretch children to fill width
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               TextFormField(
                 controller: _namaLengkapController,
                 decoration: InputDecoration(
                   labelText: "Nama Lengkap",
                   border: const OutlineInputBorder(),
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: isSmallScreen ? 12 : 14), // Responsive padding
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: isSmallScreen ? 12 : 14),
                 ),
                 validator: (value) => (value == null || value.isEmpty) ? "Nama tidak boleh kosong" : null,
               ),
-              SizedBox(height: isSmallScreen ? 12.0 : 16.0), // Responsive spacing
+              SizedBox(height: isSmallScreen ? 12.0 : 16.0),
               DropdownButtonFormField<String>(
                 value: _selectedTipePenumpang,
                 decoration: InputDecoration(
                   labelText: "Tipe Penumpang",
                   border: const OutlineInputBorder(),
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: isSmallScreen ? 12 : 14), // Responsive padding
-                  isDense: true, // Make it more compact
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: isSmallScreen ? 12 : 14),
+                  isDense: true,
                 ),
                 items: _tipePenumpangOptions.map((String value) {
-                  return DropdownMenuItem<String>(value: value, child: Text(value, style: TextStyle(fontSize: isSmallScreen ? 14 : null))); // Responsive font size
+                  return DropdownMenuItem<String>(value: value, child: Text(value, style: TextStyle(fontSize: isSmallScreen ? 14 : null)));
                 }).toList(),
                 onChanged: (value) => setState(() => _selectedTipePenumpang = value),
                 validator: (value) => value == null ? "Pilih tipe penumpang" : null,
               ),
-              SizedBox(height: isSmallScreen ? 12.0 : 16.0), // Responsive spacing
+              SizedBox(height: isSmallScreen ? 12.0 : 16.0),
               Row(
-                crossAxisAlignment: CrossAxisAlignment.start, // Align top for overflow prevention
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    flex: isSmallScreen ? 2 : 2, // Adjust flex for small screens, maintain ratio
+                    flex: isSmallScreen ? 2 : 2,
                     child: DropdownButtonFormField<String>(
                       value: _selectedTipeId,
                       decoration: InputDecoration(
                         labelText: "Tipe ID",
                         border: const OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: isSmallScreen ? 12 : 14), // Responsive padding
-                        isDense: true, // Make it more compact
+                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: isSmallScreen ? 12 : 14),
+                        isDense: true,
                       ),
                       items: _tipeIdOptions.map((String value) {
-                        return DropdownMenuItem<String>(value: value, child: Text(value, style: TextStyle(fontSize: isSmallScreen ? 14 : null))); // Responsive font size
+                        return DropdownMenuItem<String>(value: value, child: Text(value, style: TextStyle(fontSize: isSmallScreen ? 14 : null)));
                       }).toList(),
-                      onChanged: (value) => setState(() => _selectedTipeId = value),
+                      // 2. Modifikasi onChanged untuk mengosongkan Nomor ID
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedTipeId = value;
+                          _nomorIdController.clear(); // Kosongkan field
+                        });
+                      },
                       validator: (value) => value == null ? "Pilih tipe ID" : null,
                     ),
                   ),
-                  SizedBox(width: isSmallScreen ? 8.0 : 12.0), // Responsive spacing
+                  SizedBox(width: isSmallScreen ? 8.0 : 12.0),
                   Expanded(
-                    flex: isSmallScreen ? 3 : 3, // Adjust flex, give more space to Nomor ID
+                    flex: isSmallScreen ? 3 : 3,
                     child: TextFormField(
                       controller: _nomorIdController,
                       decoration: InputDecoration(
                         labelText: "Nomor ID",
                         border: const OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: isSmallScreen ? 12 : 14), // Responsive padding
-                        isDense: true, // Make it more compact
+                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: isSmallScreen ? 12 : 14),
+                        isDense: true,
                       ),
+                      // 3. Tambahkan logika dinamis
+                      keyboardType: _selectedTipeId == 'Paspor'
+                          ? TextInputType.text
+                          : TextInputType.number,
+                      inputFormatters: _selectedTipeId == 'Paspor'
+                          ? [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]'))] // Huruf & angka
+                          : [FilteringTextInputFormatter.digitsOnly], // Hanya angka
                       validator: (value) => (value == null || value.isEmpty) ? "Nomor ID tidak boleh kosong" : null,
                     ),
                   ),
                 ],
               ),
-              SizedBox(height: isSmallScreen ? 12.0 : 16.0), // Responsive spacing
+              SizedBox(height: isSmallScreen ? 12.0 : 16.0),
               TextFormField(
                   readOnly: true,
                   decoration: InputDecoration(
                     labelText: 'Tanggal Lahir',
                     hintText: _selectedTanggalLahir == null
                         ? 'Pilih Tanggal Lahir'
-                        : DateFormat('dd MMMM yyyy', 'id_ID').format(_selectedTanggalLahir!), // Changed format for full year
+                        : DateFormat('dd MMMM yyyy', 'id_ID').format(_selectedTanggalLahir!),
                     border: const OutlineInputBorder(),
                     suffixIcon: const Icon(Icons.calendar_today),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: isSmallScreen ? 12 : 14), // Responsive padding
+                    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: isSmallScreen ? 12 : 14),
                   ),
                   onTap: () => _pilihTanggalLahir(context),
                   validator: (value){
@@ -269,20 +281,20 @@ class _FormPenumpangScreenState extends State<FormPenumpangScreen> {
                     return null;
                   }
               ),
-              SizedBox(height: isSmallScreen ? 12.0 : 16.0), // Responsive spacing
-              Text("Jenis Kelamin", style: TextStyle(fontSize: isSmallScreen ? 15 : 16)), // Responsive font size
+              SizedBox(height: isSmallScreen ? 12.0 : 16.0),
+              Text("Jenis Kelamin", style: TextStyle(fontSize: isSmallScreen ? 15 : 16)),
               Row(
                 children: <Widget>[
                   Expanded(
                     child: RadioListTile<String>(
-                      title: Text('Laki-laki', style: TextStyle(fontSize: isSmallScreen ? 10 : null)), // Responsive font size
+                      title: Text('Laki-laki', style: TextStyle(fontSize: isSmallScreen ? 10 : null)),
                       value: 'Laki-laki', groupValue: _selectedJenisKelamin,
                       onChanged: (value) => setState(() => _selectedJenisKelamin = value),
                     ),
                   ),
                   Expanded(
                     child: RadioListTile<String>(
-                      title: Text('Perempuan', style: TextStyle(fontSize: isSmallScreen ? 10 : null)), // Responsive font size
+                      title: Text('Perempuan', style: TextStyle(fontSize: isSmallScreen ? 10 : null)),
                       value: 'Perempuan', groupValue: _selectedJenisKelamin,
                       onChanged: (value) => setState(() => _selectedJenisKelamin = value),
                     ),
@@ -291,34 +303,34 @@ class _FormPenumpangScreenState extends State<FormPenumpangScreen> {
               ),
               if (_selectedJenisKelamin == null)
                 Padding(
-                  padding: EdgeInsets.only(left: isSmallScreen ? 12.0 : 16.0, top: isSmallScreen ? 0 : 4), // Responsive padding
-                  child: Text("Pilih jenis kelamin", style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: isSmallScreen ? 11 : 12)), // Responsive font size
+                  padding: EdgeInsets.only(left: isSmallScreen ? 12.0 : 16.0, top: isSmallScreen ? 0 : 4),
+                  child: Text("Pilih jenis kelamin", style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: isSmallScreen ? 11 : 12)),
                 ),
-              SizedBox(height: isSmallScreen ? 24.0 : 32.0), // Responsive spacing
+              SizedBox(height: isSmallScreen ? 24.0 : 32.0),
               ElevatedButton(
                 onPressed: _submitForm,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF304FFE),
-                  minimumSize: Size(double.infinity, isSmallScreen ? 45 : 50), // Responsive button height
+                  minimumSize: Size(double.infinity, isSmallScreen ? 45 : 50),
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(isSmallScreen ? 8 : 12)), // Responsive border radius
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(isSmallScreen ? 8 : 12)),
                 ),
-                child: Text(_isEditing ? "SIMPAN PERUBAHAN" : "SIMPAN PENUMPANG", style: TextStyle(fontSize: isSmallScreen ? 15 : 16)), // Responsive font size
+                child: Text(_isEditing ? "SIMPAN PERUBAHAN" : "SIMPAN PENUMPANG", style: TextStyle(fontSize: isSmallScreen ? 15 : 16)),
               ),
               if (_isEditing) ...[
-                SizedBox(height: isSmallScreen ? 8.0 : 12.0), // Responsive spacing
+                SizedBox(height: isSmallScreen ? 8.0 : 12.0),
                 OutlinedButton(
                   onPressed: _deletePassenger,
                   style: OutlinedButton.styleFrom(
-                    minimumSize: Size(double.infinity, isSmallScreen ? 45 : 50), // Responsive button height
+                    minimumSize: Size(double.infinity, isSmallScreen ? 45 : 50),
                     side: BorderSide(color: Colors.red.shade300),
                     foregroundColor: Colors.red.shade700,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(isSmallScreen ? 8 : 12)), // Responsive border radius
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(isSmallScreen ? 8 : 12)),
                   ),
-                  child: Text("HAPUS PENUMPANG", style: TextStyle(fontSize: isSmallScreen ? 15 : 16)), // Responsive font size
+                  child: Text("HAPUS PENUMPANG", style: TextStyle(fontSize: isSmallScreen ? 15 : 16)),
                 ),
               ],
-              SizedBox(height: isSmallScreen ? 8 : 16), // Extra bottom padding for scroll
+              SizedBox(height: isSmallScreen ? 8 : 16),
             ],
           ),
         ),
