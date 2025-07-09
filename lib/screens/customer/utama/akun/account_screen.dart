@@ -76,37 +76,150 @@ class _AccountScreenState extends State<AccountScreen> {
     }
   }
 
+  // GANTI FUNGSI LAMA INI DENGAN FUNGSI YANG BARU
   void _showLogoutConfirmationDialog() {
-    showCupertinoDialog(
+    showDialog(
       context: context,
+      barrierDismissible: false, // Mencegah dialog ditutup saat mengetuk di luar
       builder: (BuildContext context) {
-        return CupertinoAlertDialog(
-          title: const Text("Konfirmasi"),
-          content: const Text("Apakah Anda yakin ingin keluar dari akun Anda sekarang?"),
-          actions: <Widget>[
-            CupertinoDialogAction(
-              child: const Text("TIDAK"),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            CupertinoDialogAction(
-              isDefaultAction: true,
-              onPressed: () async {
-                Navigator.of(context).pop();
-                await _authService.signOut();
-                if (mounted) {
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (context) => LoginEmailScreen()),
-                        (Route<dynamic> route) => false,
-                  );
-                }
-              },
-              child: const Text("IYA"),
-            ),
-          ],
+        // Menggunakan widget Dialog untuk kustomisasi penuh
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.0), // Sudut membulat
+          ),
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          child: _buildDialogContent(context), // Memanggil konten dialog kustom
         );
       },
+    );
+  }
+
+// BUAT WIDGET BARU INI DI DALAM CLASS _AccountScreenState
+// untuk membangun konten dialog
+  Widget _buildDialogContent(BuildContext context) {
+    // Dapatkan ukuran layar untuk responsivitas
+    final isSmallScreen = MediaQuery.of(context).size.width < 600;
+
+    return Container(
+      padding: EdgeInsets.all(isSmallScreen ? 20 : 24),
+      decoration: BoxDecoration(
+        shape: BoxShape.rectangle,
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10.0,
+            offset: const Offset(0.0, 10.0),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min, // Membuat ukuran Column sesuai konten
+        children: <Widget>[
+          // Ikon
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.red.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.exit_to_app_rounded, // Ikon keluar
+              color: const Color(0xFFC50000),
+              size: isSmallScreen ? 35 : 40,
+            ),
+          ),
+          SizedBox(height: isSmallScreen ? 16 : 24),
+
+          // Judul
+          Text(
+            'Keluar Aplikasi?',
+            style: TextStyle(
+              fontSize: isSmallScreen ? 20 : 22,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          SizedBox(height: isSmallScreen ? 6 : 8),
+
+          // Deskripsi
+          Text(
+            'Apakah Anda yakin ingin keluar dari Simulasi Train Order?',
+            style: TextStyle(
+              fontSize: isSmallScreen ? 14 : 15,
+              color: Colors.grey[600],
+            ),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: isSmallScreen ? 20 : 24),
+
+          // Tombol Aksi
+          Row(
+            children: [
+              // Tombol "Ya, Keluar" (Outlined)
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () async {
+                    // Logika untuk logout
+                    Navigator.of(context).pop(); // Tutup dialog dulu
+                    await _authService.signOut();
+                    if (mounted) {
+                      Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(
+                            builder: (context) => LoginEmailScreen()),
+                            (Route<dynamic> route) => false,
+                      );
+                    }
+                  },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFFC50000), // Warna teks dan border
+                    side: const BorderSide(color: Color(0xFFC50000), width: 1.5),
+                    padding:
+                    EdgeInsets.symmetric(vertical: isSmallScreen ? 10 : 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    'Ya, Keluar',
+                    style: TextStyle(
+                        fontSize: isSmallScreen ? 14 : 16,
+                        fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+              SizedBox(width: isSmallScreen ? 12 : 16),
+
+              // Tombol "Tidak" (Elevated/Solid)
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () =>
+                      Navigator.of(context).pop(), // Cukup tutup dialog
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                    const Color(0xFF304FFE), // Warna latar belakang biru
+                    foregroundColor: Colors.white, // Warna teks putih
+                    elevation: 0,
+                    padding:
+                    EdgeInsets.symmetric(vertical: isSmallScreen ? 10 : 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    'Tidak',
+                    style: TextStyle(
+                        fontSize: isSmallScreen ? 14 : 16,
+                        fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ],
+          )
+        ],
+      ),
     );
   }
 

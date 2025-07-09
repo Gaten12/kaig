@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:kaig/models/passenger_model.dart';
 import 'package:kaig/services/auth_service.dart';
 
@@ -35,7 +36,7 @@ class _GantiNomorIdentitasScreenState extends State<GantiNomorIdentitasScreen> {
         id: widget.passenger.id,
         tipeId: _selectedTipeId,
         nomorId: _nomorIdController.text,
-        namaLengkap: widget.passenger.namaLengkap, // Data lama tidak diubah
+        namaLengkap: widget.passenger.namaLengkap,
         tanggalLahir: widget.passenger.tanggalLahir,
         jenisKelamin: widget.passenger.jenisKelamin,
         tipePenumpang: widget.passenger.tipePenumpang,
@@ -75,7 +76,15 @@ class _GantiNomorIdentitasScreenState extends State<GantiNomorIdentitasScreen> {
                     decoration: const InputDecoration(labelText: 'Tipe ID', border: OutlineInputBorder()),
                     value: _selectedTipeId,
                     items: _tipeIdOptions.map((String value) => DropdownMenuItem<String>(value: value, child: Text(value))).toList(),
-                    onChanged: (newValue) => setState(() => _selectedTipeId = newValue!),
+                    // 2. Modifikasi onChanged untuk mengosongkan Nomor ID
+                    onChanged: (newValue) {
+                      if (newValue != null) {
+                        setState(() {
+                          _selectedTipeId = newValue;
+                          _nomorIdController.clear(); // Kosongkan field
+                        });
+                      }
+                    },
                     validator: (v) => v == null ? 'Pilih tipe' : null,
                   ),
                 ),
@@ -85,6 +94,13 @@ class _GantiNomorIdentitasScreenState extends State<GantiNomorIdentitasScreen> {
                   child: TextFormField(
                     controller: _nomorIdController,
                     decoration: const InputDecoration(labelText: 'No. ID', border: OutlineInputBorder()),
+                    // 3. Tambahkan logika dinamis di sini
+                    keyboardType: _selectedTipeId == 'Paspor'
+                        ? TextInputType.text
+                        : TextInputType.number,
+                    inputFormatters: _selectedTipeId == 'Paspor'
+                        ? [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]'))] // Izinkan huruf & angka
+                        : [FilteringTextInputFormatter.digitsOnly], // Hanya angka
                     validator: (v) => (v == null || v.isEmpty) ? 'Wajib diisi' : null,
                   ),
                 ),
@@ -96,8 +112,8 @@ class _GantiNomorIdentitasScreenState extends State<GantiNomorIdentitasScreen> {
                 : ElevatedButton(
               onPressed: _simpan,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF304FFE),
-                minimumSize: const Size(double.infinity, 50)),
+                  backgroundColor: const Color(0xFF304FFE),
+                  minimumSize: const Size(double.infinity, 50)),
               child: const Text("SIMPAN"),
             )
           ],

@@ -27,7 +27,7 @@ class JadwalModel {
     }
   }
 
-  // Getter yang sudah ada (tidak berubah)
+  // --- GETTER UNTUK KESELURUHAN RUTE
   JadwalPerhentianModel get stasiunAwal => detailPerhentian.first;
   JadwalPerhentianModel get stasiunAkhir => detailPerhentian.last;
   String get idStasiunAsal => stasiunAwal.idStasiun;
@@ -41,26 +41,79 @@ class JadwalModel {
     final durasi = stasiunAkhir.waktuTiba!.toDate().difference(stasiunAwal.waktuBerangkat!.toDate());
     if (durasi.isNegative) return "N/A";
     final jam = durasi.inHours;
-    final menit = durasi.inMinutes.remainder(60).toString().padLeft(2, "0");
+    final menit = durasi.inMinutes.remainder(60);
     return "${jam}j ${menit}m";
   }
   static int _hitungHargaMulaiDari(List<JadwalKelasInfoModel> kelas) {
     if (kelas.isEmpty) return 0;
     return kelas.map((k) => k.harga).reduce((min, current) => current < min ? current : min);
   }
+  /// Mencari detail perhentian berdasarkan kode stasiun.
+  /// Mengembalikan `null` jika tidak ditemukan.
+  JadwalPerhentianModel? getPerhentianByKode(String kodeStasiun) {
+    try {
+      // Cari perhentian yang cocok (tidak case-sensitive)
+      return detailPerhentian.firstWhere(
+              (p) => p.idStasiun.toUpperCase() == kodeStasiun.toUpperCase());
+    } catch (e) {
+      // Kembalikan null jika stasiun tidak ditemukan dalam rute
+      print("Error: Stasiun $kodeStasiun tidak ditemukan di rute kereta ${this.namaKereta}");
+      return null;
+    }
+  }
 
-  // Factory dari DocumentSnapshot (tidak berubah)
+  /// Mendapatkan jam berangkat dari stasiun yang dipilih PENGGUNA.
+  String getJamBerangkatUntukSegmen(String kodeStasiunAsal) {
+    final perhentianAsal = getPerhentianByKode(kodeStasiunAsal);
+    if (perhentianAsal?.waktuBerangkat != null) {
+      return DateFormat('HH:mm').format(perhentianAsal!.waktuBerangkat!.toDate());
+    }
+    return '--:--';
+  }
+
+  /// Mendapatkan jam tiba di stasiun yang dipilih PENGGUNA.
+  String getJamTibaUntukSegmen(String kodeStasiunTujuan) {
+    final perhentianTujuan = getPerhentianByKode(kodeStasiunTujuan);
+    if (perhentianTujuan?.waktuTiba != null) {
+      return DateFormat('HH:mm').format(perhentianTujuan!.waktuTiba!.toDate());
+    }
+    return '--:--';
+  }
+
+  /// Menghitung durasi perjalanan antara dua stasiun yang dipilih PENGGUNA.
+  String getDurasiUntukSegmen(String kodeStasiunAsal, String kodeStasiunTujuan) {
+    final perhentianAsal = getPerhentianByKode(kodeStasiunAsal);
+    final perhentianTujuan = getPerhentianByKode(kodeStasiunTujuan);
+
+    // Pastikan kedua stasiun ditemukan dan memiliki waktu yang valid
+    if (perhentianAsal?.waktuBerangkat != null && perhentianTujuan?.waktuTiba != null) {
+      final durasi = perhentianTujuan!.waktuTiba!
+          .toDate()
+          .difference(perhentianAsal!.waktuBerangkat!.toDate());
+
+      // Jika durasi negatif (error data), kembalikan N/A
+      if (durasi.isNegative) return "N/A";
+
+      final jam = durasi.inHours;
+      final menit = durasi.inMinutes.remainder(60);
+
+      return "${jam}j ${menit}m";
+    }
+
+    // Kembalikan N/A jika salah satu stasiun tidak ditemukan atau waktunya null
+    return "N/A";
+  }
+
+  // --- FACTORY & toFirestore
   factory JadwalModel.fromFirestore(DocumentSnapshot<Map<String, dynamic>> snapshot) {
     final data = snapshot.data();
     if (data == null) {
       throw Exception("Data jadwal null untuk dokumen ID: ${snapshot.id}");
     }
-    // Tambahkan ID dari snapshot ke dalam map data sebelum dikirim ke fromMap
     data['id'] = snapshot.id;
     return JadwalModel.fromMap(data);
   }
 
-  // --- FACTORY BARU DARI MAP (INI KUNCINYA) ---
   factory JadwalModel.fromMap(Map<String, dynamic> data) {
     List<JadwalKelasInfoModel> listKelas = [];
     if (data['daftar_kelas_harga'] != null && data['daftar_kelas_harga'] is List) {
@@ -78,7 +131,7 @@ class JadwalModel {
     }
 
     return JadwalModel(
-      id: data['id'] ?? '', // Ambil ID dari map
+      id: data['id'] ?? '',
       idKereta: data['id_kereta'] ?? '',
       namaKereta: data['nama_kereta'] ?? '',
       detailPerhentian: listPerhentian,
@@ -86,15 +139,13 @@ class JadwalModel {
     );
   }
 
-  // --- MODIFIKASI toFirestore ---
   Map<String, dynamic> toFirestore() {
     return {
-      'id': id, // Pastikan ID ikut disimpan saat menjadi Map
+      'id': id,
       'id_kereta': idKereta,
       'nama_kereta': namaKereta,
       'detail_perhentian': detailPerhentian.map((perhentian) => perhentian.toMap()).toList(),
       'daftar_kelas_harga': daftarKelasHarga.map((kelas) => kelas.toMap()).toList(),
-      // Field query ini sebenarnya bisa digenerate ulang, tapi kita simpan saja agar konsisten
       'queryIdStasiunAsal': idStasiunAsal,
       'queryIdStasiunTujuan': idStasiunTujuan,
       'queryWaktuBerangkatUtama': tanggalBerangkatUtama,

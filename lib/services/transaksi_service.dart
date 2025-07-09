@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:kaig/models/JadwalModel.dart';
 import 'package:kaig/models/keranjang_model.dart';
 import 'package:kaig/models/transaksi_model.dart';
-
 import '../models/jadwal_kelas_info_model.dart';
 
 class TransaksiService {
@@ -19,7 +18,88 @@ class TransaksiService {
         snapshot.docs.map((doc) => TransaksiModel.fromFirestore(doc)).toList());
   }
 
-  // --- FUNGSI UTAMA YANG DIPERBARUI TOTAL ---
+  // --- ✨ FUNGSI YANG DIPERBAIKI ✨ ---
+  Future<void> buatTransaksiBatch({
+    required TransaksiModel transaksiPergi,
+    TransaksiModel? transaksiPulang,
+  }) async {
+    final batch = _db.batch();
+
+    // --- PROSES TIKET PERGI ---
+    final docPergiRef = _db.collection('transaksi').doc(transaksiPergi.kodeBooking);
+    batch.set(docPergiRef, transaksiPergi.toFirestore());
+    final jadwalPergiRef = _db.collection('jadwal').doc(transaksiPergi.idJadwal);
+
+    // Update status kursi untuk tiket pergi
+    for (var penumpang in transaksiPergi.penumpang) {
+      final kursiIdString = penumpang['kursi']; // Format: "Gerbong 4 - Kursi 9B"
+      if (kursiIdString != null && kursiIdString.isNotEmpty) {
+        final parts = kursiIdString.split(' - Kursi ');
+        final gerbongStr = parts[0].replaceAll('Gerbong ', '');
+        final nomorGerbong = int.tryParse(gerbongStr);
+        final nomorKursi = parts[1];
+
+        if (nomorGerbong != null) {
+          // Lakukan query untuk mencari dokumen kursi yang benar
+          final kursiQuery = await jadwalPergiRef
+              .collection('kursi')
+              .where('nomor_gerbong', isEqualTo: nomorGerbong)
+              .where('nomor_kursi', isEqualTo: nomorKursi)
+              .limit(1)
+              .get();
+
+          if (kursiQuery.docs.isNotEmpty) {
+            // Jika dokumen ditemukan, gunakan referensinya untuk update
+            final kursiDocRef = kursiQuery.docs.first.reference;
+            batch.update(kursiDocRef, {'status': 'terisi'});
+          } else {
+            // Jika tidak ditemukan, lempar error agar transaksi gagal
+            throw Exception("Kursi tidak ditemukan: $kursiIdString");
+          }
+        }
+      }
+    }
+
+    // --- PROSES TIKET PULANG (JIKA ADA) ---
+    if (transaksiPulang != null) {
+      final docPulangRef = _db.collection('transaksi').doc(transaksiPulang.kodeBooking);
+      batch.set(docPulangRef, transaksiPulang.toFirestore());
+
+      final jadwalPulangRef = _db.collection('jadwal').doc(transaksiPulang.idJadwal);
+
+      for (var penumpang in transaksiPulang.penumpang) {
+        final kursiIdString = penumpang['kursi'];
+        if (kursiIdString != null && kursiIdString.isNotEmpty) {
+          final parts = kursiIdString.split(' - Kursi ');
+          final gerbongStr = parts[0].replaceAll('Gerbong ', '');
+          final nomorGerbong = int.tryParse(gerbongStr);
+          final nomorKursi = parts[1];
+
+          if (nomorGerbong != null) {
+            final kursiQuery = await jadwalPulangRef
+                .collection('kursi')
+                .where('nomor_gerbong', isEqualTo: nomorGerbong)
+                .where('nomor_kursi', isEqualTo: nomorKursi)
+                .limit(1)
+                .get();
+
+            if (kursiQuery.docs.isNotEmpty) {
+              final kursiDocRef = kursiQuery.docs.first.reference;
+              batch.update(kursiDocRef, {'status': 'terisi'});
+            } else {
+              throw Exception("Kursi pulang tidak ditemukan: $kursiIdString");
+            }
+          }
+        }
+      }
+    }
+
+    await batch.commit();
+  }
+
+
+  // --- Fungsi lama dan lainnya tidak diubah ---
+
   Future<void> buatTransaksi({
     required TransaksiModel transaksi,
     required JadwalKelasInfoModel kelasDipilih,
@@ -29,32 +109,26 @@ class TransaksiService {
     final jadwalRef = _db.collection('jadwal').doc(jadwalId);
     final transaksiRef = _db.collection('transaksi').doc(transaksi.kodeBooking);
 
-    // 1. Baca semua data kursi untuk jadwal ini di luar transaction (lebih efisien)
     final kursiQuerySnapshot = await jadwalRef.collection('kursi').get();
-
-    // 2. Buat Peta untuk Status dan Referensi Dokumen Kursi
     final Map<String, String> mapStatusKursi = {};
     final Map<String, DocumentReference> mapRefKursi = {};
 
     for (var doc in kursiQuerySnapshot.docs) {
-      // Pastikan casting tipe data dilakukan dengan aman
       final data = doc.data();
       final key = "Gerbong ${data['nomor_gerbong']} - Kursi ${data['nomor_kursi']}";
       mapStatusKursi[key] = data['status'];
       mapRefKursi[key] = doc.reference;
     }
 
-    // 3. Periksa Ketersediaan Kursi SEBELUM memulai transaction
     for (final kursiString in kursiTerpilih) {
       if (mapStatusKursi[kursiString] == null) {
         throw Exception("Kursi $kursiString tidak ada dalam data sistem.");
       }
       if (mapStatusKursi[kursiString] == 'terisi') {
-        throw Exception("Kursi $kursiString sudah dipesan oleh orang lain. Silakan pilih kursi lain.");
+        throw Exception("Kursi $kursiString sudah dipesan oleh orang lain.");
       }
     }
 
-    // 4. Jalankan Transaction HANYA untuk operasi tulis
     return _db.runTransaction((transaction) async {
       final jadwalSnapshot = await transaction.get(jadwalRef);
       if (!jadwalSnapshot.exists) {
@@ -62,7 +136,6 @@ class TransaksiService {
       }
       final jadwalData = JadwalModel.fromFirestore(jadwalSnapshot);
 
-      // Periksa ulang kuota kelas di dalam transaction
       final kelasUntukDiupdate = jadwalData.daftarKelasHarga.firstWhere(
             (k) => k.namaKelas == kelasDipilih.namaKelas && k.subKelas == kelasDipilih.subKelas,
         orElse: () => throw Exception("Sub-kelas ${kelasDipilih.subKelas} tidak ditemukan."),
@@ -72,7 +145,6 @@ class TransaksiService {
         throw Exception("Sisa kuota untuk kelas ${transaksi.kelas} tidak mencukupi.");
       }
 
-      // Siapkan update kuota
       final newListKelasHarga = jadwalData.daftarKelasHarga.map((k) {
         if (k.namaKelas == kelasDipilih.namaKelas && k.subKelas == kelasDipilih.subKelas) {
           return k.copyWith(kuota: k.kuota - transaksi.penumpang.length);
@@ -80,11 +152,8 @@ class TransaksiService {
         return k;
       }).toList();
 
-      // Tambahkan semua operasi tulis ke transaction
-      // A. Update Kuota Jadwal
       transaction.update(jadwalRef, {'daftar_kelas_harga': newListKelasHarga.map((k) => k.toMap()).toList()});
 
-      // B. Update Status Kursi
       for (final kursiString in kursiTerpilih) {
         final kursiRef = mapRefKursi[kursiString];
         if (kursiRef != null) {
@@ -92,12 +161,10 @@ class TransaksiService {
         }
       }
 
-      // C. Buat Dokumen Transaksi Baru
       transaction.set(transaksiRef, transaksi.toFirestore());
     });
   }
 
-  // Fungsi checkout keranjang sekarang lebih sederhana karena hanya memanggil fungsi di atas
   Future<List<String>> buatTransaksiDariKeranjang({
     required String userId,
     required List<KeranjangModel> items,
@@ -125,7 +192,6 @@ class TransaksiService {
 
       final kursiTerpilih = item.penumpang.map((p) => p['kursi']!).toList();
 
-      // Panggil fungsi utama yang sudah aman dan efisien
       await buatTransaksi(
         transaksi: transaksi,
         kelasDipilih: item.kelasDipilih,
@@ -134,7 +200,6 @@ class TransaksiService {
       );
 
       kodeBookings.add(kodeBooking);
-      // Hapus item dari keranjang setelah transaksi berhasil
       await _db.collection('users').doc(userId).collection('keranjang').doc(item.id).delete();
     }
     return kodeBookings;
