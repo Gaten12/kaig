@@ -286,9 +286,58 @@ class _PembayaranScreenState extends State<PembayaranScreen> {
     );
   }
 
+// DENGAN FUNGSI BARU INI
   Widget _buildPilihMetodePembayaran(double screenWidth) {
-    // ... UI tidak berubah
-    return ListTile();
+    return Card(
+      elevation: _responsiveFontSize(screenWidth, 2.0),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(_responsiveFontSize(screenWidth, 12))),
+      child: ListTile(
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: _responsiveFontSize(screenWidth, 16.0),
+          vertical: _responsiveFontSize(screenWidth, 8.0),
+        ),
+        leading: Icon(
+          Icons.payment,
+          color: Theme.of(context).primaryColor,
+          size: _responsiveIconSize(screenWidth, 28),
+        ),
+        title: Text(
+          "Metode Pembayaran",
+          style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: _responsiveFontSize(screenWidth, 16)),
+        ),
+        subtitle: Text(
+          // Tampilkan metode yang dipilih atau teks default
+          _metodePembayaranTerpilih?.namaMetode ?? "Pilih metode pembayaran",
+          style: TextStyle(
+            fontSize: _responsiveFontSize(screenWidth, 14),
+            color: _metodePembayaranTerpilih == null ? Colors.red : Colors.black54,
+          ),
+        ),
+        trailing: Icon(
+          Icons.arrow_forward_ios,
+          size: _responsiveIconSize(screenWidth, 16),
+        ),
+        onTap: () async {
+          // Navigasi ke halaman pilih metode dan tunggu hasilnya
+          final result = await Navigator.push<MetodePembayaranModel>(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const PilihMetodePembayaranScreen(),
+            ),
+          );
+
+          // Jika ada hasil yang dipilih, perbarui state
+          if (result != null) {
+            setState(() {
+              _metodePembayaranTerpilih = result;
+            });
+          }
+        },
+      ),
+    );
   }
 
   Widget _buildBottomBar(int totalHarga, NumberFormat formatter, double screenWidth) {
