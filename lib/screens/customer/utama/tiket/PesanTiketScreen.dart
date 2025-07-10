@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:kaig/screens/customer/utama/akun/informasi_data_diri_screen.dart';
+import 'package:kaig/services/auth_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../models/stasiun_model.dart';
 import '../../../../widgets/passenger_selection_widget.dart';
 import 'PilihJadwalScreen.dart';
@@ -14,6 +17,7 @@ class PesanTiketScreen extends StatefulWidget {
 
 class _PesanTiketScreenState extends State<PesanTiketScreen> {
   final _formKey = GlobalKey<FormState>();
+  final AuthService _authService = AuthService();
 
   // State
   StasiunModel? _stasiunAsal;
@@ -130,7 +134,43 @@ class _PesanTiketScreenState extends State<PesanTiketScreen> {
     );
   }
 
-  void _cariTiket() {
+  void _cariTiket() async {
+    // Pengecekan data diri pengguna
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final userModel = await _authService.getUserModel(user.uid);
+      final primaryPassenger = await _authService.getPrimaryPassenger(user.uid);
+      if (userModel == null || primaryPassenger == null || userModel.noTelepon.isEmpty || primaryPassenger.namaLengkap.isEmpty) {
+        if (mounted) {
+          showDialog(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                title: const Text("Data Diri Belum Lengkap"),
+                content: const Text("Anda harus melengkapi data diri Anda di menu Akun sebelum dapat memesan tiket."),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const InformasiDataDiriScreen()));
+                    },
+                    child: const Text("Lengkapi Sekarang"),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    child: const Text("Nanti"),
+                  ),
+                ],
+              ));
+        }
+        return; // Hentikan proses jika data tidak lengkap
+      }
+    } else {
+      // Jika pengguna belum login
+      _showErrorSnackBar('Anda harus login untuk memesan tiket.');
+      return;
+    }
+
+
     if (_formKey.currentState!.validate()) {
       if (_stasiunAsal == null) { _showErrorSnackBar('Pilih stasiun keberangkatan.'); return; }
       if (_stasiunTujuan == null) { _showErrorSnackBar('Pilih stasiun tujuan.'); return; }

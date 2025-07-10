@@ -8,10 +8,12 @@ class PilihMetodePembayaranScreen extends StatefulWidget {
   const PilihMetodePembayaranScreen({super.key});
 
   @override
-  State<PilihMetodePembayaranScreen> createState() => _PilihMetodePembayaranScreenState();
+  State<PilihMetodePembayaranScreen> createState() =>
+      _PilihMetodePembayaranScreenState();
 }
 
-class _PilihMetodePembayaranScreenState extends State<PilihMetodePembayaranScreen> {
+class _PilihMetodePembayaranScreenState
+    extends State<PilihMetodePembayaranScreen> {
   final MetodePembayaranService _service = MetodePembayaranService();
   Stream<List<MetodePembayaranModel>>? _stream;
 
@@ -24,38 +26,32 @@ class _PilihMetodePembayaranScreenState extends State<PilihMetodePembayaranScree
     }
   }
 
-  // Helper method for responsive font sizes
+  // Helper-helper responsif
   double _responsiveFontSize(double screenWidth, double baseSize) {
     if (screenWidth < 360) {
-      return baseSize * 0.8; // Smaller for very small phones
+      return baseSize * 0.85;
     } else if (screenWidth < 600) {
-      return baseSize; // Base size for phones
-    } else if (screenWidth < 900) {
-      return baseSize * 1.1; // Slightly larger for tablets
+      return baseSize;
     } else {
-      return baseSize * 1.2; // Even larger for desktops
+      return baseSize * 1.1;
     }
   }
 
-  // Helper method for responsive icon sizes
   double _responsiveIconSize(double screenWidth, double baseSize) {
     if (screenWidth < 600) {
       return baseSize;
-    } else if (screenWidth < 900) {
-      return baseSize * 1.1;
     } else {
-      return baseSize * 1.2;
+      return baseSize * 1.1;
     }
   }
 
-  // Helper method for responsive horizontal padding
   double _responsiveHorizontalPadding(double screenWidth) {
     if (screenWidth > 1200) {
-      return (screenWidth - 1000) / 2; // Center content for very large screens
+      return (screenWidth - 1000) / 2;
     } else if (screenWidth > 600) {
-      return 24.0; // Medium padding for tablets
+      return 24.0;
     } else {
-      return 16.0; // Standard padding for phones
+      return 16.0;
     }
   }
 
@@ -69,25 +65,40 @@ class _PilihMetodePembayaranScreenState extends State<PilihMetodePembayaranScree
         foregroundColor: Colors.white,
         title: Text(
           "Pilih Metode Pembayaran",
-          style: TextStyle(fontSize: _responsiveFontSize(screenWidth, 20)),
+          style: TextStyle(fontSize: _responsiveFontSize(screenWidth, 18)),
         ),
       ),
       body: StreamBuilder<List<MetodePembayaranModel>>(
         stream: _stream,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator(strokeWidth: _responsiveIconSize(screenWidth, 3)));
+            return Center(
+                child: CircularProgressIndicator(
+                    strokeWidth: _responsiveIconSize(screenWidth, 3)));
           }
           if (snapshot.hasError) {
-            return Center(child: Text("Error: ${snapshot.error}", style: TextStyle(fontSize: _responsiveFontSize(screenWidth, 16))));
+            return Center(
+                child: Text("Error: ${snapshot.error}",
+                    style:
+                    TextStyle(fontSize: _responsiveFontSize(screenWidth, 16))));
           }
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return _buildEmptyState(screenWidth);
+            // --- PERBAIKAN UTAMA ADA DI SINI ---
+            // Bungkus _buildEmptyState dengan SingleChildScrollView
+            // agar kontennya bisa di-scroll jika tidak muat.
+            return SingleChildScrollView(
+              child: _buildEmptyState(screenWidth),
+            );
           }
 
           final metodeList = snapshot.data!;
           return ListView(
-            padding: EdgeInsets.all(_responsiveHorizontalPadding(screenWidth)),
+            padding: EdgeInsets.fromLTRB(
+              _responsiveHorizontalPadding(screenWidth),
+              20, // Beri jarak dari atas
+              _responsiveHorizontalPadding(screenWidth),
+              100, // Beri jarak di bawah agar tidak tertutup tombol
+            ),
             children: [
               Text(
                 "Pembayaran Tersimpan",
@@ -97,8 +108,9 @@ class _PilihMetodePembayaranScreenState extends State<PilihMetodePembayaranScree
                 ),
               ),
               SizedBox(height: _responsiveFontSize(screenWidth, 12)),
-              ...metodeList.map((metode) => _buildMetodeItem(metode, screenWidth)),
-              Divider(height: _responsiveFontSize(screenWidth, 24)),
+              ...metodeList
+                  .map((metode) => _buildMetodeItem(metode, screenWidth)),
+              Divider(height: _responsiveFontSize(screenWidth, 32)),
               _buildTambahMetodeButton(screenWidth),
             ],
           );
@@ -114,7 +126,9 @@ class _PilihMetodePembayaranScreenState extends State<PilihMetodePembayaranScree
 
     if (metode.tipe == TipeMetodePembayaran.kartuDebit) {
       iconData = Icons.credit_card;
-      nomorTersamar = "**** **** **** ${metode.nomor.substring(metode.nomor.length - 4)}";
+      // Menyamarkan nomor kartu
+      nomorTersamar =
+      "**** **** **** ${metode.nomor.substring(metode.nomor.length - 4)}";
       subtitle = "Kartu Debit";
     } else {
       iconData = Icons.account_balance_wallet_outlined;
@@ -123,29 +137,30 @@ class _PilihMetodePembayaranScreenState extends State<PilihMetodePembayaranScree
     }
 
     return Card(
-      // 1. Mengubah warna latar belakang Card menjadi merah tua
       color: Colors.blue.shade400,
-
-      // Opsional: Menambahkan bayangan agar lebih menonjol
-      elevation: _responsiveFontSize(screenWidth, 3), // Responsive elevation
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(_responsiveFontSize(screenWidth, 8))), // Responsive border radius
-
+      elevation: _responsiveFontSize(screenWidth, 4),
+      shadowColor: Colors.blue.withOpacity(0.3),
+      margin: EdgeInsets.only(bottom: _responsiveFontSize(screenWidth, 12)),
+      shape: RoundedRectangleBorder(
+          borderRadius:
+          BorderRadius.circular(_responsiveFontSize(screenWidth, 12))),
       child: ListTile(
-        // 2. Mengubah warna ikon menjadi putih
         iconColor: Colors.white,
-
-        // 3. Mengubah warna teks (title dan subtitle) menjadi putih
         textColor: Colors.white,
-        contentPadding: EdgeInsets.symmetric(horizontal: _responsiveFontSize(screenWidth, 16), vertical: _responsiveFontSize(screenWidth, 8)), // Responsive padding
-
-
-        // Pastikan tidak ada warna yang di-set manual di dalam Icon lagi
-        leading: Icon(iconData, size: _responsiveIconSize(screenWidth, 24)), // Responsive icon size
-
-        title: Text(metode.namaMetode, style: TextStyle(fontSize: _responsiveFontSize(screenWidth, 16), fontWeight: FontWeight.bold)), // Responsive font size
-        subtitle: Text("$subtitle • $nomorTersamar", style: TextStyle(fontSize: _responsiveFontSize(screenWidth, 14))), // Responsive font size
+        contentPadding: EdgeInsets.symmetric(
+            horizontal: _responsiveFontSize(screenWidth, 16),
+            vertical: _responsiveFontSize(screenWidth, 8)),
+        leading: Icon(iconData, size: _responsiveIconSize(screenWidth, 28)),
+        title: Text(metode.namaMetode,
+            style: TextStyle(
+                fontSize: _responsiveFontSize(screenWidth, 16),
+                fontWeight: FontWeight.bold)),
+        subtitle: Text("$subtitle • $nomorTersamar",
+            style: TextStyle(
+                fontSize: _responsiveFontSize(screenWidth, 14),
+                color: Colors.white70)),
         onTap: () {
-          // Kembalikan objek MetodePembayaranModel yang dipilih
+          // Kembalikan objek MetodePembayaranModel yang dipilih ke layar sebelumnya
           Navigator.pop(context, metode);
         },
       ),
@@ -153,76 +168,68 @@ class _PilihMetodePembayaranScreenState extends State<PilihMetodePembayaranScree
   }
 
   Widget _buildTambahMetodeButton(double screenWidth) {
-    return Padding(
-      // Memberi sedikit jarak dari tepi layar
-      padding: EdgeInsets.symmetric(horizontal: _responsiveHorizontalPadding(screenWidth), vertical: _responsiveFontSize(screenWidth, 8.0)), // Responsive padding
-      child: SizedBox(
-        width: double.infinity, // Membuat tombol membentang selebar mungkin
-        child: ElevatedButton.icon(
-          icon: Icon(Icons.add, color: Colors.white, size: _responsiveIconSize(screenWidth, 24)), // Responsive icon size
-          label: Text(
-            "Tambah metode pembayaran",
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: _responsiveFontSize(screenWidth, 16)), // Responsive font size
+    return ElevatedButton.icon(
+      icon: Icon(Icons.add,
+          color: Colors.white, size: _responsiveIconSize(screenWidth, 22)),
+      label: Text(
+        "Tambah metode pembayaran baru",
+        style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: _responsiveFontSize(screenWidth, 15)),
+      ),
+      onPressed: () async {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const PilihTautkanPembayaranScreen(),
           ),
-          onPressed: () async {
-            // Arahkan ke alur penambahan metode pembayaran
-            await Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const PilihTautkanPembayaranScreen(),
-              ),
-            );
-            // State akan otomatis diperbarui oleh StreamBuilder setelah kembali
-          },
-          style: ElevatedButton.styleFrom(
-            // Warna latar tombol biru solid seperti di gambar
-            backgroundColor: Color(0xFF304FFE),
-            // Bentuk tombol menjadi kapsul (sudut sangat bulat)
-            shape: StadiumBorder(),
-            // Padding di dalam tombol untuk membuatnya lebih tinggi
-            padding: EdgeInsets.symmetric(vertical: _responsiveFontSize(screenWidth, 16)), // Responsive padding
-            minimumSize: Size(double.infinity, _responsiveFontSize(screenWidth, 50)), // Ensure minimum size is responsive
-          ),
-        ),
+        );
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: const Color(0xFF304FFE),
+        padding:
+        EdgeInsets.symmetric(vertical: _responsiveFontSize(screenWidth, 16)),
+        shape: RoundedRectangleBorder(
+            borderRadius:
+            BorderRadius.circular(_responsiveFontSize(screenWidth, 12))),
+        minimumSize:
+        Size(double.infinity, _responsiveFontSize(screenWidth, 50)),
       ),
     );
   }
 
   Widget _buildEmptyState(double screenWidth) {
-    return Center(
-      child: Padding(
-        padding: EdgeInsets.all(_responsiveHorizontalPadding(screenWidth)), // Responsive padding
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.payment, size: _responsiveIconSize(screenWidth, 80), color: Colors.grey), // Responsive icon size
-            SizedBox(height: _responsiveFontSize(screenWidth, 16)), // Responsive spacing
-            Text(
-                "Belum Ada Metode Pembayaran",
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: _responsiveFontSize(screenWidth, 20), fontWeight: FontWeight.bold)), // Responsive font size
-            SizedBox(height: _responsiveFontSize(screenWidth, 8)), // Responsive spacing
-            Text(
-              "Anda belum memiliki metode pembayaran yang tersimpan.",
+    // Pastikan Padding cukup agar konten tidak mepet ke tepi layar
+    return Padding(
+      padding: EdgeInsets.symmetric(
+          horizontal: _responsiveHorizontalPadding(screenWidth) + 16,
+          vertical: 24),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SizedBox(height: _responsiveFontSize(screenWidth, 40)),
+          Icon(Icons.payment,
+              size: _responsiveIconSize(screenWidth, 80), color: Colors.grey),
+          SizedBox(height: _responsiveFontSize(screenWidth, 24)),
+          Text("Belum Ada Metode Pembayaran",
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey, fontSize: _responsiveFontSize(screenWidth, 14)), // Responsive font size
-            ),
-            SizedBox(height: _responsiveFontSize(screenWidth, 24)), // Responsive spacing
-            ElevatedButton.icon(
-              icon: Icon(Icons.add, size: _responsiveIconSize(screenWidth, 20)), // Responsive icon size
-              label: Text("Tambah Sekarang", style: TextStyle(fontSize: _responsiveFontSize(screenWidth, 16))), // Responsive font size
-              onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const PilihTautkanPembayaranScreen()));
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFF304FFE), // Ensure consistent button color
-                shape: StadiumBorder(),
-                padding: EdgeInsets.symmetric(vertical: _responsiveFontSize(screenWidth, 12), horizontal: _responsiveFontSize(screenWidth, 24)), // Responsive padding
-                minimumSize: Size(_responsiveFontSize(screenWidth, 180), _responsiveFontSize(screenWidth, 45)), // Responsive minimum size
-              ),
-            ),
-          ],
-        ),
+              style: TextStyle(
+                  fontSize: _responsiveFontSize(screenWidth, 20),
+                  fontWeight: FontWeight.bold)),
+          SizedBox(height: _responsiveFontSize(screenWidth, 8)),
+          Text(
+            "Anda belum memiliki metode pembayaran yang tersimpan.",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+                color: Colors.grey,
+                fontSize: _responsiveFontSize(screenWidth, 14)),
+          ),
+          SizedBox(height: _responsiveFontSize(screenWidth, 32)),
+          _buildTambahMetodeButton(screenWidth),
+          SizedBox(height: _responsiveFontSize(screenWidth, 20)),
+        ],
       ),
     );
   }
