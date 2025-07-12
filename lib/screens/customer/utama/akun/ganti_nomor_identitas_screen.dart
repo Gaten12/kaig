@@ -8,7 +8,8 @@ class GantiNomorIdentitasScreen extends StatefulWidget {
   const GantiNomorIdentitasScreen({super.key, required this.passenger});
 
   @override
-  State<GantiNomorIdentitasScreen> createState() => _GantiNomorIdentitasScreenState();
+  State<GantiNomorIdentitasScreen> createState() =>
+      _GantiNomorIdentitasScreenState();
 }
 
 class _GantiNomorIdentitasScreenState extends State<GantiNomorIdentitasScreen> {
@@ -16,15 +17,27 @@ class _GantiNomorIdentitasScreenState extends State<GantiNomorIdentitasScreen> {
   final AuthService _authService = AuthService();
   bool _isLoading = false;
 
-  final List<String> _tipeIdOptions = ['KTP', 'Paspor', 'SIM'];
+  // --- PERBAIKAN 1: Pastikan semua opsi ada di sini ---
+  // Menambahkan 'Lainnya' atau opsi lain yang mungkin ada di database Anda
+  final List<String> _tipeIdOptions = ['KTP', 'Paspor', 'SIM', 'Lainnya'];
   late String _selectedTipeId;
   late TextEditingController _nomorIdController;
 
   @override
   void initState() {
     super.initState();
-    _selectedTipeId = widget.passenger.tipeId;
     _nomorIdController = TextEditingController(text: widget.passenger.nomorId);
+
+    // --- PERBAIKAN 2: Logika inisialisasi yang lebih aman ---
+    // Cek apakah tipe ID yang tersimpan ada di dalam daftar opsi.
+    // Jika tidak, gunakan nilai pertama dari daftar sebagai default untuk menghindari error.
+    if (_tipeIdOptions.contains(widget.passenger.tipeId)) {
+      _selectedTipeId = widget.passenger.tipeId;
+    } else {
+      // Jika nilai dari database (misal: "ktp") tidak ada di list ['KTP', 'Paspor'],
+      // maka atur nilai default untuk mencegah error.
+      _selectedTipeId = _tipeIdOptions.first;
+    }
   }
 
   Future<void> _simpan() async {
@@ -32,6 +45,7 @@ class _GantiNomorIdentitasScreenState extends State<GantiNomorIdentitasScreen> {
     setState(() => _isLoading = true);
 
     try {
+      // Logika simpan tidak perlu diubah, sudah benar
       final updatedPassenger = PassengerModel(
         id: widget.passenger.id,
         tipeId: _selectedTipeId,
@@ -45,27 +59,36 @@ class _GantiNomorIdentitasScreenState extends State<GantiNomorIdentitasScreen> {
 
       await _authService.updatePrimaryPassenger(updatedPassenger);
 
-      if(mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Nomor identitas berhasil diperbarui.")));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Nomor identitas berhasil diperbarui.")));
         Navigator.of(context).pop();
       }
-    } catch(e) {
-      if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Gagal: $e")));
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text("Gagal: $e")));
+      }
     } finally {
-      if(mounted) setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Ganti Nomor Identitas"), backgroundColor: const Color(0xFFC50000), foregroundColor: Colors.white),
+      appBar: AppBar(
+          title: const Text("Ganti Nomor Identitas"),
+          backgroundColor: const Color(0xFFC50000),
+          foregroundColor: Colors.white),
       body: Form(
         key: _formKey,
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            const Text("Masukkan No identitasmu dan pastikan No Identitas yang kamu masukkan benar", style: TextStyle(color: Colors.grey)),
+            const Text(
+                "Masukkan No identitasmu dan pastikan No Identitas yang kamu masukkan benar",
+                style: TextStyle(color: Colors.grey)),
             const SizedBox(height: 16),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -73,15 +96,18 @@ class _GantiNomorIdentitasScreenState extends State<GantiNomorIdentitasScreen> {
                 Expanded(
                   flex: 2,
                   child: DropdownButtonFormField<String>(
-                    decoration: const InputDecoration(labelText: 'Tipe ID', border: OutlineInputBorder()),
+                    decoration: const InputDecoration(
+                        labelText: 'Tipe ID', border: OutlineInputBorder()),
                     value: _selectedTipeId,
-                    items: _tipeIdOptions.map((String value) => DropdownMenuItem<String>(value: value, child: Text(value))).toList(),
-                    // 2. Modifikasi onChanged untuk mengosongkan Nomor ID
+                    items: _tipeIdOptions
+                        .map((String value) =>
+                        DropdownMenuItem<String>(value: value, child: Text(value)))
+                        .toList(),
                     onChanged: (newValue) {
                       if (newValue != null) {
                         setState(() {
                           _selectedTipeId = newValue;
-                          _nomorIdController.clear(); // Kosongkan field
+                          _nomorIdController.clear();
                         });
                       }
                     },
@@ -93,15 +119,16 @@ class _GantiNomorIdentitasScreenState extends State<GantiNomorIdentitasScreen> {
                   flex: 3,
                   child: TextFormField(
                     controller: _nomorIdController,
-                    decoration: const InputDecoration(labelText: 'No. ID', border: OutlineInputBorder()),
-                    // 3. Tambahkan logika dinamis di sini
+                    decoration: const InputDecoration(
+                        labelText: 'No. ID', border: OutlineInputBorder()),
                     keyboardType: _selectedTipeId == 'Paspor'
                         ? TextInputType.text
                         : TextInputType.number,
                     inputFormatters: _selectedTipeId == 'Paspor'
-                        ? [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]'))] // Izinkan huruf & angka
-                        : [FilteringTextInputFormatter.digitsOnly], // Hanya angka
-                    validator: (v) => (v == null || v.isEmpty) ? 'Wajib diisi' : null,
+                        ? [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]'))]
+                        : [FilteringTextInputFormatter.digitsOnly],
+                    validator: (v) =>
+                    (v == null || v.isEmpty) ? 'Wajib diisi' : null,
                   ),
                 ),
               ],

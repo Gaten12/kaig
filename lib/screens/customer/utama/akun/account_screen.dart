@@ -135,7 +135,7 @@ class _AccountScreenState extends State<AccountScreen> {
 
           // Judul
           Text(
-            'Keluar Aplikasi?',
+            'Log Out Akun?',
             style: TextStyle(
               fontSize: isSmallScreen ? 20 : 22,
               fontWeight: FontWeight.bold,
@@ -146,7 +146,7 @@ class _AccountScreenState extends State<AccountScreen> {
 
           // Deskripsi
           Text(
-            'Apakah Anda yakin ingin keluar dari Simulasi Train Order?',
+            'Apakah anda yakin ingin keluar dari akun ini?',
             style: TextStyle(
               fontSize: isSmallScreen ? 14 : 15,
               color: Colors.grey[600],
@@ -183,7 +183,7 @@ class _AccountScreenState extends State<AccountScreen> {
                     ),
                   ),
                   child: Text(
-                    'Ya, Keluar',
+                    'Ya, Log Out',
                     style: TextStyle(
                         fontSize: isSmallScreen ? 14 : 16,
                         fontWeight: FontWeight.bold),
@@ -258,7 +258,7 @@ class _AccountScreenState extends State<AccountScreen> {
                 children: [
                   _buildMenuItem(context, icon: Icons.info_outline, title: "Tentang Aplikasi TrainOrder", onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const TentangAplikasiScreen())), isSmallScreen: isSmallScreen),
                   Divider(height: 1, thickness: 1, indent: isSmallScreen ? 50 : 56, endIndent: 16, color: Colors.grey[300]),
-                  _buildMenuItem(context, icon: Icons.logout, title: "Keluar", textColor: Colors.red, iconColor: Colors.red, onTap: _showLogoutConfirmationDialog, isSmallScreen: isSmallScreen),
+                  _buildMenuItem(context, icon: Icons.logout, title: "Log Out", textColor: Colors.red, iconColor: Colors.red, onTap: _showLogoutConfirmationDialog, isSmallScreen: isSmallScreen),
                 ],
               ),
             ),

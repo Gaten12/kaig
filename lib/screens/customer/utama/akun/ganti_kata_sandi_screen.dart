@@ -32,9 +32,10 @@ class _GantiKataSandiScreenState extends State<GantiKataSandiScreen> {
       return;
     }
 
+    // Pengecekan kecocokan kata sandi tetap di sini untuk alur yang lebih baik
     if (_kataSandiBaruController.text != _konfirmasiSandiBaruController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Kata sandi baru dan konfirmasi tidak cocok."), backgroundColor: const Color(0xFFC50000)),
+        const SnackBar(content: Text("Kata sandi baru dan konfirmasi tidak cocok."), backgroundColor: Color(0xFFC50000)),
       );
       return;
     }
@@ -47,16 +48,12 @@ class _GantiKataSandiScreenState extends State<GantiKataSandiScreen> {
         throw Exception("Pengguna tidak ditemukan atau tidak memiliki email.");
       }
 
-      // 1. Buat kredensial dengan kata sandi LAMA untuk verifikasi
       final cred = EmailAuthProvider.credential(
         email: user.email!,
         password: _kataSandiLamaController.text,
       );
 
-      // 2. Lakukan re-autentikasi untuk memastikan pengguna adalah pemilik akun yang sah
       await user.reauthenticateWithCredential(cred);
-
-      // 3. Jika re-autentikasi berhasil, perbarui kata sandi dengan yang BARU
       await user.updatePassword(_kataSandiBaruController.text);
 
       if (mounted) {
@@ -71,7 +68,8 @@ class _GantiKataSandiScreenState extends State<GantiKataSandiScreen> {
       if (e.code == 'wrong-password') {
         pesanError = "Kata sandi sekarang yang Anda masukkan salah.";
       } else if (e.code == 'weak-password') {
-        pesanError = "Kata sandi baru terlalu lemah. Gunakan minimal 6 karakter.";
+        // Pesan ini mungkin tidak akan muncul karena validasi kita lebih ketat
+        pesanError = "Kata sandi baru terlalu lemah.";
       } else {
         pesanError = e.message ?? "Gagal mengubah kata sandi.";
       }
@@ -149,9 +147,20 @@ class _GantiKataSandiScreenState extends State<GantiKataSandiScreen> {
                             () => setState(() => _obscureSandiBaru = !_obscureSandiBaru),
                         _obscureSandiBaru
                     ),
+                    // --- VALIDATOR YANG DIPERBARUI ---
                     validator: (value) {
-                      if (value == null || value.isEmpty) return 'Kata sandi baru tidak boleh kosong';
-                      if (value.length < 6) return 'Minimal 6 karakter';
+                      if (value == null || value.isEmpty) {
+                        return 'Kata sandi baru tidak boleh kosong';
+                      }
+                      if (value.length < 8) {
+                        return 'Kata sandi minimal 8 karakter';
+                      }
+                      if (!RegExp(r'[a-zA-Z]').hasMatch(value)) {
+                        return 'Kata sandi harus mengandung huruf';
+                      }
+                      if (!RegExp(r'[0-9]').hasMatch(value)) {
+                        return 'Kata sandi harus mengandung angka';
+                      }
                       return null;
                     },
                   ),

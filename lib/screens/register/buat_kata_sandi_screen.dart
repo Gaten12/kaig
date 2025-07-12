@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../models/user_data_daftar.dart'; // Model untuk data pendaftaran
-import '../../services/auth_service.dart';  // Service untuk interaksi dengan Firebase Auth & Firestore
-import '../login/login_screen.dart';       // Layar login email untuk navigasi setelah berhasil
+import 'package:kaig/services/auth_service.dart';
+import '../../../models/user_data_daftar.dart';
+import '../login/login_screen.dart'; // Import telah ditambahkan
 
 class BuatKataSandiScreen extends StatefulWidget {
-  final UserDataDaftar userData; // Data dari layar pendaftaran sebelumnya
+  final UserDataDaftar userData;
 
   const BuatKataSandiScreen({super.key, required this.userData});
 
@@ -16,7 +16,7 @@ class _BuatKataSandiScreenState extends State<BuatKataSandiScreen> {
   final _formKeyKataSandi = GlobalKey<FormState>();
   final _kataSandiController = TextEditingController();
   final _ulangiKataSandiController = TextEditingController();
-  final AuthService _authService = AuthService(); // Instance dari AuthService
+  final AuthService _authService = AuthService();
   bool _isLoading = false;
   bool _isKataSandiVisible = false;
   bool _isUlangiKataSandiVisible = false;
@@ -29,51 +29,47 @@ class _BuatKataSandiScreenState extends State<BuatKataSandiScreen> {
   }
 
   Future<void> _daftar() async {
-    if (_formKeyKataSandi.currentState!.validate()) {
-      setState(() => _isLoading = true);
-      print("[BuatKataSandiScreen] Memulai proses _daftar...");
-      try {
-        print("[BuatKataSandiScreen] Memanggil _authService.registerWithEmailPassword untuk email: ${widget.userData.email}");
-        final userCredential = await _authService.registerWithEmailPassword(
-          widget.userData.email,
-          _kataSandiController.text,
-          widget.userData,
-        );
-        print("[BuatKataSandiScreen] Hasil userCredential: ${userCredential?.user?.uid}");
+    if (!_formKeyKataSandi.currentState!.validate() || !mounted) return;
 
-        if (userCredential != null && mounted) {
-          print("[BuatKataSandiScreen] Pendaftaran berhasil, navigasi ke LoginEmailScreen...");
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Pendaftaran berhasil! Silakan login.')),
-          );
-          // Menggunakan pushAndRemoveUntil untuk membersihkan stack navigasi
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => LoginEmailScreen()),
-                (Route<dynamic> route) => false, // Hapus semua rute sebelumnya
-          );
-        } else if (mounted) {
-          print("[BuatKataSandiScreen] Pendaftaran gagal atau userCredential null setelah service call.");
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Pendaftaran gagal. Hasil tidak valid.')),
-          );
-        }
-      } catch (e, s) { // Menangkap error dan stack trace
-        print("[BuatKataSandiScreen] Error saat daftar: $e");
-        print("[BuatKataSandiScreen] Stack trace: $s");
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Gagal daftar: ${e.toString()}')),
-          );
-        }
-      } finally {
-        print("[BuatKataSandiScreen] Blok finally dieksekusi.");
-        if (mounted) {
-          setState(() => _isLoading = false);
-        }
+    setState(() => _isLoading = true);
+
+    try {
+      final userCredential = await _authService.registerWithEmailPassword(
+        widget.userData.email,
+        _kataSandiController.text,
+        widget.userData,
+      );
+
+      if (!mounted) return;
+
+      if (userCredential != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Pendaftaran berhasil! Silakan masuk.'),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) =>  LoginEmailScreen()),
+              (Route<dynamic> route) => false,
+        );
       }
-    } else {
-      print("[BuatKataSandiScreen] Form tidak valid.");
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal mendaftar: ${e.toString()}'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -86,7 +82,7 @@ class _BuatKataSandiScreenState extends State<BuatKataSandiScreen> {
           'Buat Kata Sandi',
           style: TextStyle(color: Colors.white),
         ),
-        backgroundColor: const Color(0xFFC50000), // Warna merah gelap seperti di gambar
+        backgroundColor: const Color(0xFFC50000),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -106,7 +102,6 @@ class _BuatKataSandiScreenState extends State<BuatKataSandiScreen> {
                 style: TextStyle(fontSize: 16),
               ),
               const SizedBox(height: 8),
-              // Teks email yang didaftarkan tidak dihapus
               Text(
                 'Email yang akan didaftarkan: ${widget.userData.email}',
                 textAlign: TextAlign.left,
@@ -134,10 +129,19 @@ class _BuatKataSandiScreenState extends State<BuatKataSandiScreen> {
                 obscureText: !_isKataSandiVisible,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Kata Sandi tidak boleh kosong';
+                    return 'Kata sandi tidak boleh kosong';
                   }
-                  if (value.length < 6) {
-                    return 'Kata Sandi minimal 6 karakter';
+                  if (value.length < 8) {
+                    return 'Kata sandi minimal 8 karakter';
+                  }
+                  // --- PERUBAHAN DI SINI ---
+                  // Pengecekan wajib ada huruf
+                  if (!RegExp(r'[a-zA-Z]').hasMatch(value)) {
+                    return 'Kata sandi harus mengandung huruf';
+                  }
+                  // Pengecekan wajib ada angka
+                  if (!RegExp(r'[0-9]').hasMatch(value)) {
+                    return 'Kata sandi harus mengandung angka';
                   }
                   return null;
                 },
@@ -150,7 +154,7 @@ class _BuatKataSandiScreenState extends State<BuatKataSandiScreen> {
                   hintText: 'Masukkan Ulang Kata Sandi',
                   border: const OutlineInputBorder(),
                   prefixIcon: const Icon(Icons.lock_outline),
-                   suffixIcon: IconButton(
+                  suffixIcon: IconButton(
                     icon: Icon(
                       _isUlangiKataSandiVisible ? Icons.visibility : Icons.visibility_off,
                     ),
@@ -164,10 +168,10 @@ class _BuatKataSandiScreenState extends State<BuatKataSandiScreen> {
                 obscureText: !_isUlangiKataSandiVisible,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Ulangi Kata Sandi tidak boleh kosong';
+                    return 'Ulangi kata sandi tidak boleh kosong';
                   }
                   if (value != _kataSandiController.text) {
-                    return 'Kata Sandi tidak cocok';
+                    return 'Kata sandi tidak cocok';
                   }
                   return null;
                 },
@@ -179,7 +183,7 @@ class _BuatKataSandiScreenState extends State<BuatKataSandiScreen> {
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size(double.infinity, 50),
-                    backgroundColor: const Color(0xFF304FFE), // Warna biru gelap seperti di gambar
+                    backgroundColor: const Color(0xFF304FFE),
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
