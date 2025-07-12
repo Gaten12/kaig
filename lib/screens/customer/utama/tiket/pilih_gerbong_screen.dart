@@ -133,54 +133,73 @@ class _PilihGerbongScreenState extends State<PilihGerbongScreen> {
   }
 
   Widget _buildTrainLayoutVisual() {
+    const double tinggiGambarRel = 150.0;
+
     return Stack(
       fit: StackFit.expand,
       children: [
-        // Background image sudah dari parent
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Denah Rangkaian Kereta",
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black.withAlpha(204),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    "Geser untuk melihat semua gerbong. Pilih gerbong yang menyala untuk menentukan kursi.",
-                    style: TextStyle(color: Colors.grey.shade800),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 229),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 24.0),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    _buildLocomotiveWidget(),
-                    ..._seluruhRangkaianInfo.map(_buildCarriageImageWidget).toList(),
-                  ],
+        Positioned.fill(
+          child: Image.asset(
+            'images/Simulasi.png',
+            fit: BoxFit.cover,
+            alignment: Alignment.bottomCenter,
+          ),
+        ),
+
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 200,
+          height: tinggiGambarRel,
+          child: Image.asset(
+            'images/rel.png',
+            fit: BoxFit.fill,
+          ),
+        ),
+
+        Positioned(
+          top: 24,
+          left: 16,
+          right: 16,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Denah Rangkaian Kereta",
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black.withAlpha(204),
                 ),
               ),
+              const SizedBox(height: 4),
+              Text(
+                "Geser untuk melihat semua gerbong...",
+                style: TextStyle(color: Colors.grey.shade800),
+              ),
+            ],
+          ),
+        ),
+
+        Positioned(
+          bottom: tinggiGambarRel - -89,
+          left: 0,
+          right: 0,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                _buildLocomotiveWidget(),
+                ..._seluruhRangkaianInfo.map((info) => _buildCarriageImageWidget(info)).toList(),
+              ],
             ),
-          ],
+          ),
         ),
       ],
     );
   }
-
 
   Widget _buildLocomotiveWidget() {
     return Padding(
