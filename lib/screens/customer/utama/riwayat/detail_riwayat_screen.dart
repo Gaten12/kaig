@@ -47,6 +47,17 @@ class DetailRiwayatScreen extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                       fontSize: isSmallScreen ? 16 : 18), // Responsive font size
                 ),
+                SizedBox(height: 8),
+                Text("Tanggal Transaksi",
+                    style: TextStyle(
+                        color: Colors.grey,
+                        fontSize: isSmallScreen ? 12 : null)), // Responsive font size
+                Text(
+                  DateFormat('EEEE, dd MMMM yyyy HH:mm', 'id_ID').format(transaksi.tanggalTransaksi.toDate()),
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: isSmallScreen ? 14 : 16), // Responsive font size
+                ),
               ],
             ),
           ),

@@ -192,6 +192,8 @@ class _TiketSayaScreenState extends State<TiketSayaScreen> {
                                     isSmallScreen ? 14 : null)), // Responsive font size
                           ],
                         ),
+                        SizedBox(height: 8),
+                        Text('Tgl Transaksi: ${DateFormat('dd MMM yyyy, HH:mm').format(tiket.tanggalTransaksi.toDate())}', style: TextStyle(color: Colors.grey, fontSize: 10)),
                       ],
                     ),
                   ),

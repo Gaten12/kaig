@@ -205,6 +205,9 @@ class _RiwayatTransaksiScreenState extends State<RiwayatTransaksiScreen> {
                                     isSmallScreen ? 14 : null)), // Responsive font size
                           ],
                         ),
+                        SizedBox(height: 8),
+                        // --- PERUBAHAN DI SINI ---
+                        Text('Tgl Transaksi: ${DateFormat('dd MMM yyyy, HH:mm').format(transaksi.tanggalTransaksi.toDate())}', style: TextStyle(color: Colors.grey, fontSize: 10)),
                       ],
                     ),
                   ),

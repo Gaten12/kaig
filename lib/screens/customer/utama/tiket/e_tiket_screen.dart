@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:kaig/models/transaksi_model.dart';
 import 'package:kaig/screens/customer/utama/riwayat/detail_riwayat_screen.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -192,6 +193,20 @@ class ETiketScreen extends StatelessWidget {
               ],
             ),
           ),
+          const Divider(height: 1),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Tanggal Transaksi', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                Text(
+                  DateFormat('dd MMM yyyy, HH:mm').format(tiket.tanggalTransaksi.toDate()),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                )
+              ],
+            ),
+          )
         ],
       ),
     );
