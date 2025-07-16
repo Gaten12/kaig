@@ -122,6 +122,27 @@ class _FormJadwalKrlFinalScreenState extends State<FormJadwalKrlFinalScreen> {
     }
   }
 
+  /// Menampilkan time picker dan mengisi controller dengan waktu yang dipilih
+  Future<void> _selectTime(BuildContext context, TextEditingController controller) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+      builder: (context, child) {
+        // Memastikan format 24 jam
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      // Format TimeOfDay ke string "HH:mm"
+      final localizations = MaterialLocalizations.of(context);
+      final formattedTime = localizations.formatTimeOfDay(picked, alwaysUse24HourFormat: true);
+      controller.text = formattedTime;
+    }
+  }
+
   Future<void> _simpanJadwal() async {
     if (!_formKey.currentState!.validate()) return;
     if (_perhentianList.length < 2 || _perhentianList.any((p) => p.selectedStasiun == null)) {
@@ -145,9 +166,7 @@ class _FormJadwalKrlFinalScreenState extends State<FormJadwalKrlFinalScreen> {
         return PerhentianKrlModel(
           kodeStasiun: p.selectedStasiun!.kode,
           namaStasiun: p.selectedStasiun!.nama,
-          // Jam datang hanya diisi untuk stasiun terakhir
           jamDatang: isLastStation ? (p.jamDatangController.text.trim().isNotEmpty ? p.jamDatangController.text.trim() : null) : null,
-          // Jam berangkat null jika ini stasiun terakhir
           jamBerangkat: isLastStation ? null : (p.jamBerangkatController.text.trim().isNotEmpty ? p.jamBerangkatController.text.trim() : null),
           urutan: idx,
         );
@@ -205,6 +224,34 @@ class _FormJadwalKrlFinalScreenState extends State<FormJadwalKrlFinalScreen> {
       borderSide: const BorderSide(color: Colors.red, width: 1.0),
       borderRadius: BorderRadius.circular(8.0),
     );
+
+    /// Helper widget untuk membuat input waktu dengan time picker
+    Widget _buildTimePickerField({
+      required TextEditingController controller,
+      required String label,
+    }) {
+      return TextFormField(
+        controller: controller,
+        readOnly: true, // Membuat field tidak bisa diketik manual
+        decoration: InputDecoration(
+          labelText: label,
+          hintText: "HH:mm",
+          enabledBorder: defaultOutlineInputBorder,
+          focusedBorder: focusedOutlineInputBorder,
+          errorBorder: errorOutlineInputBorder,
+          focusedErrorBorder: errorOutlineInputBorder.copyWith(borderSide: const BorderSide(color: Colors.red, width: 2.0)),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          isDense: true,
+          suffixIcon: Icon(Icons.access_time_filled_rounded, color: electricBlue.withAlpha(150)),
+        ),
+        onTap: () => _selectTime(context, controller), // Memanggil time picker saat diketuk
+        validator: (v) {
+          if (v == null || v.isEmpty) return 'Wajib';
+          if (!RegExp(r'^\d{2}:\d{2}$').hasMatch(v)) return 'Format HH:mm';
+          return null;
+        },
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -358,46 +405,18 @@ class _FormJadwalKrlFinalScreenState extends State<FormJadwalKrlFinalScreen> {
                                 if (isLastStation)
                                   Expanded(
                                     flex: 3,
-                                    child: TextFormField(
+                                    child: _buildTimePickerField(
                                       controller: perhentian.jamDatangController,
-                                      decoration: InputDecoration(
-                                        labelText: "Tiba",
-                                        hintText: "HH:mm",
-                                        enabledBorder: defaultOutlineInputBorder,
-                                        focusedBorder: focusedOutlineInputBorder,
-                                        errorBorder: errorOutlineInputBorder,
-                                        focusedErrorBorder: focusedOutlineInputBorder.copyWith(borderSide: const BorderSide(color: Colors.red, width: 2.0)),
-                                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                        isDense: true,
-                                      ),
-                                      validator: (v) {
-                                        if (v!.isEmpty) return 'Wajib';
-                                        if (!RegExp(r'^\d{2}:\d{2}$').hasMatch(v)) return 'Format HH:mm';
-                                        return null;
-                                      },
+                                      label: "Tiba",
                                     ),
                                   ),
                                 // Input Jam Berangkat (untuk semua kecuali stasiun terakhir)
                                 if (!isLastStation)
                                   Expanded(
                                     flex: 3,
-                                    child: TextFormField(
+                                    child: _buildTimePickerField(
                                       controller: perhentian.jamBerangkatController,
-                                      decoration: InputDecoration(
-                                        labelText: "Berangkat",
-                                        hintText: "HH:mm",
-                                        enabledBorder: defaultOutlineInputBorder,
-                                        focusedBorder: focusedOutlineInputBorder,
-                                        errorBorder: errorOutlineInputBorder,
-                                        focusedErrorBorder: focusedOutlineInputBorder.copyWith(borderSide: const BorderSide(color: Colors.red, width: 2.0)),
-                                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                        isDense: true,
-                                      ),
-                                      validator: (v) {
-                                        if (v!.isEmpty) return 'Wajib';
-                                        if (!RegExp(r'^\d{2}:\d{2}$').hasMatch(v)) return 'Format HH:mm';
-                                        return null;
-                                      },
+                                      label: "Berangkat",
                                     ),
                                   ),
                                 IconButton(
