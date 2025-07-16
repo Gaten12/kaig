@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../models/JadwalModel.dart';
 import '../../../models/KeretaModel.dart';
 import '../../../models/gerbong_tipe_model.dart';
-import '../../../models/perhentian_krl_model.dart';
 import 'package:kaig/models/jadwal_krl_model.dart';
 import '../../../models/kursi_model.dart';
 import '../../../models/stasiun_model.dart';

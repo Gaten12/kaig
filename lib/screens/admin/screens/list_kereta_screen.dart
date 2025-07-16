@@ -31,7 +31,7 @@ class ListKeretaController extends GetxController {
   Future<void> deleteKereta(KeretaModel kereta) async {
     try {
       isLoading.value = true;
-      await _adminService.deleteKereta(kereta.id!);
+      await _adminService.deleteKereta(kereta.id);
       Get.snackbar(
         'Berhasil',
         '${kereta.nama} berhasil dihapus',
