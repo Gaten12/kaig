@@ -31,7 +31,7 @@ class ListKeretaController extends GetxController {
   Future<void> deleteKereta(KeretaModel kereta) async {
     try {
       isLoading.value = true;
-      await _adminService.deleteKereta(kereta.id);
+      await _adminService.deleteKereta(kereta.id!);
       Get.snackbar(
         'Berhasil',
         '${kereta.nama} berhasil dihapus',
@@ -76,6 +76,20 @@ class ListKeretaScreen extends StatelessWidget {
   static const Color charcoalGray = Color(0xFF374151);
   static const Color pureWhite = Color(0xFFFFFFFF);
   static const Color electricBlue = Color(0xFF3B82F6);
+
+  /// Helper function untuk mengekstrak nomor dari nama kereta.
+  /// Contoh: "KA 10 Argo Bromo" akan mengembalikan 10.
+  int _extractNumberFromName(String name) {
+    // Menggunakan regular expression untuk mencari urutan angka pertama dalam string.
+    final match = RegExp(r'\d+').firstMatch(name);
+    if (match != null) {
+      // Jika ditemukan, parse ke integer.
+      return int.tryParse(match.group(0)!) ?? 9999;
+    }
+    // Jika tidak ada angka, kembalikan nilai besar agar diletakkan di akhir.
+    return 9999;
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -135,7 +149,7 @@ class ListKeretaScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: electricBlue.withAlpha((255 * 0.1).round()),
+                        color: electricBlue.withAlpha(25),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -148,7 +162,7 @@ class ListKeretaScreen extends StatelessWidget {
                       labelText: "Cari Nama Kereta",
                       hintText: "Masukkan nama kereta...",
                       hintStyle: TextStyle(color: Colors.grey.shade500),
-                      prefixIcon: Icon(Icons.search_rounded, color: electricBlue),
+                      prefixIcon: const Icon(Icons.search_rounded, color: electricBlue),
                       filled: true,
                       fillColor: pureWhite,
                       border: OutlineInputBorder(
@@ -196,6 +210,20 @@ class ListKeretaScreen extends StatelessWidget {
 
                 return Obx(() {
                   List<KeretaModel> allKereta = snapshot.data!;
+
+                  // --- LOGIKA PENGURUTAN BERDASARKAN NOMOR KA ---
+                  allKereta.sort((a, b) {
+                    final numA = _extractNumberFromName(a.nama);
+                    final numB = _extractNumberFromName(b.nama);
+                    int numCompare = numA.compareTo(numB);
+                    // Jika nomor sama, urutkan berdasarkan nama lengkap
+                    if (numCompare == 0) {
+                      return a.nama.compareTo(b.nama);
+                    }
+                    return numCompare;
+                  });
+                  // --- AKHIR LOGIKA PENGURUTAN ---
+
                   List<KeretaModel> filteredKereta = allKereta;
 
                   if (controller.searchQuery.value.isNotEmpty) {
@@ -228,7 +256,7 @@ class ListKeretaScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF3B82F6).withAlpha((255 * 0.3).round()),
+              color: const Color(0xFF3B82F6).withAlpha(76),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -270,7 +298,7 @@ class ListKeretaScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withAlpha((255 * 0.08).round()),
+            color: Colors.black.withAlpha(20),
             blurRadius: 12,
             offset: const Offset(0, 2),
           ),
@@ -296,12 +324,12 @@ class ListKeretaScreen extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF3B82F6).withAlpha((255 * 0.1).round()),
+                        color: const Color(0xFF3B82F6).withAlpha(26),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Icon(
+                      child: const Icon(
                         Icons.train_rounded,
-                        color: const Color(0xFF3B82F6),
+                        color: Color(0xFF3B82F6),
                         size: 20,
                       ),
                     ),
@@ -361,7 +389,7 @@ class ListKeretaScreen extends StatelessWidget {
                     // Tombol Salin
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.green.withAlpha((255 * 0.1).round()),
+                        color: Colors.green.withAlpha(26),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: IconButton(
@@ -380,7 +408,7 @@ class ListKeretaScreen extends StatelessWidget {
                     // Tombol Edit
                     Container(
                       decoration: BoxDecoration(
-                        color: const Color(0xFF3B82F6).withAlpha((255 * 0.1).round()),
+                        color: const Color(0xFF3B82F6).withAlpha(26),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: IconButton(
@@ -400,7 +428,7 @@ class ListKeretaScreen extends StatelessWidget {
                     // Tombol Hapus
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.red.withAlpha((255 * 0.1).round()),
+                        color: Colors.red.withAlpha(26),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: IconButton(
@@ -447,10 +475,10 @@ class ListKeretaScreen extends StatelessWidget {
         Expanded(
           child: Text(
             value,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w400,
-              color: const Color(0xFF374151),
+              color: Color(0xFF374151),
             ),
           ),
         ),

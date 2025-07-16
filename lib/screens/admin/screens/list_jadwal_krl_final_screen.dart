@@ -30,9 +30,16 @@ class ListJadwalKrlController extends GetxController {
     getJadwalKrlStream().listen((allJadwal) {
       isLoading.value = false;
 
-      // Pisahkan jadwal berdasarkan relasi ke dalam list masing-masing.
-      jadwalYkToPl.assignAll(allJadwal.where((j) => j.relasi.contains("YK - PL")));
-      jadwalPlToYk.assignAll(allJadwal.where((j) => j.relasi.contains("PL - YK")));
+      // Pisahkan jadwal berdasarkan relasi.
+      var listYkToPl = allJadwal.where((j) => j.relasi.contains("YK - PL")).toList();
+      var listPlToYk = allJadwal.where((j) => j.relasi.contains("PL - YK")).toList();
+
+      // Urutkan kedua list berdasarkan jam berangkat.
+      _sortJadwalList(listYkToPl);
+      _sortJadwalList(listPlToYk);
+
+      jadwalYkToPl.assignAll(listYkToPl);
+      jadwalPlToYk.assignAll(listPlToYk);
 
       // Panggil filter untuk pertama kali setelah data diterima.
       filterAllJadwal();
@@ -46,6 +53,22 @@ class ListJadwalKrlController extends GetxController {
   void onClose() {
     searchController.dispose();
     super.onClose();
+  }
+
+  /// Helper untuk mengurutkan list jadwal berdasarkan jam berangkat dari stasiun pertama.
+  void _sortJadwalList(List<JadwalKrlModel> list) {
+    list.sort((a, b) {
+      // Ambil jam berangkat dari perhentian pertama.
+      final jamA = a.perhentian.isNotEmpty ? a.perhentian.first.jamBerangkat : null;
+      final jamB = b.perhentian.isNotEmpty ? b.perhentian.first.jamBerangkat : null;
+
+      // Handle jika jam null atau kosong.
+      if (jamA == null || jamA.isEmpty) return 1;
+      if (jamB == null || jamB.isEmpty) return -1;
+
+      // Bandingkan string jam (format "HH:mm" bisa dibandingkan secara leksikografis).
+      return jamA.compareTo(jamB);
+    });
   }
 
   /// Menyaring kedua daftar jadwal berdasarkan query pencarian.
