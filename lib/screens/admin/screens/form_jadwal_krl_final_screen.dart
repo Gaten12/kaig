@@ -5,28 +5,29 @@ import 'package:kaig/models/perhentian_krl_model.dart';
 import 'package:kaig/models/stasiun_model.dart';
 import 'package:kaig/screens/admin/services/admin_firestore_service.dart';
 
-// Helper class untuk input di UI
+// Helper class untuk input di UI, dikembalikan untuk mengakomodasi jam datang
 class PerhentianKrlInput {
   StasiunModel? selectedStasiun;
-  TextEditingController jamDatangController;
   TextEditingController jamBerangkatController;
+  TextEditingController jamDatangController; // Ditambahkan kembali
 
   PerhentianKrlInput({
     this.selectedStasiun,
-    String? jamDatang,
     String? jamBerangkat,
-  })  : jamDatangController = TextEditingController(text: jamDatang),
-        jamBerangkatController = TextEditingController(text: jamBerangkat);
+    String? jamDatang, // Ditambahkan kembali
+  })  : jamBerangkatController = TextEditingController(text: jamBerangkat),
+        jamDatangController = TextEditingController(text: jamDatang); // Ditambahkan kembali
 
   void dispose() {
-    jamDatangController.dispose();
     jamBerangkatController.dispose();
+    jamDatangController.dispose(); // Ditambahkan kembali
   }
 }
 
 class FormJadwalKrlFinalScreen extends StatefulWidget {
   final JadwalKrlModel? jadwal;
-  const FormJadwalKrlFinalScreen({super.key, this.jadwal});
+  final bool isDuplicating;
+  const FormJadwalKrlFinalScreen({super.key, this.jadwal, this.isDuplicating = false});
 
   @override
   _FormJadwalKrlFinalScreenState createState() => _FormJadwalKrlFinalScreenState();
@@ -37,16 +38,18 @@ class _FormJadwalKrlFinalScreenState extends State<FormJadwalKrlFinalScreen> {
   final _firestoreService = AdminFirestoreService();
 
   late TextEditingController _nomorKaController;
-  late TextEditingController _relasiController;
   late TextEditingController _hargaController;
+  String? _selectedRelasi;
   String? _selectedTipeHari;
   List<PerhentianKrlInput> _perhentianList = [];
   List<StasiunModel> _semuaStasiun = [];
   bool _isLoading = true;
 
-  bool get _isEditing => widget.jadwal != null;
+  // Opsi relasi menggunakan singkatan
+  final List<String> _relasiOptions = ["YK - PL", "PL - YK"];
 
-  // Color constants (sesuaikan dengan tema yang diinginkan)
+  bool get _isEditing => widget.jadwal != null && !widget.isDuplicating;
+
   static const Color charcoalGray = Color(0xFF374151);
   static const Color pureWhite = Color(0xFFFFFFFF);
   static const Color electricBlue = Color(0xFF3B82F6);
@@ -54,10 +57,16 @@ class _FormJadwalKrlFinalScreenState extends State<FormJadwalKrlFinalScreen> {
   @override
   void initState() {
     super.initState();
-    _nomorKaController = TextEditingController(text: widget.jadwal?.nomorKa ?? '');
-    _relasiController = TextEditingController(text: widget.jadwal?.relasi ?? '');
-    _hargaController = TextEditingController(text: widget.jadwal?.harga.toString() ?? '');
-    _selectedTipeHari = widget.jadwal?.tipeHari;
+    _nomorKaController = TextEditingController();
+    _hargaController = TextEditingController();
+
+    if (widget.jadwal != null) {
+      final jadwal = widget.jadwal!;
+      _nomorKaController.text = jadwal.nomorKa + (widget.isDuplicating ? " (Salinan)" : "");
+      _selectedRelasi = jadwal.relasi;
+      _hargaController.text = jadwal.harga.toString();
+      _selectedTipeHari = jadwal.tipeHari;
+    }
 
     _loadInitialData();
   }
@@ -68,7 +77,7 @@ class _FormJadwalKrlFinalScreenState extends State<FormJadwalKrlFinalScreen> {
       if (!mounted) return;
 
       List<PerhentianKrlInput> initialPerhentian = [];
-      if (_isEditing) {
+      if (widget.jadwal != null) {
         initialPerhentian = widget.jadwal!.perhentian.map<PerhentianKrlInput>((p) {
           final stasiunTerpilih = stasiunList.firstWhere(
                 (s) => s.kode == p.kodeStasiun,
@@ -77,15 +86,15 @@ class _FormJadwalKrlFinalScreenState extends State<FormJadwalKrlFinalScreen> {
 
           return PerhentianKrlInput(
             selectedStasiun: stasiunTerpilih,
-            jamDatang: p.jamDatang,
             jamBerangkat: p.jamBerangkat,
+            jamDatang: p.jamDatang, // Memuat jam datang
           );
         }).toList();
       }
 
       setState(() {
         _semuaStasiun = stasiunList;
-        _perhentianList = initialPerhentian;
+        _perhentianList = initialPerhentian.isEmpty ? [PerhentianKrlInput()] : initialPerhentian;
         _isLoading = false;
       });
     } catch (e) {
@@ -101,83 +110,95 @@ class _FormJadwalKrlFinalScreenState extends State<FormJadwalKrlFinalScreen> {
   }
 
   void _hapusPerhentian(int index) {
-    setState(() {
-      _perhentianList[index].dispose();
-      _perhentianList.removeAt(index);
-    });
+    if (_perhentianList.length > 1) {
+      setState(() {
+        _perhentianList[index].dispose();
+        _perhentianList.removeAt(index);
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Minimal harus ada satu stasiun perhentian.')),
+      );
+    }
   }
 
   Future<void> _simpanJadwal() async {
     if (!_formKey.currentState!.validate()) return;
     if (_perhentianList.length < 2 || _perhentianList.any((p) => p.selectedStasiun == null)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Lengkapi semua data & minimal ada 2 stasiun perhentian.')),
+        const SnackBar(content: Text('Lengkapi data & pastikan minimal ada 2 stasiun perhentian.')),
       );
       return;
     }
 
-    // Validasi jam datang/berangkat
-    for (int i = 0; i < _perhentianList.length; i++) {
-      final p = _perhentianList[i];
-      if (i > 0 && p.jamDatangController.text.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Jam datang untuk stasiun ${p.selectedStasiun?.nama ?? 'ini'} harus diisi.')),
-        );
-        return;
-      }
-      if (i < _perhentianList.length - 1 && p.jamBerangkatController.text.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Jam berangkat untuk stasiun ${p.selectedStasiun?.nama ?? 'ini'} harus diisi.')),
-        );
-        return;
-      }
-    }
-
     final jadwalKrl = JadwalKrlModel(
-      id: widget.jadwal?.id,
+      id: _isEditing ? widget.jadwal?.id : null,
       nomorKa: _nomorKaController.text.trim(),
-      relasi: _relasiController.text.trim(),
+      relasi: _selectedRelasi!,
       harga: int.tryParse(_hargaController.text.trim()) ?? 0,
       tipeHari: _selectedTipeHari!,
       perhentian: _perhentianList.asMap().entries.map((entry) {
         int idx = entry.key;
         PerhentianKrlInput p = entry.value;
+        bool isLastStation = idx == _perhentianList.length - 1;
+
         return PerhentianKrlModel(
           kodeStasiun: p.selectedStasiun!.kode,
           namaStasiun: p.selectedStasiun!.nama,
-          jamDatang: p.jamDatangController.text.isNotEmpty ? p.jamDatangController.text : null,
-          jamBerangkat: p.jamBerangkatController.text.isNotEmpty ? p.jamBerangkatController.text : null,
+          // Jam datang hanya diisi untuk stasiun terakhir
+          jamDatang: isLastStation ? (p.jamDatangController.text.trim().isNotEmpty ? p.jamDatangController.text.trim() : null) : null,
+          // Jam berangkat null jika ini stasiun terakhir
+          jamBerangkat: isLastStation ? null : (p.jamBerangkatController.text.trim().isNotEmpty ? p.jamBerangkatController.text.trim() : null),
           urutan: idx,
         );
       }).toList(),
     );
 
     try {
+      String message;
       if (_isEditing) {
         await _firestoreService.updateJadwalKrl(jadwalKrl);
+        message = "Jadwal KRL berhasil diperbarui!";
       } else {
         await _firestoreService.addJadwalKrl(jadwalKrl);
+        message = "Jadwal KRL berhasil ditambahkan!";
       }
+
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Jadwal KRL berhasil ${ _isEditing ? "diperbarui" : "ditambahkan"}!')),
-        );
-        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+        Navigator.pop(context, true);
       }
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menyimpan jadwal KRL: $e')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menyimpan jadwal: $e')));
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Definisikan border style agar konsisten
+    String appBarTitle;
+    String submitButtonText;
+    IconData submitButtonIcon;
+
+    if (widget.isDuplicating) {
+      appBarTitle = "Salin Jadwal KRL";
+      submitButtonText = "Simpan Salinan";
+      submitButtonIcon = Icons.copy_rounded;
+    } else if (_isEditing) {
+      appBarTitle = "Edit Jadwal KRL";
+      submitButtonText = "Simpan Perubahan";
+      submitButtonIcon = Icons.save_alt_outlined;
+    } else {
+      appBarTitle = "Tambah Jadwal Baru";
+      submitButtonText = "Simpan Jadwal";
+      submitButtonIcon = Icons.add_circle_outline;
+    }
+
     final OutlineInputBorder defaultOutlineInputBorder = OutlineInputBorder(
       borderSide: BorderSide(color: Colors.grey.shade400),
       borderRadius: BorderRadius.circular(8.0),
     );
     final OutlineInputBorder focusedOutlineInputBorder = OutlineInputBorder(
-      borderSide: BorderSide(color: electricBlue, width: 2.0),
+      borderSide: const BorderSide(color: electricBlue, width: 2.0),
       borderRadius: BorderRadius.circular(8.0),
     );
     final OutlineInputBorder errorOutlineInputBorder = OutlineInputBorder(
@@ -190,12 +211,8 @@ class _FormJadwalKrlFinalScreenState extends State<FormJadwalKrlFinalScreen> {
         toolbarHeight: 80,
         backgroundColor: charcoalGray,
         title: Text(
-          _isEditing ? "Edit Jadwal KRL" : "Tambah Jadwal KRL Baru",
-          style: const TextStyle(
-            color: pureWhite,
-            fontSize: 24,
-            fontWeight: FontWeight.w200,
-          ),
+          appBarTitle,
+          style: const TextStyle(color: pureWhite, fontSize: 24, fontWeight: FontWeight.w200),
         ),
         iconTheme: const IconThemeData(color: pureWhite),
       ),
@@ -207,9 +224,7 @@ class _FormJadwalKrlFinalScreenState extends State<FormJadwalKrlFinalScreen> {
             padding: const EdgeInsets.all(16.0),
             child: Card(
               elevation: 4.0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
               child: Padding(
                 padding: const EdgeInsets.all(24.0),
                 child: Form(
@@ -226,22 +241,24 @@ class _FormJadwalKrlFinalScreenState extends State<FormJadwalKrlFinalScreen> {
                           focusedBorder: focusedOutlineInputBorder,
                           errorBorder: errorOutlineInputBorder,
                           focusedErrorBorder: focusedOutlineInputBorder.copyWith(borderSide: const BorderSide(color: Colors.red, width: 2.0)),
-                          prefixIcon: Icon(Icons.confirmation_number_outlined, color: electricBlue),
+                          prefixIcon: const Icon(Icons.confirmation_number_outlined, color: electricBlue),
                         ),
                         validator: (v) => v!.isEmpty ? "Nomor KA wajib diisi" : null,
                       ),
                       const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _relasiController,
+                      DropdownButtonFormField<String>(
+                        value: _selectedRelasi,
                         decoration: InputDecoration(
-                          labelText: "Relasi (Contoh: SLO-YK)",
+                          labelText: "Relasi",
                           enabledBorder: defaultOutlineInputBorder,
                           focusedBorder: focusedOutlineInputBorder,
                           errorBorder: errorOutlineInputBorder,
                           focusedErrorBorder: focusedOutlineInputBorder.copyWith(borderSide: const BorderSide(color: Colors.red, width: 2.0)),
-                          prefixIcon: Icon(Icons.route_outlined, color: electricBlue),
+                          prefixIcon: const Icon(Icons.route_outlined, color: electricBlue),
                         ),
-                        validator: (v) => v!.isEmpty ? "Relasi wajib diisi" : null,
+                        items: _relasiOptions.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+                        onChanged: (val) => setState(() => _selectedRelasi = val),
+                        validator: (v) => v == null ? "Pilih relasi" : null,
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
@@ -252,7 +269,7 @@ class _FormJadwalKrlFinalScreenState extends State<FormJadwalKrlFinalScreen> {
                           focusedBorder: focusedOutlineInputBorder,
                           errorBorder: errorOutlineInputBorder,
                           focusedErrorBorder: focusedOutlineInputBorder.copyWith(borderSide: const BorderSide(color: Colors.red, width: 2.0)),
-                          prefixIcon: Icon(Icons.attach_money_outlined, color: electricBlue),
+                          prefixIcon: const Icon(Icons.attach_money_outlined, color: electricBlue),
                         ),
                         keyboardType: TextInputType.number,
                         inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -271,7 +288,7 @@ class _FormJadwalKrlFinalScreenState extends State<FormJadwalKrlFinalScreen> {
                           focusedBorder: focusedOutlineInputBorder,
                           errorBorder: errorOutlineInputBorder,
                           focusedErrorBorder: focusedOutlineInputBorder.copyWith(borderSide: const BorderSide(color: Colors.red, width: 2.0)),
-                          prefixIcon: Icon(Icons.date_range_outlined, color: electricBlue),
+                          prefixIcon: const Icon(Icons.date_range_outlined, color: electricBlue),
                         ),
                         items: ["Weekday", "Weekend"].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
                         onChanged: (val) => setState(() => _selectedTipeHari = val),
@@ -300,9 +317,7 @@ class _FormJadwalKrlFinalScreenState extends State<FormJadwalKrlFinalScreen> {
                       ..._perhentianList.asMap().entries.map((entry) {
                         int idx = entry.key;
                         PerhentianKrlInput perhentian = entry.value;
-
-                        bool isFirstStation = idx == 0;
-                        bool isLastStation = idx == _perhentianList.length - 1 && _perhentianList.length > 1;
+                        bool isLastStation = idx == _perhentianList.length - 1;
 
                         return Card(
                           margin: const EdgeInsets.symmetric(vertical: 4),
@@ -314,13 +329,13 @@ class _FormJadwalKrlFinalScreenState extends State<FormJadwalKrlFinalScreen> {
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 CircleAvatar(
-                                  backgroundColor: electricBlue.withAlpha((255 * 0.1).round()),
+                                  backgroundColor: electricBlue.withAlpha(26),
                                   foregroundColor: electricBlue,
                                   child: Text("${idx + 1}", style: const TextStyle(fontWeight: FontWeight.bold)),
                                 ),
                                 const SizedBox(width: 8),
                                 Expanded(
-                                  flex: 3,
+                                  flex: 5,
                                   child: DropdownButtonFormField<StasiunModel>(
                                     value: perhentian.selectedStasiun,
                                     hint: const Text("Pilih Stasiun"),
@@ -339,18 +354,14 @@ class _FormJadwalKrlFinalScreenState extends State<FormJadwalKrlFinalScreen> {
                                   ),
                                 ),
                                 const SizedBox(width: 8),
-
-                                Expanded(
-                                  flex: 2,
-                                  child: Visibility(
-                                    visible: !isFirstStation,
-                                    maintainState: true,
-                                    maintainAnimation: true,
-                                    maintainSize: true,
+                                // Input Jam Tiba (hanya untuk stasiun terakhir)
+                                if (isLastStation)
+                                  Expanded(
+                                    flex: 3,
                                     child: TextFormField(
                                       controller: perhentian.jamDatangController,
                                       decoration: InputDecoration(
-                                        labelText: "Datang",
+                                        labelText: "Tiba",
                                         hintText: "HH:mm",
                                         enabledBorder: defaultOutlineInputBorder,
                                         focusedBorder: focusedOutlineInputBorder,
@@ -359,23 +370,17 @@ class _FormJadwalKrlFinalScreenState extends State<FormJadwalKrlFinalScreen> {
                                         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                         isDense: true,
                                       ),
-                                      validator: isFirstStation ? null : (v) {
+                                      validator: (v) {
                                         if (v!.isEmpty) return 'Wajib';
                                         if (!RegExp(r'^\d{2}:\d{2}$').hasMatch(v)) return 'Format HH:mm';
                                         return null;
                                       },
                                     ),
                                   ),
-                                ),
-                                const SizedBox(width: 8),
-
-                                Expanded(
-                                  flex: 2,
-                                  child: Visibility(
-                                    visible: !isLastStation,
-                                    maintainState: true,
-                                    maintainAnimation: true,
-                                    maintainSize: true,
+                                // Input Jam Berangkat (untuk semua kecuali stasiun terakhir)
+                                if (!isLastStation)
+                                  Expanded(
+                                    flex: 3,
                                     child: TextFormField(
                                       controller: perhentian.jamBerangkatController,
                                       decoration: InputDecoration(
@@ -388,14 +393,13 @@ class _FormJadwalKrlFinalScreenState extends State<FormJadwalKrlFinalScreen> {
                                         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                         isDense: true,
                                       ),
-                                      validator: isLastStation ? null : (v) {
+                                      validator: (v) {
                                         if (v!.isEmpty) return 'Wajib';
                                         if (!RegExp(r'^\d{2}:\d{2}$').hasMatch(v)) return 'Format HH:mm';
                                         return null;
                                       },
                                     ),
                                   ),
-                                ),
                                 IconButton(
                                   onPressed: () => _hapusPerhentian(idx),
                                   icon: const Icon(Icons.remove_circle_outline, color: Colors.redAccent),
@@ -408,8 +412,8 @@ class _FormJadwalKrlFinalScreenState extends State<FormJadwalKrlFinalScreen> {
                       const SizedBox(height: 24),
                       ElevatedButton.icon(
                         onPressed: _simpanJadwal,
-                        icon: const Icon(Icons.save_alt_outlined),
-                        label: Text(_isEditing ? 'Simpan Perubahan' : 'Simpan Jadwal KRL'),
+                        icon: Icon(submitButtonIcon),
+                        label: Text(submitButtonText),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: electricBlue,
                           foregroundColor: pureWhite,
@@ -434,7 +438,6 @@ class _FormJadwalKrlFinalScreenState extends State<FormJadwalKrlFinalScreen> {
   @override
   void dispose() {
     _nomorKaController.dispose();
-    _relasiController.dispose();
     _hargaController.dispose();
     for (var p in _perhentianList) {
       p.dispose();

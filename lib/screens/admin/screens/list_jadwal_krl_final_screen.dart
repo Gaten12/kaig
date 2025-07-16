@@ -1,4 +1,3 @@
-// lib/screens/admin/screens/list_jadwal_krl_final_screen.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -6,18 +5,22 @@ import 'package:kaig/models/jadwal_krl_model.dart';
 import 'package:kaig/screens/admin/screens/form_jadwal_krl_final_screen.dart';
 import 'package:kaig/screens/admin/services/admin_firestore_service.dart';
 
+/// Controller untuk mengelola state dan logika dari halaman ListJadwalKrlFinalScreen.
+/// Menggunakan GetX untuk state management.
 class ListJadwalKrlController extends GetxController {
   final AdminFirestoreService _adminService = AdminFirestoreService();
   final TextEditingController searchController = TextEditingController();
 
   final RxString searchQuery = "".obs;
+  // RxList untuk menampung semua data asli dari stream Firestore.
   final RxList<JadwalKrlModel> allJadwalKrl = <JadwalKrlModel>[].obs;
+  // RxList untuk data yang akan ditampilkan di UI setelah melalui proses filter.
   final RxList<JadwalKrlModel> filteredJadwalKrl = <JadwalKrlModel>[].obs;
-  final RxBool isLoading = false.obs;
 
   @override
   void onInit() {
     super.onInit();
+    // Listener untuk filter otomatis saat user mengetik di search bar.
     searchController.addListener(() {
       searchQuery.value = searchController.text;
       filterJadwalKrl();
@@ -30,30 +33,59 @@ class ListJadwalKrlController extends GetxController {
     super.onClose();
   }
 
+  /// Mengupdate daftar jadwal utama dan memicu filter.
+  /// Dipanggil dari StreamBuilder di UI.
+  void updateJadwalListFromStream(List<JadwalKrlModel> jadwalFromStream) {
+    allJadwalKrl.assignAll(jadwalFromStream);
+    filterJadwalKrl();
+  }
+
+
+  /// Menyaring daftar jadwal berdasarkan query pencarian.
   void filterJadwalKrl() {
+    List<JadwalKrlModel> _jadwal;
     if (searchQuery.isEmpty) {
-      filteredJadwalKrl.assignAll(allJadwalKrl);
+      _jadwal = allJadwalKrl;
     } else {
-      filteredJadwalKrl.assignAll(allJadwalKrl.where((jadwal) {
+      String searchQueryLower = searchQuery.toLowerCase();
+      _jadwal = allJadwalKrl.where((jadwal) {
         final nomorKaLower = jadwal.nomorKa.toLowerCase();
         final relasiLower = jadwal.relasi.toLowerCase();
         final tipeHariLower = jadwal.tipeHari.toLowerCase();
-        final searchQueryLower = searchQuery.toLowerCase();
 
         return nomorKaLower.contains(searchQueryLower) ||
             relasiLower.contains(searchQueryLower) ||
             tipeHariLower.contains(searchQueryLower);
-      }).toList());
+      }).toList();
     }
+    filteredJadwalKrl.assignAll(_jadwal);
   }
 
-  void clearSearch() { // Added this method
+  /// Membersihkan teks di search controller.
+  void clearSearch() {
     searchController.clear();
   }
 
+  /// Navigasi ke halaman form. Bisa untuk menambah, mengedit, atau menyalin jadwal.
+  Future<void> navigateToForm({JadwalKrlModel? jadwal, bool isDuplicating = false}) async {
+    // `Get.to` akan mengembalikan sebuah Future.
+    // Kita bisa menunggu halaman form ditutup.
+    final result = await Get.to(() => FormJadwalKrlFinalScreen(
+      jadwal: jadwal,
+      isDuplicating: isDuplicating,
+    ));
+
+    // Jika form ditutup dengan hasil `true` (artinya ada perubahan),
+    // kita bisa melakukan aksi tambahan di sini.
+    // Namun, karena kita menggunakan `bindStream`, daftar akan otomatis refresh.
+    if (result == true) {
+      Get.log("Kembali dari form dengan perubahan, daftar diperbarui via stream.");
+    }
+  }
+
+  /// Menghapus jadwal KRL dari Firestore.
   Future<void> deleteJadwalKrl(String jadwalId, String nomorKa) async {
     try {
-      isLoading.value = true;
       await _adminService.deleteJadwalKrl(jadwalId);
       Get.snackbar(
         'Berhasil',
@@ -61,9 +93,6 @@ class ListJadwalKrlController extends GetxController {
         backgroundColor: const Color(0xFF3B82F6),
         colorText: Colors.white,
         snackPosition: SnackPosition.BOTTOM,
-        margin: const EdgeInsets.all(16),
-        borderRadius: 12,
-        duration: const Duration(seconds: 3),
       );
     } catch (e) {
       Get.snackbar(
@@ -72,132 +101,92 @@ class ListJadwalKrlController extends GetxController {
         backgroundColor: Colors.red,
         colorText: Colors.white,
         snackPosition: SnackPosition.BOTTOM,
-        margin: const EdgeInsets.all(16),
-        borderRadius: 12,
-        duration: const Duration(seconds: 3),
       );
-    } finally {
-      isLoading.value = false;
     }
   }
 
+  /// Mendapatkan stream data jadwal dari Firestore.
   Stream<List<JadwalKrlModel>> getJadwalKrlStream() {
     return _adminService.getJadwalKrlList();
   }
 }
 
+/// Widget untuk menampilkan daftar jadwal KRL.
 class ListJadwalKrlFinalScreen extends StatelessWidget {
   const ListJadwalKrlFinalScreen({super.key});
 
+  // Definisi warna untuk konsistensi UI
   static const Color charcoalGray = Color(0xFF374151);
   static const Color pureWhite = Color(0xFFFFFFFF);
   static const Color electricBlue = Color(0xFF3B82F6);
+  static const Color successGreen = Color(0xFF22C55E);
 
   @override
   Widget build(BuildContext context) {
+    // Inisialisasi controller menggunakan Get.put()
     final controller = Get.put(ListJadwalKrlController());
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
-        elevation: 0,
+        elevation: 1,
+        shadowColor: Colors.black.withAlpha(26), // FIX: Mengganti withOpacity
         toolbarHeight: 80,
-        backgroundColor: charcoalGray,
+        backgroundColor: pureWhite,
+        foregroundColor: charcoalGray,
         title: const Text(
-          "Daftar Jadwal KRL",
+          "Kelola Jadwal KRL",
           style: TextStyle(
-            color: pureWhite,
-            fontSize: 24,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.5,
+            color: charcoalGray,
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
           ),
         ),
-        iconTheme: const IconThemeData(color: pureWhite),
         centerTitle: true,
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(4),
-          child: Container(
-            height: 4,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [electricBlue, Colors.blue],
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
-              ),
-            ),
-          ),
-        ),
       ),
       body: Column(
         children: [
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: const BoxDecoration(
-              color: pureWhite,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 4,
-                  offset: Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  decoration: BoxDecoration(
+          // Search Bar
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Obx(
+                  () => TextField(
+                controller: controller.searchController,
+                style: const TextStyle(fontSize: 16),
+                decoration: InputDecoration(
+                  hintText: "Cari nomor KA, relasi, tipe hari...",
+                  prefixIcon: const Icon(Icons.search_rounded, color: charcoalGray),
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: electricBlue.withAlpha((255 * 0.1).round()),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
+                    borderSide: BorderSide(color: Colors.grey.shade300),
                   ),
-                  child: Obx(
-                        () => TextField(
-                      controller: controller.searchController,
-                      style: const TextStyle(fontSize: 16),
-                      decoration: InputDecoration(
-                        labelText: "Cari Jadwal KRL",
-                        hintText: "Nomor KA, relasi, tipe hari...",
-                        hintStyle: TextStyle(color: Colors.grey.shade500),
-                        prefixIcon: Icon(Icons.search_rounded, color: electricBlue),
-                        filled: true,
-                        fillColor: pureWhite,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey.shade200),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey.shade200),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: electricBlue, width: 2),
-                        ),
-                        suffixIcon: controller.searchQuery.isNotEmpty
-                            ? IconButton(
-                          icon: Icon(Icons.clear_rounded,
-                              color: Colors.grey.shade600),
-                          onPressed: controller.clearSearch, // Calls the new clearSearch method
-                        )
-                            : const SizedBox.shrink(),
-                      ),
-                    ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
                   ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: electricBlue, width: 2),
+                  ),
+                  suffixIcon: controller.searchQuery.isNotEmpty
+                      ? IconButton(
+                    icon: Icon(Icons.clear_rounded, color: Colors.grey.shade600),
+                    onPressed: controller.clearSearch,
+                  )
+                      : null,
                 ),
-              ],
+              ),
             ),
           ),
+          // Daftar Jadwal
           Expanded(
             child: StreamBuilder<List<JadwalKrlModel>>(
               stream: controller.getJadwalKrlStream(),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
+                  // FIX: Memanggil _buildErrorState saat ada error
                   return _buildErrorState(snapshot.error.toString());
                 }
 
@@ -205,25 +194,22 @@ class ListJadwalKrlFinalScreen extends StatelessWidget {
                   return _buildLoadingState();
                 }
 
-                if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  controller.allJadwalKrl.clear();
-                  controller.filterJadwalKrl();
+                final jadwalList = snapshot.data ?? [];
+                // Mengupdate list di controller dengan data terbaru dari stream
+                controller.updateJadwalListFromStream(jadwalList);
+
+                if (jadwalList.isEmpty) {
                   return _buildEmptyState("Belum ada data jadwal KRL.");
                 }
 
-                if (controller.allJadwalKrl.length != snapshot.data!.length) {
-                  controller.allJadwalKrl.assignAll(snapshot.data!);
-                  controller.filterJadwalKrl();
-                }
-
+                // Obx akan merebuild UI saat filteredJadwalKrl berubah
                 return Obx(() {
-                  if (controller.filteredJadwalKrl.isEmpty &&
-                      controller.searchQuery.isNotEmpty) {
+                  if (controller.filteredJadwalKrl.isEmpty) {
                     return _buildEmptyState("Jadwal KRL tidak ditemukan.");
                   }
 
                   return ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
                     itemCount: controller.filteredJadwalKrl.length,
                     itemBuilder: (context, index) {
                       final jadwal = controller.filteredJadwalKrl[index];
@@ -236,320 +222,176 @@ class ListJadwalKrlFinalScreen extends StatelessWidget {
           ),
         ],
       ),
-      floatingActionButton: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: electricBlue.withAlpha((255 * 0.3).round()),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: FloatingActionButton.extended(
-          onPressed: () {
-            Get.to(() => const FormJadwalKrlFinalScreen());
-          },
-          backgroundColor: electricBlue,
-          elevation: 0,
-          icon: const Icon(Icons.add_rounded, color: pureWhite),
-          label: const Text(
-            "Tambah Jadwal KRL",
-            style: TextStyle(
-              color: pureWhite,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => controller.navigateToForm(),
+        backgroundColor: electricBlue,
+        icon: const Icon(Icons.add, color: pureWhite),
+        label: const Text(
+          "Tambah Jadwal",
+          style: TextStyle(color: pureWhite, fontWeight: FontWeight.w600),
         ),
       ),
     );
   }
 
-  Widget _buildJadwalKrlCard(BuildContext context, JadwalKrlModel jadwal,
-      ListJadwalKrlController controller) {
-    return Container(
+  /// Widget untuk membangun setiap kartu jadwal dalam daftar.
+  Widget _buildJadwalKrlCard(BuildContext context, JadwalKrlModel jadwal, ListJadwalKrlController controller) {
+    return Card(
+      elevation: 2,
       margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: pureWhite,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha((255 * 0.08).round()),
-            blurRadius: 12,
-            offset: const Offset(0, 2),
-          ),
-        ],
-        border: Border.all(
-          color: Colors.grey.withAlpha((255 * 0.2).round()),
-          width: 1,
-        ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.grey.shade200),
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: () {
-            Get.to(() => FormJadwalKrlFinalScreen(jadwal: jadwal));
-          },
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: electricBlue,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        jadwal.nomorKa,
-                        style: const TextStyle(
-                          color: pureWhite,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 12,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => controller.navigateToForm(jadwal: jadwal),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Flexible(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "KA ${jadwal.nomorKa}",
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: electricBlue),
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        jadwal.relasi,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: charcoalGray,
+                        const SizedBox(height: 2),
+                        Text(
+                          jadwal.relasi,
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: charcoalGray),
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
+                      ],
                     ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.withAlpha((255 * 0.05).round()),
-                    borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.calendar_today_rounded,
-                            size: 16,
-                            color: charcoalGray.withAlpha((255 * 0.7).round()),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            "Tipe Hari: ",
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: charcoalGray.withAlpha((255 * 0.7).round()),
-                            ),
-                          ),
-                          Text(
-                            jadwal.tipeHari,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: charcoalGray,
-                            ),
-                          ),
-                        ],
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: jadwal.tipeHari.toLowerCase() == 'weekend' ? Colors.orange.shade100 : Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      jadwal.tipeHari,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: jadwal.tipeHari.toLowerCase() == 'weekend' ? Colors.orange.shade800 : Colors.blue.shade800,
                       ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.money_rounded,
-                            size: 16,
-                            color: charcoalGray.withAlpha((255 * 0.7).round()),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            "Harga: ",
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: charcoalGray.withAlpha((255 * 0.7).round()),
-                            ),
-                          ),
-                          Text(
-                            NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(jadwal.harga),
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: charcoalGray,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                    ),
+                  )
+                ],
+              ),
+              const Divider(height: 24),
+              Row(
+                children: [
+                  Icon(Icons.money_rounded, size: 16, color: Colors.grey.shade600),
+                  const SizedBox(width: 8),
+                  Text("Harga: ", style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
+                  Text(
+                    NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0).format(jadwal.harga),
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: charcoalGray),
                   ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: Colors.grey.withAlpha((255 * 0.3).round()),
-                        ),
-                      ),
-                      child: IconButton(
-                        icon: Icon(
-                          Icons.edit_off_outlined,
-                          color: Colors.grey.shade400,
-                          size: 20,
-                        ),
-                        tooltip: "Fitur Edit belum tersedia",
-                        onPressed: () {
-                          Get.to(() => FormJadwalKrlFinalScreen(jadwal: jadwal));
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: Colors.red.withAlpha((255 * 0.3).round()),
-                        ),
-                      ),
-                      child: IconButton(
-                        icon: Icon(
-                          Icons.delete_outline_rounded,
-                          color: Colors.red.shade600,
-                          size: 20,
-                        ),
-                        onPressed: () => _showDeleteConfirmation(
-                          context,
-                          jadwal,
-                          controller,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  _actionButton(
+                    icon: Icons.copy_outlined,
+                    label: "Salin",
+                    color: successGreen,
+                    onTap: () => controller.navigateToForm(jadwal: jadwal, isDuplicating: true),
+                  ),
+                  const SizedBox(width: 8),
+                  _actionButton(
+                    icon: Icons.edit_rounded,
+                    label: "Edit",
+                    color: electricBlue,
+                    onTap: () => controller.navigateToForm(jadwal: jadwal),
+                  ),
+                  const SizedBox(width: 8),
+                  _actionButton(
+                    icon: Icons.delete_outline_rounded,
+                    label: "Hapus",
+                    color: Colors.redAccent,
+                    onTap: () => _showDeleteConfirmation(context, jadwal, controller),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
+  /// Helper widget untuk membuat tombol aksi (Edit, Salin, Hapus).
+  Widget _actionButton({required IconData icon, required String label, required Color color, required VoidCallback onTap}) {
+    return Material(
+      color: color.withAlpha((255 * 0.1).round()), // FIX: Mengganti withOpacity
+      borderRadius: BorderRadius.circular(8),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          child: Row(
+            children: [
+              Icon(icon, color: color, size: 16),
+              const SizedBox(width: 4),
+              Text(
+                label,
+                style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Widget yang ditampilkan saat data sedang dimuat.
   Widget _buildLoadingState() {
     return const Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(
-              electricBlue,
-            ),
-          ),
+          CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(electricBlue)),
           SizedBox(height: 16),
-          Text(
-            "Memuat data jadwal KRL...",
-            style: TextStyle(
-              color: charcoalGray,
-              fontSize: 16,
-            ),
-          ),
+          Text("Memuat data jadwal KRL...", style: TextStyle(color: charcoalGray, fontSize: 16)),
         ],
       ),
     );
   }
 
+  /// Widget yang ditampilkan saat tidak ada data atau hasil pencarian kosong.
   Widget _buildEmptyState(String message) {
     return Center(
-      child: Container(
-        margin: const EdgeInsets.all(24),
-        padding: const EdgeInsets.all(32),
-        decoration: BoxDecoration(
-          color: electricBlue.withAlpha((255 * 0.1).round()),
-          borderRadius: BorderRadius.circular(20),
-        ),
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.train_rounded,
-              size: 64,
-              color: electricBlue.withAlpha((255 * 0.7).round()),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              message,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                color: charcoalGray,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              "Silakan tambahkan jadwal baru dengan menekan tombol + di bawah",
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: charcoalGray.withAlpha((255 * 0.7).round()),
-                fontSize: 16,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildErrorState(String error) {
-    return Center(
-      child: Container(
-        margin: const EdgeInsets.all(24),
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          color: Colors.red.withAlpha((255 * 0.1).round()),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: Colors.red.withAlpha((255 * 0.3).round()),
-            width: 1,
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.error_outline_rounded,
-              size: 48,
-              color: Colors.red.shade700,
-            ),
+            Icon(Icons.train_rounded, size: 64, color: Colors.grey.shade400),
             const SizedBox(height: 16),
             Text(
-              "Terjadi Error",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Colors.red.shade700,
-              ),
+              message,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: charcoalGray),
+              textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
-              "$error",
+              "Gunakan tombol + untuk menambahkan jadwal baru.",
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.red.shade600,
-              ),
+              style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
             ),
           ],
         ),
@@ -557,101 +399,46 @@ class ListJadwalKrlFinalScreen extends StatelessWidget {
     );
   }
 
-  void _showDeleteConfirmation(
-      BuildContext context,
-      JadwalKrlModel jadwal,
-      ListJadwalKrlController controller,
-      ) {
+  /// Widget yang ditampilkan jika terjadi error saat mengambil data.
+  Widget _buildErrorState(String error) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline_rounded, size: 48, color: Colors.red),
+            const SizedBox(height: 16),
+            const Text(
+              "Terjadi Error",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.red),
+            ),
+            const SizedBox(height: 8),
+            Text(error, textAlign: TextAlign.center, style: TextStyle(color: Colors.red.shade600)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Menampilkan dialog konfirmasi sebelum menghapus jadwal.
+  void _showDeleteConfirmation(BuildContext context, JadwalKrlModel jadwal, ListJadwalKrlController controller) {
     Get.dialog(
       AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.red.withAlpha((255 * 0.1).round()),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                Icons.delete_outline_rounded,
-                color: Colors.red.shade600,
-                size: 24,
-              ),
-            ),
-            const SizedBox(width: 12),
-            const Text(
-              'Konfirmasi Hapus',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: charcoalGray,
-              ),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Anda yakin ingin menghapus jadwal KRL berikut?',
-              style: TextStyle(
-                color: charcoalGray.withAlpha((255 * 0.8).round()),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.grey.withAlpha((255 * 0.1).round()),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "KA ${jadwal.nomorKa} - ${jadwal.relasi}",
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: charcoalGray,
-                    ),
-                  ),
-                  Text(
-                    "Tipe Hari: ${jadwal.tipeHari}",
-                    style: TextStyle(
-                      color: charcoalGray.withAlpha((255 * 0.7).round()),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Konfirmasi Hapus'),
+        content: Text('Anda yakin ingin menghapus jadwal KRL KA ${jadwal.nomorKa} (${jadwal.relasi})?'),
         actions: [
           TextButton(
             onPressed: () => Get.back(),
-            child: Text(
-              'Batal',
-              style: TextStyle(
-                color: charcoalGray.withAlpha((255 * 0.7).round()),
-              ),
-            ),
+            child: const Text('Batal'),
           ),
           ElevatedButton(
             onPressed: () {
               Get.back();
               controller.deleteJadwalKrl(jadwal.id!, jadwal.nomorKa);
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: pureWhite,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: pureWhite),
             child: const Text('Hapus'),
           ),
         ],
