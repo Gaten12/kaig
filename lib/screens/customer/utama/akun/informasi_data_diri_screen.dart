@@ -121,10 +121,7 @@ class _InformasiDataDiriScreenState extends State<InformasiDataDiriScreen> {
         const Text("Informasi data diri anda belum lengkap, lengkapi data diri anda untuk menikmati semua layanan TrainOrder", style: TextStyle(color: Colors.grey)),
         const SizedBox(height: 24),
         _buildInfoTile("No. Telepon", _userModel!.noTelepon, () {
-          _navigasiDenganKonfirmasiPassword(
-              aksiSetelahKonfirmasi: () async {},
-              nextPage: GantiNomorTeleponScreen(nomorTeleponSaatIni: _userModel!.noTelepon)
-          );
+          Navigator.push(context, MaterialPageRoute(builder: (context) => GantiNomorTeleponScreen(nomorTeleponSaatIni: _userModel!.noTelepon))).then((_) => _loadData());
         }),
         _buildInfoTile("Email", _userModel!.email, () {
           _navigasiDenganKonfirmasiPassword(
@@ -133,13 +130,8 @@ class _InformasiDataDiriScreenState extends State<InformasiDataDiriScreen> {
           );
         }),
         _buildInfoTile("Tipe ID & No. ID", "${_primaryPassenger!.tipeId} - ${_primaryPassenger!.nomorId}", () {
-          _navigasiDenganKonfirmasiPassword(
-              aksiSetelahKonfirmasi: () async {},
-              nextPage: GantiNomorIdentitasScreen(passenger: _primaryPassenger!)
-          );
+          Navigator.push(context, MaterialPageRoute(builder: (context) => GantiNomorIdentitasScreen(passenger: _primaryPassenger!))).then((_) => _loadData());
         }),
-        // --- PERBAIKAN DI SINI ---
-        // Panggil widget baru untuk data diri
         _buildDataPribadiCard(),
         const SizedBox(height: 48),
         ElevatedButton(
@@ -155,7 +147,6 @@ class _InformasiDataDiriScreenState extends State<InformasiDataDiriScreen> {
     );
   }
 
-  // --- WIDGET BARU UNTUK KARTU DATA PRIBADI ---
   Widget _buildDataPribadiCard() {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -169,22 +160,17 @@ class _InformasiDataDiriScreenState extends State<InformasiDataDiriScreen> {
                 const Text("Nama Lengkap", style: TextStyle(color: Colors.grey, fontSize: 12)),
                 TextButton(
                     onPressed: () {
-                      _navigasiDenganKonfirmasiPassword(
-                          aksiSetelahKonfirmasi: () async {},
-                          nextPage: GantiInformasiPribadiScreen(passenger: _primaryPassenger!)
-                      );
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => GantiInformasiPribadiScreen(passenger: _primaryPassenger!))).then((_) => _loadData());
                     },
                     child: const Text("UBAH")
                 ),
               ],
             ),
-            // Tampilkan nama di bawah labelnya
             Align(
               alignment: Alignment.centerLeft,
               child: Text(_primaryPassenger!.namaLengkap, style: const TextStyle(fontSize: 16)),
             ),
             const Divider(height: 24),
-            // Tampilkan Jenis Kelamin dan Tanggal Lahir
             Row(
               children: [
                 Expanded(

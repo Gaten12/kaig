@@ -69,9 +69,9 @@ class _AccountScreenState extends State<AccountScreen> {
     if (mounted) {
       setState(() {
         _userName = displayNameToShow;
-        if (_userName.length > 20) {
-          _userName = "${_userName.substring(0, 17)}...";
-        }
+        // if (_userName.length > 20) {
+        //   _userName = "${_userName.substring(0, 17)}...";
+        // }
       });
     }
   }
@@ -304,7 +304,6 @@ class _AccountScreenState extends State<AccountScreen> {
                         fontSize: isSmallScreen ? 18 : 20, // Responsive font size
                         fontWeight: FontWeight.bold,
                         color: Colors.black87),
-                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
