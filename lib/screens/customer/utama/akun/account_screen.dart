@@ -8,6 +8,7 @@ import '../../../login/login_screen.dart';
 import '../pembayaran/metode_pembayaran_screen.dart';
 import 'ganti_kata_sandi_screen.dart';
 import 'informasi_data_diri_screen.dart';
+import 'konfirmasi_password_screen.dart';
 import 'list_penumpang_screen.dart';
 
 class AccountScreen extends StatefulWidget {
@@ -69,36 +70,45 @@ class _AccountScreenState extends State<AccountScreen> {
     if (mounted) {
       setState(() {
         _userName = displayNameToShow;
-        // if (_userName.length > 20) {
-        //   _userName = "${_userName.substring(0, 17)}...";
-        // }
       });
     }
   }
 
-  // GANTI FUNGSI LAMA INI DENGAN FUNGSI YANG BARU
+  // Fungsi ini diperbaiki dengan menambahkan 'async'
+  void _navigasiKeKelolaAkun() {
+    Navigator.push(context, MaterialPageRoute(
+      builder: (context) => KonfirmasiPasswordScreen(
+        onPasswordConfirmed: () async { // <-- TAMBAHKAN ASYNC DI SINI
+          Navigator.of(context).pop(); // Tutup layar konfirmasi password
+          await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const InformasiDataDiriScreen()),
+          );
+          _loadUserData();
+        },
+      ),
+    ));
+  }
+
+
   void _showLogoutConfirmationDialog() {
     showDialog(
       context: context,
-      barrierDismissible: false, // Mencegah dialog ditutup saat mengetuk di luar
+      barrierDismissible: false,
       builder: (BuildContext context) {
-        // Menggunakan widget Dialog untuk kustomisasi penuh
         return Dialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20.0), // Sudut membulat
+            borderRadius: BorderRadius.circular(20.0),
           ),
           elevation: 0,
           backgroundColor: Colors.transparent,
-          child: _buildDialogContent(context), // Memanggil konten dialog kustom
+          child: _buildDialogContent(context),
         );
       },
     );
   }
 
-// BUAT WIDGET BARU INI DI DALAM CLASS _AccountScreenState
-// untuk membangun konten dialog
   Widget _buildDialogContent(BuildContext context) {
-    // Dapatkan ukuran layar untuk responsivitas
     final isSmallScreen = MediaQuery.of(context).size.width < 600;
 
     return Container(
@@ -116,9 +126,8 @@ class _AccountScreenState extends State<AccountScreen> {
         ],
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min, // Membuat ukuran Column sesuai konten
+        mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          // Ikon
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -126,14 +135,12 @@ class _AccountScreenState extends State<AccountScreen> {
               shape: BoxShape.circle,
             ),
             child: Icon(
-              Icons.exit_to_app_rounded, // Ikon keluar
+              Icons.exit_to_app_rounded,
               color: const Color(0xFFC50000),
               size: isSmallScreen ? 35 : 40,
             ),
           ),
           SizedBox(height: isSmallScreen ? 16 : 24),
-
-          // Judul
           Text(
             'Log Out Akun?',
             style: TextStyle(
@@ -143,8 +150,6 @@ class _AccountScreenState extends State<AccountScreen> {
             ),
           ),
           SizedBox(height: isSmallScreen ? 6 : 8),
-
-          // Deskripsi
           Text(
             'Apakah anda yakin ingin keluar dari akun ini?',
             style: TextStyle(
@@ -154,16 +159,12 @@ class _AccountScreenState extends State<AccountScreen> {
             textAlign: TextAlign.center,
           ),
           SizedBox(height: isSmallScreen ? 20 : 24),
-
-          // Tombol Aksi
           Row(
             children: [
-              // Tombol "Ya, Keluar" (Outlined)
               Expanded(
                 child: OutlinedButton(
                   onPressed: () async {
-                    // Logika untuk logout
-                    Navigator.of(context).pop(); // Tutup dialog dulu
+                    Navigator.of(context).pop();
                     await _authService.signOut();
                     if (mounted) {
                       Navigator.of(context).pushAndRemoveUntil(
@@ -174,7 +175,7 @@ class _AccountScreenState extends State<AccountScreen> {
                     }
                   },
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFFC50000), // Warna teks dan border
+                    foregroundColor: const Color(0xFFC50000),
                     side: const BorderSide(color: Color(0xFFC50000), width: 1.5),
                     padding:
                     EdgeInsets.symmetric(vertical: isSmallScreen ? 10 : 12),
@@ -191,16 +192,14 @@ class _AccountScreenState extends State<AccountScreen> {
                 ),
               ),
               SizedBox(width: isSmallScreen ? 12 : 16),
-
-              // Tombol "Tidak" (Elevated/Solid)
               Expanded(
                 child: ElevatedButton(
                   onPressed: () =>
-                      Navigator.of(context).pop(), // Cukup tutup dialog
+                      Navigator.of(context).pop(),
                   style: ElevatedButton.styleFrom(
                     backgroundColor:
-                    const Color(0xFF304FFE), // Warna latar belakang biru
-                    foregroundColor: Colors.white, // Warna teks putih
+                    const Color(0xFF304FFE),
+                    foregroundColor: Colors.white,
                     elevation: 0,
                     padding:
                     EdgeInsets.symmetric(vertical: isSmallScreen ? 10 : 12),
@@ -230,15 +229,13 @@ class _AccountScreenState extends State<AccountScreen> {
 
     return Scaffold(
       backgroundColor: Colors.grey[200],
-      body: SingleChildScrollView( // Wrap the entire body content in SingleChildScrollView
+      body: SingleChildScrollView(
         child: Column(
           children: [
-            _buildProfileHeader(context, isSmallScreen), // This builds the header
-            // Directly list out menu items within the Column
+            _buildProfileHeader(context, isSmallScreen),
             _buildSectionTitle("Informasi Pengguna", isSmallScreen),
-            // Group menu items in a Card or Container for better visual separation and shadow if desired
             Container(
-              color: Colors.white, // Background for the menu group
+              color: Colors.white,
               child: Column(
                 children: [
                   _buildMenuItem(context, icon: Icons.lock_outline, title: "Ganti Kata Sandi", onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const GantiKataSandiScreen())), isSmallScreen: isSmallScreen),
@@ -253,7 +250,7 @@ class _AccountScreenState extends State<AccountScreen> {
             ),
             _buildSectionTitle("Lainnya", isSmallScreen),
             Container(
-              color: Colors.white, // Background for the other menu group
+              color: Colors.white,
               child: Column(
                 children: [
                   _buildMenuItem(context, icon: Icons.info_outline, title: "Tentang Aplikasi TrainOrder", onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const TentangAplikasiScreen())), isSmallScreen: isSmallScreen),
@@ -262,7 +259,7 @@ class _AccountScreenState extends State<AccountScreen> {
                 ],
               ),
             ),
-            SizedBox(height: MediaQuery.of(context).padding.bottom + (isSmallScreen ? 16 : 24)), // Responsive bottom padding to account for safe area and ensure scrollability
+            SizedBox(height: MediaQuery.of(context).padding.bottom + (isSmallScreen ? 16 : 24)),
           ],
         ),
       ),
@@ -286,45 +283,39 @@ class _AccountScreenState extends State<AccountScreen> {
             Row(
               children: [
                 CircleAvatar(
-                  radius: isSmallScreen ? 25 : 30, // Responsive radius
+                  radius: isSmallScreen ? 25 : 30,
                   backgroundColor: const Color(0xFFC50000),
                   child: Text(
                     _userInitials,
                     style: TextStyle(
-                        fontSize: isSmallScreen ? 24 : 28, // Responsive font size
+                        fontSize: isSmallScreen ? 24 : 28,
                         color: Colors.white,
                         fontWeight: FontWeight.bold),
                   ),
                 ),
-                SizedBox(width: isSmallScreen ? 12.0 : 16.0), // Responsive spacing
+                SizedBox(width: isSmallScreen ? 12.0 : 16.0),
                 Expanded(
                   child: Text(
                     _userName,
                     style: TextStyle(
-                        fontSize: isSmallScreen ? 18 : 20, // Responsive font size
+                        fontSize: isSmallScreen ? 18 : 20,
                         fontWeight: FontWeight.bold,
                         color: Colors.black87),
                   ),
                 ),
               ],
             ),
-            SizedBox(height: isSmallScreen ? 12.0 : 16.0), // Responsive spacing
+            SizedBox(height: isSmallScreen ? 12.0 : 16.0),
             ElevatedButton.icon(
-              icon: Icon(Icons.person, size: isSmallScreen ? 18 : 20), // Responsive icon size
-              label: Text("Kelola Profile", style: TextStyle(fontSize: isSmallScreen ? 14 : 16)), // Responsive font size
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const InformasiDataDiriScreen()),
-                ).then((_) => _loadUserData()); // Refresh data when returning
-              },
+              icon: Icon(Icons.person, size: isSmallScreen ? 18 : 20),
+              label: Text("Kelola Profile", style: TextStyle(fontSize: isSmallScreen ? 14 : 16)),
+              onPressed: _navigasiKeKelolaAkun,
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.white,
                 backgroundColor: const Color(0xFFC50000),
-                minimumSize: Size(double.infinity, isSmallScreen ? 35 : 40), // Responsive button height
+                minimumSize: Size(double.infinity, isSmallScreen ? 35 : 40),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(isSmallScreen ? 6.0 : 8.0), // Responsive border radius
+                  borderRadius: BorderRadius.circular(isSmallScreen ? 6.0 : 8.0),
                 ),
                 elevation: 0,
               ),
@@ -337,13 +328,13 @@ class _AccountScreenState extends State<AccountScreen> {
 
   Widget _buildSectionTitle(String title, bool isSmallScreen) {
     return Padding(
-      padding: EdgeInsets.fromLTRB(isSmallScreen ? 16.0 : 20.0, isSmallScreen ? 20.0 : 24.0, isSmallScreen ? 16.0 : 20.0, isSmallScreen ? 6.0 : 8.0), // Responsive padding
+      padding: EdgeInsets.fromLTRB(isSmallScreen ? 16.0 : 20.0, isSmallScreen ? 20.0 : 24.0, isSmallScreen ? 16.0 : 20.0, isSmallScreen ? 6.0 : 8.0),
       child: Align(
-        alignment: Alignment.centerLeft, // Align text to the left
+        alignment: Alignment.centerLeft,
         child: Text(
           title,
           style: TextStyle(
-              fontSize: isSmallScreen ? 13 : 14, // Responsive font size
+              fontSize: isSmallScreen ? 13 : 14,
               color: Colors.grey.shade600,
               fontWeight: FontWeight.bold),
         ),
@@ -357,17 +348,17 @@ class _AccountScreenState extends State<AccountScreen> {
         required VoidCallback onTap,
         Color? textColor,
         Color? iconColor,
-        required bool isSmallScreen}) { // Added isSmallScreen
+        required bool isSmallScreen}) {
     return ListTile(
-      contentPadding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 16.0 : 20.0), // Responsive padding
-      leading: Icon(icon, color: iconColor ?? Colors.grey.shade700, size: isSmallScreen ? 20 : 24), // Responsive icon size
+      contentPadding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 16.0 : 20.0),
+      leading: Icon(icon, color: iconColor ?? Colors.grey.shade700, size: isSmallScreen ? 20 : 24),
       title: Text(title,
           style: TextStyle(
               color: textColor ?? Colors.black87,
-              fontSize: isSmallScreen ? 15 : 16, // Responsive font size
+              fontSize: isSmallScreen ? 15 : 16,
               fontWeight: FontWeight.w500)),
       trailing:
-      Icon(Icons.arrow_forward_ios, size: isSmallScreen ? 14 : 16, color: Colors.grey), // Responsive icon size
+      Icon(Icons.arrow_forward_ios, size: isSmallScreen ? 14 : 16, color: Colors.grey),
       onTap: onTap,
     );
   }
