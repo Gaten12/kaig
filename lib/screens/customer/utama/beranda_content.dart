@@ -257,7 +257,7 @@ class BerandaContent extends StatelessWidget {
     );
   }
 
-  // _buildStatCard (not directly used in the current context, but can be made responsive)
+
   Widget _buildStatCard(String value, String label, IconData icon, {required bool isSmallScreen}) {
     return Container(
       padding: EdgeInsets.all(isSmallScreen ? 12 : 16),

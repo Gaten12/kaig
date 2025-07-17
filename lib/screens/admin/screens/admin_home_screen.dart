@@ -10,7 +10,6 @@ import 'list_stasiun_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import '../../../models/transaksi_model.dart';
-import 'list_user_screen.dart';
 
 // Color constants
 const Color charcoalGray = Color(0xFF374151);
