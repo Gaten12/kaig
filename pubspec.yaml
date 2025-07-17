@@ -53,7 +53,7 @@ dev_dependencies:
     sdk: flutter
 
 flutter_icons:
-  image_path: "images/logo_TrainOrder.png"
+  image_path: "images/logo_TrainOrder.jpg"
   android: true
   ios: true
 
